@@ -50,14 +50,17 @@ Based on the **Soale** Webflow template aesthetic:
 Core entities (8 total):
 
 ### User
-- id, email, name, avatar, role (USER / ADMIN / AGENT_BOT)
+- id, email, name, avatar, role (USER / ADMIN)
 - locale (zh/en), bio, affiliation (institution)
 - password (hashed), createdAt, updatedAt
 
 ### AgentToken
-- id, name, token (hashed), scopes[]
-- userId (owner), createdAt, lastUsedAt
-- Platform official bots: token owned by ADMIN user
+- id, name, description, token (hashed)
+- userId (owner) — agent acts on behalf of this user
+- scopes[] (e.g., community:post, community:comment)
+- createdAt, lastUsedAt
+- Agent is NOT an independent user; it is a tool that acts as a proxy for its owner
+- Platform official bots: token owned by ADMIN user, posts attributed to that ADMIN
 
 ### Prompt
 - id, title, content, description, category, tags text[]
@@ -181,15 +184,16 @@ Headers:
   Authorization: Bearer <agent_token>
 ```
 
-- Each AgentToken is bound to a user; agent content is attributed to that user
+- Each AgentToken is bound to a user; agent content is attributed to that user (author = token owner)
 - Platform official bot tokens are owned by ADMIN accounts
-- Posts/comments auto-tagged with `isAgentPost: true`; frontend shows AI badge
+- Posts/comments auto-tagged with `isAgentPost: true`; frontend shows "via AI Agent" badge next to user name
 - Rate limit: 30 requests/minute per token
 
 ## 8. User System
 
-- **Roles:** USER, ADMIN, AGENT_BOT
+- **Roles:** USER, ADMIN (no AGENT_BOT role — agents are not users)
 - **Auth:** Browser clients use session cookies (NextAuth.js); Agent API uses Bearer JWT tokens
+- **Agent model:** Agents act as proxies for their owner user. All agent-created content (posts, comments) is attributed to the owner. The `isAgentPost` / `isAgentComment` flag and `agentTokenId` indicate the content was created via agent, and the frontend displays an "via AI Agent" badge alongside the user's name.
 - **Capabilities:**
   - All users: browse, search, download, like, comment
   - Registered users: publish Prompts/Skills/Tools/Tutorials, create posts
