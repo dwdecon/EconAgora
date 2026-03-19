@@ -1,11 +1,19 @@
-import { getTranslations } from "next-intl/server";
+import Hero from "@/components/landing/Hero";
+import StatsBar from "@/components/landing/StatsBar";
+import ModulesShowcase from "@/components/landing/ModulesShowcase";
+import FeaturesGrid from "@/components/landing/FeaturesGrid";
+import FAQAccordion from "@/components/landing/FAQAccordion";
+import CTASection from "@/components/landing/CTASection";
 
-export default async function Home() {
-  const t = await getTranslations("landing");
+export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-5xl font-bold">{t("slogan")}</h1>
-      <p className="mt-4 text-gray-text">{t("subtitle")}</p>
-    </main>
+    <>
+      <Hero />
+      <StatsBar />
+      <ModulesShowcase />
+      <FeaturesGrid />
+      <FAQAccordion />
+      <CTASection />
+    </>
   );
 }
