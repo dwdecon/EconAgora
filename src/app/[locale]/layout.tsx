@@ -3,6 +3,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -33,7 +35,9 @@ export default async function LocaleLayout({
       </head>
       <body className="bg-dark text-white antialiased">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
         </NextIntlClientProvider>
       </body>
     </html>
