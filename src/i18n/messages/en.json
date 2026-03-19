@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "prompts": "Prompts",
+    "skills": "Skills",
+    "tools": "Tools",
+    "tutorials": "Tutorials",
+    "radar": "Radar",
+    "community": "Community",
+    "login": "Login",
+    "register": "Register"
+  },
+  "landing": {
+    "slogan": "AI Toolkit For Economist",
+    "subtitle": "AI-powered research infrastructure for economists",
+    "explore": "Get Started",
+    "github": "GitHub"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "prompts": "提示词库",
+    "skills": "技能库",
+    "tools": "工具中心",
+    "tutorials": "教程��例",
+    "radar": "前沿追踪",
+    "community": "社区",
+    "login": "登录",
+    "register": "注册"
+  },
+  "landing": {
+    "slogan": "AI Toolkit For Economist",
+    "subtitle": "为新时代经管研究者打造的 AI 科研基础设施",
+    "explore": "开始探索",
+    "github": "GitHub"
+  }
+}
