@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, Noto_Sans_SC, Sora } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -8,9 +9,26 @@ import Footer from "@/components/layout/Footer";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "AI4Econ - AI Toolkit For Economist",
+  title: "EconAgora - AI Toolkit For Economist",
   description: "AI-powered research infrastructure for economists",
 };
+
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-sora",
+});
+
+const notoSansSc = Noto_Sans_SC({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sans-sc",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-ibm-plex-mono",
+});
 
 export default async function LocaleLayout({
   children,
@@ -27,13 +45,10 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="bg-dark text-white antialiased">
+      <body
+        suppressHydrationWarning
+        className={`${sora.variable} ${notoSansSc.variable} ${ibmPlexMono.variable} bg-dark text-white antialiased selection:bg-[#7a00ff]/35 selection:text-white`}
+      >
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main className="min-h-screen">{children}</main>

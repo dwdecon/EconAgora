@@ -1,32 +1,126 @@
-import { Link } from "@/i18n/navigation";
+import { getLocale } from "next-intl/server";
+import {
+  BookOpen,
+  Code2,
+  Cpu,
+  FileText,
+  MessagesSquare,
+  Network,
+  type LucideIcon,
+} from "lucide-react";
+import Reveal from "@/components/shared/Reveal";
+import { getHomeContent, localizeHref } from "./content";
 
-const modules = [
-  { title: "Prompt 库", desc: "经济学研究专用提示词，覆盖文献综述、数据分析、论文写作等场景", href: "/prompts", icon: "📝" },
-  { title: "Skill 库", desc: "可复用的 AI 工作流与自动化技能包", href: "/skills", icon: "⚡" },
-  { title: "MCP/工具中心", desc: "模型上下文协议工具与数据连接器", href: "/tools", icon: "🔧" },
-  { title: "教程 & 案例", desc: "从入门到进阶的实战教程与研究案例", href: "/tutorials", icon: "📚" },
-  { title: "前沿追踪", desc: "AI × 经济学最新论文、工具与趋势", href: "/radar", icon: "📡" },
-  { title: "社区", desc: "人机共创社区，研究者与 AI Agent 协作交流", href: "/community", icon: "💬" },
-];
-
-export default function ModulesShowcase() {
+function ArrowIcon() {
   return (
-    <section className="py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-4">六大模块</h2>
-        <p className="text-center text-gray-text mb-16">一站式 AI 科研基础设施</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((mod) => (
-            <Link
-              key={mod.title}
-              href={mod.href}
-              className="group rounded-2xl border border-dark-border bg-dark-card p-6 hover:border-primary/50 transition"
-            >
-              <span className="text-3xl">{mod.icon}</span>
-              <h3 className="mt-4 text-lg font-semibold group-hover:text-primary transition">{mod.title}</h3>
-              <p className="mt-2 text-sm text-gray-text">{mod.desc}</p>
-            </Link>
-          ))}
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+    >
+      <path d="M7 17L17 7M17 7H7M17 7V17" />
+    </svg>
+  );
+}
+
+export default async function ModulesShowcase() {
+  const locale = await getLocale();
+  const content = getHomeContent(locale);
+  const icons: LucideIcon[] = [
+    BookOpen,
+    MessagesSquare,
+    FileText,
+    Network,
+    Cpu,
+    Code2,
+  ];
+
+  return (
+      <section id="modules" className="relative bg-black py-20">
+      <div className="pointer-events-none absolute left-1/2 top-[44%] h-[720px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(255,90,0,0.14),_rgba(255,20,83,0.12)_38%,_rgba(0,209,255,0.06)_60%,_transparent_74%)] blur-[130px]" />
+      <div className="mx-auto max-w-[1440px] px-6">
+        <Reveal direction="up" threshold={0.25} className="mb-12 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+            <div className="mr-1 h-1.5 w-1.5 rotate-45 bg-[#ff5a00]" />
+            {content.modules.eyebrow}
+          </div>
+          <h2 className="mb-8 text-4xl font-semibold leading-[0.85] tracking-[-0.05em] md:text-5xl lg:text-6xl">
+            {content.modules.title[0]}
+            <br />
+            <span className="opacity-30">{content.modules.title[1]}</span>
+          </h2>
+          <p className="mx-auto max-w-3xl text-sm font-medium leading-relaxed text-white/40 md:text-base">
+            {content.modules.description}
+          </p>
+        </Reveal>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {content.modules.cards.map((card, index) => {
+            const href = localizeHref(locale, card.href);
+            const Icon = icons[index % icons.length];
+
+            const body = (
+              <>
+                <div className="relative z-10 mb-6 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-white/80">
+                  <Icon size={16} />
+                </div>
+                <h3 className="relative z-10 mb-3 text-lg font-semibold tracking-tight">
+                  {card.title}
+                </h3>
+                <p className="relative z-10 mb-6 max-w-[34ch] text-[13px] leading-relaxed text-white/45 transition-colors duration-700 group-hover:text-black/60">
+                  {card.description}
+                </p>
+                <div className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 transition-all duration-700 group-hover:border-black/20">
+                  <ArrowIcon />
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_45%)] opacity-60 transition-opacity duration-700 group-hover:opacity-80" />
+              </>
+            );
+
+            const className =
+              `group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_20px_60px_rgba(0,0,0,0.4)] transition-all duration-700 hover:bg-white hover:text-black ${
+                index === 0 || index === 5 ? "lg:col-span-2 min-h-[200px]" : "min-h-[180px]"
+              }`;
+
+            if (card.external) {
+              return (
+                <Reveal
+                  key={card.title}
+                  direction="scale"
+                  delay={index * 110}
+                  threshold={0.18}
+                >
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={className}
+                  >
+                    {body}
+                  </a>
+                </Reveal>
+              );
+            }
+
+            return (
+              <Reveal
+                key={card.title}
+                direction="scale"
+                delay={index * 110}
+                threshold={0.18}
+              >
+                <a href={href} className={className}>
+                  {body}
+                </a>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>

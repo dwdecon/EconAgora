@@ -1,3 +1,3 @@
-# AI4Econ
+# EconAgora
 
-A new project repository for AI4Econ.
+A new project repository for EconAgora.

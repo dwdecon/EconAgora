@@ -1,18 +1,14 @@
 {
   "nav": {
-    "prompts": "提示词库",
-    "skills": "技能库",
-    "tools": "工具中心",
-    "tutorials": "教程��例",
-    "radar": "前沿追踪",
-    "community": "社区",
+    "prompts": "Prompt Library",
+    "community": "Community",
     "login": "登录",
-    "register": "注册"
+    "register": "免费加入"
   },
   "landing": {
-    "slogan": "AI Toolkit For Economist",
-    "subtitle": "为新时代经管研究者打造的 AI 科研基础设施",
-    "explore": "开始探索",
+    "slogan": "面向经济学研究者的 AI 基础设施",
+    "subtitle": "为经济学研究打造 AI 工作流、Prompt Library 与协作社区",
+    "explore": "浏览 Prompt Library",
     "github": "GitHub"
   }
 }

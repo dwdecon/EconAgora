@@ -1,24 +1,142 @@
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+
+const CLOUDBASE_ENV_ID = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID || "agora-8glrfnss7758021c";
+const CLOUDBASE_ACCESS_KEY = process.env.CLOUDBASE_ACCESS_KEY || process.env.NEXT_PUBLIC_CLOUDBASE_ACCESS_KEY || "";
+
+const BASE_URL = `https://${CLOUDBASE_ENV_ID}.api.tcloudbasegateway.com`;
+
+/**
+ * Query a prompt by ID from CloudBase MySQL database
+ * Uses the MySQL RESTful API with query parameter filtering (no SQL injection risk)
+ */
+async function queryPrompt(id: string) {
+  // Sanitize ID to prevent injection (only allow alphanumeric, underscore, hyphen)
+  const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!safeId) return null;
+
+  try {
+    const url = `${BASE_URL}/v1/rdb/rest/prompt?_id=eq.${encodeURIComponent(safeId)}&select=_id,title,content,download_count&limit=1`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${CLOUDBASE_ACCESS_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      console.error("[download] query failed:", res.status, await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+  } catch (err) {
+    console.error("[download] query error:", err);
+    return null;
+  }
+}
+
+/**
+ * Increment the download_count for a prompt
+ * Uses read-then-update pattern for reliable increment
+ */
+async function incrementDownloadCount(id: string): Promise<boolean> {
+  const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!safeId) return false;
+
+  try {
+    // First query to get current count
+    const queryUrl = `${BASE_URL}/v1/rdb/rest/prompt?_id=eq.${encodeURIComponent(safeId)}&select=download_count&limit=1`;
+    const queryRes = await fetch(queryUrl, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${CLOUDBASE_ACCESS_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!queryRes.ok) {
+      return false;
+    }
+
+    const queryData = await queryRes.json();
+    if (!Array.isArray(queryData) || queryData.length === 0) {
+      return false;
+    }
+
+    const currentCount = queryData[0].download_count || 0;
+    const newCount = currentCount + 1;
+
+    // Then update with incremented value
+    const updateUrl = `${BASE_URL}/v1/rdb/rest/prompt?_id=eq.${encodeURIComponent(safeId)}`;
+    const updateRes = await fetch(updateUrl, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${CLOUDBASE_ACCESS_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+      },
+      body: JSON.stringify({
+        download_count: newCount,
+      }),
+    });
+
+    if (!updateRes.ok) {
+      console.error("[download] update count failed:", updateRes.status, await updateRes.text());
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[download] update error:", err);
+    return false;
+  }
+}
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const prompt = await prisma.prompt.findUnique({ where: { id } });
-  if (!prompt) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  try {
+    const { id } = await params;
 
-  await prisma.prompt.update({
-    where: { id },
-    data: { downloadCount: { increment: 1 } },
-  });
+    if (!id) {
+      return NextResponse.json({ error: "Missing prompt ID" }, { status: 400 });
+    }
 
-  const filename = `${prompt.title.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, "_")}.txt`;
-  return new NextResponse(prompt.content, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
-  });
+    // Query the prompt from database
+    const prompt = await queryPrompt(id);
+
+    if (!prompt) {
+      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+    }
+
+    // Increment download count (non-blocking, best effort)
+    // Fire and forget - don't fail the download if count update fails
+    incrementDownloadCount(id).catch(() => {});
+
+    // Build the downloadable content
+    const content = `# ${prompt.title || 'Untitled Prompt'}\n\n${prompt.content || ''}`;
+
+    // Generate safe filename from title
+    const safeTitle = (prompt.title || 'prompt')
+      .replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_')
+      .substring(0, 50);
+    const filename = `${safeTitle}.txt`;
+
+    // Return as downloadable text file
+    return new NextResponse(content, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": Buffer.byteLength(content).toString(),
+      },
+    });
+  } catch (err) {
+    console.error("[download] error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

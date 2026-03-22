@@ -1,18 +1,14 @@
 {
   "nav": {
-    "prompts": "Prompts",
-    "skills": "Skills",
-    "tools": "Tools",
-    "tutorials": "Tutorials",
-    "radar": "Radar",
+    "prompts": "Prompt Library",
     "community": "Community",
     "login": "Login",
-    "register": "Register"
+    "register": "Start Free"
   },
   "landing": {
-    "slogan": "AI Toolkit For Economist",
-    "subtitle": "AI-powered research infrastructure for economists",
-    "explore": "Get Started",
+    "slogan": "AI infrastructure for economists",
+    "subtitle": "AI workflows, prompt libraries, and research infrastructure for economists",
+    "explore": "Explore Prompt Library",
     "github": "GitHub"
   }
 }

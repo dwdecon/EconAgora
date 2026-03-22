@@ -16,7 +16,7 @@ export default function LocaleSwitcher() {
   return (
     <button
       onClick={switchLocale}
-      className="text-sm text-gray-text hover:text-white transition"
+      className="rounded-full border border-white/10 px-4 py-2.5 text-[13px] font-semibold text-white/80 transition-all duration-300 hover:border-white/30 hover:bg-white/5 hover:text-white"
     >
       {locale === "zh" ? "EN" : "中文"}
     </button>

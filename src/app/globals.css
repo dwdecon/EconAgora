@@ -7,12 +7,79 @@
   --color-dark-card: #141414;
   --color-dark-border: #1f1f1f;
   --color-gray-text: rgb(255 255 255 / 50%);
-  --font-sans: "Inter Tight", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  --color-surface: rgb(255 255 255 / 0.05);
+  --color-surface-strong: rgb(255 255 255 / 0.1);
+  --font-sans: var(--font-sora), sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+}
+
+html {
+  scroll-behavior: auto;
+  background: var(--color-dark);
+}
+
+html.lenis {
+  height: auto;
+}
+
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }
 
 body {
   background: var(--color-dark);
   color: white;
   font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top, rgb(255 255 255 / 0.045), transparent 36%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.015), transparent 18%);
+  z-index: 0;
+}
+
+main,
+footer,
+section {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
