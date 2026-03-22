@@ -49,14 +49,11 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
+          { label: "Skill Hub", href: "#modules" },
+          { label: "Tool Center", href: "#tools" },
+          { label: "Boardcast", href: "#boardcast" },
           { label: "Community", href: "/community" },
-          { label: "Modules", href: "#modules" },
-          { label: "FAQ", href: "#faq" },
-          {
-            label: "GitHub",
-            href: "https://github.com/dwdecon/EconAgora",
-            external: true,
-          },
+          { label: "About", href: "#about" },
         ] satisfies NavItem[],
         login: "登录",
         register: "免费加入",
@@ -259,14 +256,11 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
+          { label: "Skill Hub", href: "#modules" },
+          { label: "Tool Center", href: "#tools" },
+          { label: "Boardcast", href: "#boardcast" },
           { label: "Community", href: "/community" },
-          { label: "Modules", href: "#modules" },
-          { label: "FAQ", href: "#faq" },
-          {
-            label: "GitHub",
-            href: "https://github.com/dwdecon/EconAgora",
-            external: true,
-          },
+          { label: "About", href: "#about" },
         ] satisfies NavItem[],
         login: "Login",
         register: "Start Free",
