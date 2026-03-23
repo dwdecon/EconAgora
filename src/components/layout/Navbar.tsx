@@ -39,6 +39,12 @@ function BrandMark() {
 export default function Navbar() {
   const [user, setUser] = useState<NavUser | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [navVisible, setNavVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setNavVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
   const locale = useLocale();
   const pathname = usePathname();
   const content = getHomeContent(locale);
@@ -105,7 +111,9 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full px-6 py-4 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:px-10 ${
+      className={`fixed top-0 z-50 w-full px-6 py-4 transition-[background-color,backdrop-filter,border-color,box-shadow,opacity,transform] duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:px-10 ${
+        navVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
+      } ${
         navScrolled
           ? "border-b border-white/[0.08] bg-[rgba(22,22,23,0.82)] shadow-[0_0_80px_rgba(0,0,0,0.5)] backdrop-blur-[20px] backdrop-saturate-[180%]"
           : "border-b border-transparent bg-transparent"

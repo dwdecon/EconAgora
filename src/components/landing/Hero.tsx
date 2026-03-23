@@ -7,7 +7,7 @@
  * the user explicitly asks to modify the Hero UI/UX.
  */
 import { getLocale } from "next-intl/server";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getHomeContent } from "./content";
 import HeroHalo from "./HeroHalo";
@@ -19,14 +19,14 @@ export default async function Hero() {
   const isZh = locale === "zh";
 
   return (
-    <section className="relative min-h-screen overflow-x-clip bg-black text-white">
+    <section className="relative min-h-screen overflow-visible bg-black text-white">
       <main className="relative flex min-h-screen flex-col">
         <HeroHalo />
 
         <div className="relative z-10 mx-auto flex w-full max-w-[1160px] flex-col items-center justify-start px-4 pt-[15vh] pb-4 text-center sm:px-6">
           <Reveal
             direction="down"
-            duration={1000}
+            duration={1800}
             threshold={0.1}
             className={isZh ? "mt-10 md:mt-12" : "mt-10 md:mt-12"}
           >
@@ -38,8 +38,8 @@ export default async function Hero() {
 
           <Reveal
             direction="up"
-            delay={180}
-            duration={1000}
+            delay={200}
+            duration={1800}
             threshold={0.1}
             className={isZh ? "mt-3 md:mt-4" : "mt-4 md:mt-5"}
           >
@@ -55,7 +55,7 @@ export default async function Hero() {
             </h1>
           </Reveal>
 
-          <Reveal direction="up" delay={340} duration={1000} threshold={0.1} className="mt-8 md:mt-10">
+          <Reveal direction="up" delay={400} duration={1800} threshold={0.1} className="mt-8 md:mt-10">
             <div className="mt-5">
               <p
                 className={`text-gray-400 leading-relaxed ${
@@ -67,7 +67,6 @@ export default async function Hero() {
                 {isZh ? (
                   <>
                     {content.hero.description.split("，用于")[0]}
-                    ，
                     <br />
                     用于
                     {content.hero.description.split("，用于")[1]}
@@ -79,11 +78,11 @@ export default async function Hero() {
 
               <Link
                 href="/prompts"
-                className="group mx-auto mt-8 inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-1.5 text-sm font-semibold text-black transition-all duration-500 hover:scale-105 hover:bg-gray-100"
+                className="group mx-auto mt-8 inline-flex items-center rounded-xl bg-white py-2.5 pl-6 pr-2.5 text-sm font-semibold text-black"
               >
-                <span>{content.hero.primaryCta}</span>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors duration-300 group-hover:bg-[#ff1453]">
-                  <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                <span className="pr-3">{content.hero.primaryCta}</span>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-black transition-colors duration-300 group-hover:bg-black group-hover:text-white">
+                  <ArrowUpRight size={15} strokeWidth={2} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
               </Link>
             </div>
@@ -94,8 +93,8 @@ export default async function Hero() {
               <Reveal
                 key={stat.label}
                 direction="up"
-                delay={index * 100}
-                duration={700}
+                delay={index * 120}
+                duration={1400}
                 threshold={0.3}
                 className="flex max-w-[200px] flex-col items-center"
               >

@@ -35,7 +35,7 @@ export default async function PartnerMarquee() {
   const content = getHomeContent(locale);
 
   return (
-    <section className="relative z-10 w-full overflow-hidden border-t border-white/[0.05] bg-black/50 py-10">
+    <section className="relative z-10 w-full overflow-hidden bg-transparent pt-20 pb-10">
       <Reveal threshold={0.2} direction="up">
         <div className="mx-auto mb-8 flex max-w-[1440px] items-center gap-4 px-10">
           <div className="flex -space-x-3">

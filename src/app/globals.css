@@ -83,3 +83,13 @@ section {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+@keyframes halo-spin {
+  from { transform: translateX(-50%) translateY(-44.5%) rotate(0deg); }
+  to   { transform: translateX(-50%) translateY(-44.5%) rotate(360deg); }
+}
+
+@keyframes halo-hue {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50%       { filter: hue-rotate(-40deg); }
+}
