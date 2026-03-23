@@ -100,10 +100,11 @@ export default function Reveal({
 
   const style = {
     opacity: isVisible ? 1 : 0,
+    filter: isVisible ? "blur(0px)" : "blur(6px)",
     transform: isVisible ? "translate(0) scale(1)" : getTransform(),
-    transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+    transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1), filter ${duration}ms cubic-bezier(0.16, 1, 0.3, 1), transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
     transitionDelay: `${delay}ms`,
-    willChange: "opacity, transform" as const,
+    willChange: "opacity, filter, transform" as const,
   };
 
   return (

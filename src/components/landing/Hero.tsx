@@ -44,10 +44,10 @@ export default async function Hero() {
             className={isZh ? "mt-3 md:mt-4" : "mt-4 md:mt-5"}
           >
             <h1
-              className={`mt-5 tracking-[-0.04em] text-white ${
+              className={`mt-5 text-white ${
                 isZh
-                  ? "max-w-[1040px] font-[family:var(--font-noto-sans-sc)] text-[44px] sm:text-[56px] md:text-[68px] lg:text-[76px] leading-[1.06] font-normal"
-                  : "max-w-[920px] text-[46px] sm:text-[58px] md:text-[72px] lg:text-[80px] leading-[1.02] font-semibold"
+                  ? "max-w-[1040px] font-[family:var(--font-noto-sans-sc)] text-[44px] sm:text-[56px] md:text-[68px] lg:text-[76px] leading-[1.06] font-normal tracking-[0.04em]"
+                  : "max-w-[920px] text-[46px] sm:text-[58px] md:text-[72px] lg:text-[80px] leading-[1.02] font-semibold tracking-[-0.04em]"
               }`}
             >
               <span className="block">{content.hero.title[0]}</span>

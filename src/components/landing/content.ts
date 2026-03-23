@@ -62,7 +62,7 @@ export function getHomeContent(locale: string) {
       hero: {
         badge:
           "面向研究者的 AI 基础设施 | Prompt · Skills · Community",
-        title: ["为研究者打造的", "AI+科研基础设施"],
+        title: ["为研究工作打造的", "AI基础设施"],
         description:
           "提示词模板、研究性技能、复杂插件与科研社区集成在一个平台，用于文献检索、代码复现、科研加速。",
         primaryCta: "浏览 EconAgora",
