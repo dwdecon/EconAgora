@@ -11,7 +11,7 @@ export default async function ManifestoSection() {
   return (
     <section
       id="manifesto"
-      className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-12 px-6 pt-32 pb-40 md:flex-row md:px-10"
+      className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-start justify-between gap-12 px-6 pt-24 pb-24 md:flex-row md:px-10"
     >
       <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[420px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(255,90,0,0.16),_rgba(255,20,83,0.08)_45%,_transparent_72%)] blur-[120px]" />
 

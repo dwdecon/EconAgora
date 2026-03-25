@@ -1,60 +1,76 @@
 import { getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import Reveal from "@/components/shared/Reveal";
 import { getHomeContent } from "./content";
+
+function StarIcon() {
+  return (
+    <svg className="h-3 w-3 text-[#ff5a00]" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M8 0L9.79 6.21L16 8L9.79 9.79L8 16L6.21 9.79L0 8L6.21 6.21L8 0Z" />
+    </svg>
+  );
+}
 
 export default async function CTASection() {
   const locale = await getLocale();
   const content = getHomeContent(locale);
 
   return (
-    <section className="bg-black py-24 md:py-32">
-      <div className="mx-auto max-w-3xl px-6 text-center">
-        <Reveal direction="up" threshold={0.15}>
+    <>
+      {/* ── Hero CTA ── */}
+      <section className="hero-section">
+        <div className="top-edge-light" />
+        <div className="starry-bg" />
+        <div className="hero-bottom-glow" />
+
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center mt-8">
           {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
-            <div className="mr-1 h-1.5 w-1.5 rotate-45 bg-[#ff5a00]" />
-            {content.cta.badge}
+          <div className="mb-12 flex justify-center">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-black/30 px-5 py-2 backdrop-blur-md">
+              <StarIcon />
+              <span className="text-[13px] font-medium tracking-wide text-white/90">
+                {content.cta.badge}
+              </span>
+            </div>
           </div>
 
-          {/* Title */}
-          <h2 className="mb-6 text-3xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+          {/* Heading */}
+          <h1 className="cta-heading mb-6 text-[44px] font-medium leading-[1.05] text-white md:text-[68px]">
             {content.cta.title[0]}
             <br />
-            <span className="font-serif italic opacity-30">
+            <span className="font-serif italic text-white/30">
               {content.cta.accent}
             </span>{" "}
             {content.cta.title[1]}
-          </h2>
+          </h1>
 
           {/* Description */}
-          <p className="mx-auto mb-10 max-w-xl text-sm font-medium leading-relaxed text-[#A1A1AA] md:text-base">
+          <p className="mx-auto mb-12 max-w-[700px] text-[16px] font-normal leading-[1.6] text-white/60 md:text-[19px]">
             {content.cta.description}
           </p>
 
           {/* Buttons */}
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Link
               href="/auth/register"
-              className="w-full rounded-full bg-white px-8 py-4 text-base font-bold text-black transition-colors duration-300 hover:bg-gray-200 sm:w-auto"
+              className="squircle-btn w-full bg-white px-10 py-4 text-center text-[16px] font-semibold text-black transition-transform active:scale-[0.98] sm:w-auto sm:min-w-[190px]"
             >
               {content.cta.primary}
             </Link>
             <Link
               href="/prompts"
-              className="w-full rounded-full border-2 border-white/10 px-8 py-4 text-base font-bold text-white transition-colors duration-300 hover:border-white sm:w-auto"
+              className="squircle-btn w-full border border-white/20 bg-white/[0.05] px-10 py-4 text-center text-[16px] font-semibold text-white backdrop-blur-2xl transition-all hover:bg-white/[0.1] active:scale-[0.98] sm:w-auto sm:min-w-[190px]"
             >
               {content.cta.secondary}
             </Link>
           </div>
+        </div>
+      </section>
 
-          {/* Hint */}
-          <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-white/40">
-            <span>→</span>
-            {content.cta.hint}
-          </p>
-        </Reveal>
-      </div>
-    </section>
+      {/* ── Brand fold section ── */}
+      <section className="brand-logo-section">
+        <div className="pure-fold-curtain" />
+        <div className="giant-watermark-text">EconAgora</div>
+      </section>
+    </>
   );
 }

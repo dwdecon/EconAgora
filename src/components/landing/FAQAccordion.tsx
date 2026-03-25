@@ -45,7 +45,7 @@ export default function FAQAccordion() {
   const content = getHomeContent(locale);
 
   return (
-    <section id="faq" className="bg-black py-32">
+    <section id="faq" className="bg-black py-24">
       <div className="mx-auto max-w-[1440px] px-6">
         <div className="grid grid-cols-1 gap-24 lg:grid-cols-2">
           {/* Left */}
@@ -62,14 +62,20 @@ export default function FAQAccordion() {
               <p className="mb-12 max-w-md text-lg leading-relaxed text-white/40 md:text-[20px]">
                 {content.faq.description}
               </p>
-              <a
-                href="https://github.com/dwdecon/EconAgora"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex rounded-full border border-white/10 bg-white/5 px-10 py-5 text-[15px] font-bold transition-all hover:bg-white hover:text-black"
+              <button
+                type="button"
+                id="ai-assistant-trigger"
+                className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-10 py-5 text-[15px] font-bold transition-all hover:bg-white hover:text-black"
+                onClick={() => {
+                  /* TODO: 接入网站 AI 助手 */
+                  window.alert("AI 助手功能即将上线，敬请期待！");
+                }}
               >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 8V4H8" /><rect x="2" y="2" width="20" height="20" rx="5" /><path d="M2 12h20" /><path d="M12 2v20" /><circle cx="7" cy="7" r="1" fill="currentColor" /><circle cx="17" cy="7" r="1" fill="currentColor" />
+                </svg>
                 {content.faq.action}
-              </a>
+              </button>
             </div>
           </Reveal>
 

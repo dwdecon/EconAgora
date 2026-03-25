@@ -36,7 +36,7 @@ export default function Testimonials() {
   };
 
   return (
-    <section className="relative bg-black py-32">
+    <section className="relative bg-black py-24">
       <div className="mx-auto max-w-[1120px] px-6 md:px-10">
         {/* ── Header ── */}
         <Reveal direction="up" threshold={0.25}>

@@ -366,7 +366,7 @@ export function getHomeContent(locale: string) {
         title: ["常见问题", "平台定位"],
         description:
           "如果你希望基于 EconAgora 组织课程，研究组或个人工作流，可以先从 Prompt Library 和社区开始。",
-        action: "查看 GitHub",
+        action: "网站AI助手",
         items: [
           {
             question: "EconAgora 是什么？",
@@ -424,8 +424,11 @@ export function getHomeContent(locale: string) {
             items: [
               { label: "首页", href: "/" },
               { label: "Prompt Library", href: "/prompts" },
+              { label: "Skill Hub", href: "/skills" },
+              { label: "Tool Center", href: "/tools" },
+              { label: "Boardcast", href: "/boardcast" },
               { label: "Community", href: "/community" },
-              { label: "FAQ", href: "#faq" },
+              { label: "About", href: "/about" },
             ],
           },
           {
@@ -434,16 +437,6 @@ export function getHomeContent(locale: string) {
               { label: "发布 Prompt", href: "/prompts/new" },
               { label: "发起讨论", href: "/community/new" },
               { label: "免费加入", href: "/auth/register" },
-            ],
-          },
-          {
-            title: "Open Source",
-            items: [
-              {
-                label: "GitHub Repository",
-                href: "https://github.com/dwdecon/EconAgora",
-                external: true,
-              },
             ],
           },
         ] satisfies FooterGroup[],
@@ -771,7 +764,7 @@ export function getHomeContent(locale: string) {
         title: ["Frequently asked questions", "and platform positioning"],
         description:
           "If you want to organize a course, research group, or individual workflow around EconAgora, start with the Prompt Library and community.",
-        action: "Open GitHub",
+        action: "AI Assistant",
         items: [
           {
             question: "What is EconAgora?",
@@ -829,8 +822,11 @@ export function getHomeContent(locale: string) {
             items: [
               { label: "Home", href: "/" },
               { label: "Prompt Library", href: "/prompts" },
+              { label: "Skill Hub", href: "/skills" },
+              { label: "Tool Center", href: "/tools" },
+              { label: "Boardcast", href: "/boardcast" },
               { label: "Community", href: "/community" },
-              { label: "FAQ", href: "#faq" },
+              { label: "About", href: "/about" },
             ],
           },
           {
@@ -839,16 +835,6 @@ export function getHomeContent(locale: string) {
               { label: "Publish Prompt", href: "/prompts/new" },
               { label: "Start Thread", href: "/community/new" },
               { label: "Create Account", href: "/auth/register" },
-            ],
-          },
-          {
-            title: "Open Source",
-            items: [
-              {
-                label: "GitHub Repository",
-                href: "https://github.com/dwdecon/EconAgora",
-                external: true,
-              },
             ],
           },
         ] satisfies FooterGroup[],

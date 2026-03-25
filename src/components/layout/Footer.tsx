@@ -21,9 +21,9 @@ export default function Footer() {
   const content = getHomeContent(locale);
 
   return (
-    <footer className="border-t border-white/5 bg-black pt-40 pb-16">
+    <footer className="bg-black pt-20 pb-16">
       <div className="mx-auto max-w-[1440px] px-6">
-        <div className="mb-40 grid grid-cols-1 gap-20 lg:grid-cols-4 lg:gap-24">
+        <div className="mb-20 grid grid-cols-1 gap-20 lg:grid-cols-3 lg:gap-24">
           <div>
             <Link href="/" className="mb-12 flex items-center gap-3">
               <BrandMark />
@@ -74,31 +74,6 @@ export default function Footer() {
               </ul>
             </div>
           ))}
-
-          <div>
-            <h4 className="mb-12 text-[11px] font-bold uppercase tracking-[0.2em] text-white/20">
-              {content.footer.updatesTitle}
-            </h4>
-            <p className="mb-10 text-[18px] leading-relaxed text-white/40">
-              {content.footer.updatesDescription}
-            </p>
-            <div className="flex flex-col gap-4">
-              <a
-                href={localizeHref(locale, content.footer.updatesPrimary.href)}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl bg-white px-8 py-5 text-center text-[14px] font-bold text-black transition-all duration-500 hover:bg-gray-200"
-              >
-                {content.footer.updatesPrimary.label}
-              </a>
-              <a
-                href={localizeHref(locale, content.footer.updatesSecondary.href)}
-                className="rounded-2xl border border-white/10 px-8 py-5 text-center text-[14px] font-bold text-white transition-all duration-500 hover:border-white"
-              >
-                {content.footer.updatesSecondary.label}
-              </a>
-            </div>
-          </div>
         </div>
 
         <div className="flex flex-col items-center justify-between gap-8 border-t border-white/5 pt-12 md:flex-row">
