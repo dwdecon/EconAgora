@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { getShowcaseArticle } from "@/components/landing/content";
 import { db, getSessionUser } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
 import CommentSection from "@/components/shared/CommentSection";
 import LikeButton from "@/components/shared/LikeButton";
 import TagBadge from "@/components/shared/TagBadge";
+import ArticleLayout from "@/components/shared/ArticleLayout";
+
+/* ── Types ─────────────────────────────────────────────── */
 
 interface Post {
   _id: string;
@@ -35,8 +39,33 @@ interface Comment {
   replies?: Comment[];
 }
 
+/* ── Page ──────────────────────────────────────────────── */
+
 export default function PostDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug, locale } = useParams<{ slug: string; locale: string }>();
+
+  /* 1. Static showcase article */
+  const staticArticle = getShowcaseArticle(slug, locale);
+  if (staticArticle) {
+    return (
+      <ArticleLayout>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {staticArticle.tags.map((tag) => (
+            <TagBadge key={tag} tag={tag} />
+          ))}
+        </div>
+        <div dangerouslySetInnerHTML={{ __html: staticArticle.articleContent }} />
+      </ArticleLayout>
+    );
+  }
+
+  /* 2. DB-backed post */
+  return <DbPostDetail id={slug} />;
+}
+
+/* ── DB detail (original logic, extracted to sub-component) ── */
+
+function DbPostDetail({ id }: { id: string }) {
   const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
@@ -106,9 +135,7 @@ export default function PostDetailPage() {
             .eq("target_id", id)
             .single();
 
-          if (!cancelled) {
-            setLiked(Boolean(likeRow));
-          }
+          if (!cancelled) setLiked(Boolean(likeRow));
         } else {
           setLiked(false);
         }
@@ -122,13 +149,11 @@ export default function PostDetailPage() {
 
         const rows = (commentRows as any[]) || [];
         if (rows.length === 0) {
-          if (!cancelled) {
-            setComments([]);
-          }
+          if (!cancelled) setComments([]);
           return;
         }
 
-        const authorIds = [...new Set(rows.map((comment) => comment.author_id))];
+        const authorIds = [...new Set(rows.map((c) => c.author_id))];
         const authorMap: Record<string, Author> = {};
 
         await Promise.all(
@@ -140,11 +165,7 @@ export default function PostDetailPage() {
               .single();
 
             authorMap[uid] = data
-              ? {
-                  id: (data as any).cloudbase_uid,
-                  name: (data as any).name,
-                  avatar: (data as any).avatar,
-                }
+              ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
               : { id: uid, name: "Unknown user", avatar: null };
           }),
         );
@@ -161,12 +182,7 @@ export default function PostDetailPage() {
             created_at: row.created_at,
             is_agent_comment: row.is_agent_comment ?? false,
             user_id: row.author_id,
-            author:
-              authorMap[row.author_id] ?? {
-                id: row.author_id,
-                name: "Unknown user",
-                avatar: null,
-              },
+            author: authorMap[row.author_id] ?? { id: row.author_id, name: "Unknown user", avatar: null },
             replies: [],
           };
         }
@@ -181,59 +197,53 @@ export default function PostDetailPage() {
 
         setComments(rootComments);
       } catch (error) {
-        if (!cancelled) {
-          console.error("Failed to fetch post detail:", error);
-        }
+        if (!cancelled) console.error("Failed to fetch post detail:", error);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchData();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id, router]);
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <ArticleLayout>
         <p className="py-20 text-center text-gray-text">Loading post...</p>
-      </div>
+      </ArticleLayout>
     );
   }
 
   if (!post) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <ArticleLayout>
         <p className="py-20 text-center text-gray-text">Post not found.</p>
-      </div>
+      </ArticleLayout>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <ArticleLayout>
       <div className="mb-4 flex items-center gap-2">
-        <span className="font-semibold">{author?.name || "Unknown user"}</span>
+        <span className="font-semibold text-white">{author?.name || "Unknown user"}</span>
         {post.is_agent_post ? (
           <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs text-primary">
             via AI Agent
           </span>
         ) : null}
-        <span className="ml-auto text-sm text-gray-text">
+        <span className="ml-auto text-sm text-[#666]">
           {new Date(post.created_at).toLocaleDateString()}
         </span>
       </div>
-      <h1 className="text-3xl font-bold">{post.title}</h1>
+      <h2 className="!mt-0">{post.title}</h2>
       <div className="mt-3 flex flex-wrap gap-1">
         {post.tags.map((tag) => (
           <TagBadge key={tag} tag={tag} />
         ))}
       </div>
-      <div className="prose prose-invert mt-8 max-w-none">
-        <p className="whitespace-pre-wrap text-gray-text">{post.content}</p>
+      <div className="mt-8">
+        <p className="whitespace-pre-wrap">{post.content}</p>
       </div>
       <div className="mt-6">
         <LikeButton
@@ -249,6 +259,6 @@ export default function PostDetailPage() {
         comments={comments}
         isLoggedIn={isLoggedIn}
       />
-    </div>
+    </ArticleLayout>
   );
 }

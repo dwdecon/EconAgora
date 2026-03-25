@@ -1,124 +1,125 @@
-import { getLocale } from "next-intl/server";
-import {
-  BookOpen,
-  Code2,
-  Cpu,
-  FileText,
-  MessagesSquare,
-  Network,
-  type LucideIcon,
-} from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import Reveal from "@/components/shared/Reveal";
 import { getHomeContent, localizeHref } from "./content";
 
-function ArrowIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-    >
-      <path d="M7 17L17 7M17 7H7M17 7V17" />
-    </svg>
-  );
-}
+const GRADIENTS = [
+  "from-[#ff5a00]/20 to-[#ff2d55]/10",
+  "from-[#146ef5]/20 to-[#00d18f]/10",
+  "from-[#f51ce6]/20 to-[#146ef5]/10",
+  "from-[#00d18f]/20 to-[#ff5a00]/10",
+  "from-[#ff2d55]/20 to-[#f51ce6]/10",
+  "from-[#146ef5]/20 to-[#ff5a00]/10",
+  "from-[#f51ce6]/20 to-[#00d18f]/10",
+  "from-[#ff5a00]/20 to-[#146ef5]/10",
+  "from-[#00d18f]/20 to-[#f51ce6]/10",
+  "from-[#ff2d55]/20 to-[#146ef5]/10",
+];
 
-export default async function ModulesShowcase() {
-  const locale = await getLocale();
+export default function ModulesShowcase({ locale }: { locale: string }) {
   const content = getHomeContent(locale);
-  const icons: LucideIcon[] = [
-    BookOpen,
-    MessagesSquare,
-    FileText,
-    Network,
-    Cpu,
-    Code2,
-  ];
+  const tabs = content.modules.tabs;
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
-      <section id="modules" className="relative bg-black py-20">
+    <section id="modules" className="relative bg-black py-24">
       <div className="pointer-events-none absolute left-1/2 top-[44%] h-[720px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(255,90,0,0.14),_rgba(255,20,83,0.12)_38%,_rgba(0,209,255,0.06)_60%,_transparent_74%)] blur-[130px]" />
-      <div className="mx-auto max-w-[1440px] px-6">
-        <Reveal direction="up" threshold={0.25} className="mb-12 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
-            <div className="mr-1 h-1.5 w-1.5 rotate-45 bg-[#ff5a00]" />
-            {content.modules.eyebrow}
+
+      <div className="mx-auto max-w-[1280px] px-6 md:px-10">
+        {/* Header */}
+        <Reveal direction="up" threshold={0.25}>
+          <div className="mb-16 flex flex-col justify-between gap-8 md:flex-row md:items-end">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+                <div className="mr-1 h-1.5 w-1.5 rotate-45 bg-[#ff5a00]" />
+                {content.modules.eyebrow}
+              </div>
+              <h2 className="text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-white sm:text-[44px] md:text-[52px]">
+                {content.modules.title[0]}
+              </h2>
+            </div>
+            <div className="mt-6 max-w-[420px]">
+              <p className="mb-4 text-[15px] leading-[1.7] text-[#A1A1AA]">
+                {content.modules.description}
+              </p>
+              <a
+                href={localizeHref(locale, "/prompts")}
+                className="group inline-flex items-center gap-2 text-[14px] font-semibold text-white transition-colors hover:text-[#ff5a00]"
+              >
+                {content.modules.cta}
+                <ArrowUpRight size={15} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </div>
           </div>
-          <h2 className="mb-8 text-4xl font-semibold leading-[0.85] tracking-[-0.05em] md:text-5xl lg:text-6xl">
-            {content.modules.title[0]}
-            <br />
-            <span className="opacity-30">{content.modules.title[1]}</span>
-          </h2>
-          <p className="mx-auto max-w-3xl text-sm font-medium leading-relaxed text-white/40 md:text-base">
-            {content.modules.description}
-          </p>
+        </Reveal>
+        {/* Tabs */}
+        <Reveal direction="up" delay={100} threshold={0.25}>
+          <div className="mb-10 flex items-center gap-2 overflow-x-auto border-b border-white/10 pb-px">
+            {tabs.map((tab, i) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(i)}
+                className={`whitespace-nowrap px-5 py-3 text-[13px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ${
+                  activeTab === i
+                    ? "border-b-2 border-white text-white"
+                    : "text-[#666] hover:text-[#999]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {content.modules.cards.map((card, index) => {
-            const href = localizeHref(locale, card.href);
-            const Icon = icons[index % icons.length];
-
-            const body = (
-              <>
-                <div className="relative z-10 mb-6 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-white/80">
-                  <Icon size={16} />
-                </div>
-                <h3 className="relative z-10 mb-3 text-lg font-semibold tracking-tight">
-                  {card.title}
-                </h3>
-                <p className="relative z-10 mb-6 max-w-[34ch] text-[13px] leading-relaxed text-white/45 transition-colors duration-700 group-hover:text-black/60">
-                  {card.description}
-                </p>
-                <div className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 transition-all duration-700 group-hover:border-black/20">
-                  <ArrowIcon />
-                </div>
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_45%)] opacity-60 transition-opacity duration-700 group-hover:opacity-80" />
-              </>
-            );
-
-            const className =
-              `group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_20px_60px_rgba(0,0,0,0.4)] transition-all duration-700 hover:bg-white hover:text-black ${
-                index === 0 || index === 5 ? "lg:col-span-2 min-h-[200px]" : "min-h-[180px]"
-              }`;
-
-            if (card.external) {
-              return (
-                <Reveal
-                  key={card.title}
-                  direction="scale"
-                  delay={index * 110}
-                  threshold={0.18}
-                >
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={className}
-                  >
-                    {body}
-                  </a>
-                </Reveal>
-              );
-            }
-
+        {/* Cards */}
+        <div
+          key={tabs[activeTab].key}
+          className="grid grid-cols-1 gap-5 md:grid-cols-2"
+          style={{
+            animation: "showcase-fade 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          {tabs[activeTab].items.map((item, idx) => {
+            const gradient = GRADIENTS[(activeTab * 4 + idx) % GRADIENTS.length];
             return (
-              <Reveal
-                key={card.title}
-                direction="scale"
-                delay={index * 110}
-                threshold={0.18}
+              <a
+                key={item.title}
+                href={localizeHref(locale, item.href)}
+                className="group relative overflow-hidden rounded-2xl border border-white/8 bg-white/[0.03] transition-all duration-500 hover:border-white/15 hover:bg-white/[0.06]"
               >
-                <a href={href} className={className}>
-                  {body}
-                </a>
-              </Reveal>
+                <div className="p-6 pb-4">
+                  <h3 className="mb-2 text-[18px] font-semibold tracking-tight text-white">
+                    {item.title}
+                  </h3>
+                  <p className="mb-4 text-[13px] leading-relaxed text-[#888]">
+                    {item.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {item.tags.map((tag, ti) => (
+                      <span
+                        key={tag}
+                        className={`rounded-full px-3 py-1 text-[11px] font-medium ${
+                          ti === 0
+                            ? "bg-white/10 text-white/80"
+                            : "bg-white/5 text-white/40"
+                        }`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className={`relative mx-4 mb-4 h-[200px] overflow-hidden rounded-xl bg-gradient-to-br ${gradient}`}>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[13px] font-medium text-white backdrop-blur-sm">
+                      Explore
+                      <ArrowUpRight size={14} />
+                    </span>
+                  </div>
+                </div>
+              </a>
             );
           })}
         </div>

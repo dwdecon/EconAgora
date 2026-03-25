@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { getShowcaseArticle } from "@/components/landing/content";
 import { db, getSessionUser } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
 import CommentSection from "@/components/shared/CommentSection";
 import LikeButton from "@/components/shared/LikeButton";
 import TagBadge from "@/components/shared/TagBadge";
+import ArticleLayout from "@/components/shared/ArticleLayout";
+
+/* ── Types ─────────────────────────────────────────────── */
 
 interface Prompt {
   id: string;
@@ -18,11 +22,7 @@ interface Prompt {
   likeCount: number;
   downloadCount: number;
   createdAt: string;
-  author: {
-    id: string;
-    name: string;
-    avatar: string | null;
-  };
+  author: { id: string; name: string; avatar: string | null };
 }
 
 interface Comment {
@@ -31,17 +31,37 @@ interface Comment {
   created_at: string;
   is_agent_comment: boolean;
   user_id: string;
-  author: {
-    id: string;
-    name: string;
-    avatar: string | null;
-  };
+  author: { id: string; name: string; avatar: string | null };
   replies?: Comment[];
 }
 
-export default function PromptDetailPage() {
-  const { id } = useParams<{ id: string }>();
+/* ── Page ──────────────────────────────────────────────── */
 
+export default function PromptDetailPage() {
+  const { slug, locale } = useParams<{ slug: string; locale: string }>();
+
+  /* 1. Static showcase article (instant, no DB) */
+  const staticArticle = getShowcaseArticle(slug, locale);
+  if (staticArticle) {
+    return (
+      <ArticleLayout>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {staticArticle.tags.map((tag) => (
+            <TagBadge key={tag} tag={tag} />
+          ))}
+        </div>
+        <div dangerouslySetInnerHTML={{ __html: staticArticle.articleContent }} />
+      </ArticleLayout>
+    );
+  }
+
+  /* 2. DB-backed prompt (user-generated content) */
+  return <DbPromptDetail id={slug} />;
+}
+
+/* ── DB detail (unchanged logic, extracted to sub-component) ── */
+
+function DbPromptDetail({ id }: { id: string }) {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [liked, setLiked] = useState(false);
@@ -115,9 +135,7 @@ export default function PromptDetailPage() {
             .eq("target_id", id)
             .single();
 
-          if (!cancelled) {
-            setLiked(Boolean(likeData));
-          }
+          if (!cancelled) setLiked(Boolean(likeData));
         } else {
           setLiked(false);
         }
@@ -131,17 +149,14 @@ export default function PromptDetailPage() {
 
         const commentList = (commentRows as any[]) || [];
         if (commentList.length === 0) {
-          if (!cancelled) {
-            setComments([]);
-          }
+          if (!cancelled) setComments([]);
           return;
         }
 
         const authorIds = Array.from(
-          new Set(commentList.map((comment) => String(comment.author_id))),
+          new Set(commentList.map((c) => String(c.author_id))),
         );
-        const authorMap: Record<string, { id: string; name: string; avatar: string | null }> =
-          {};
+        const authorMap: Record<string, { id: string; name: string; avatar: string | null }> = {};
 
         await Promise.all(
           authorIds.map(async (uid) => {
@@ -152,11 +167,7 @@ export default function PromptDetailPage() {
               .single();
 
             authorMap[uid] = data
-              ? {
-                  id: (data as any).cloudbase_uid,
-                  name: (data as any).name,
-                  avatar: (data as any).avatar,
-                }
+              ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
               : { id: uid, name: "Unknown user", avatar: null };
           }),
         );
@@ -166,28 +177,23 @@ export default function PromptDetailPage() {
         const commentMap: Record<string, Comment> = {};
         const rootComments: Comment[] = [];
 
-        for (const comment of commentList) {
-          commentMap[comment._id] = {
-            id: comment._id,
-            content: comment.content,
-            created_at: comment.created_at,
-            is_agent_comment: comment.is_agent_comment ?? false,
-            user_id: comment.author_id,
-            author:
-              authorMap[comment.author_id] ?? {
-                id: comment.author_id,
-                name: "Unknown user",
-                avatar: null,
-              },
+        for (const c of commentList) {
+          commentMap[c._id] = {
+            id: c._id,
+            content: c.content,
+            created_at: c.created_at,
+            is_agent_comment: c.is_agent_comment ?? false,
+            user_id: c.author_id,
+            author: authorMap[c.author_id] ?? { id: c.author_id, name: "Unknown user", avatar: null },
             replies: [],
           };
         }
 
-        for (const comment of commentList) {
-          if (comment.parent_id && commentMap[comment.parent_id]) {
-            commentMap[comment.parent_id].replies!.push(commentMap[comment._id]);
+        for (const c of commentList) {
+          if (c.parent_id && commentMap[c.parent_id]) {
+            commentMap[c.parent_id].replies!.push(commentMap[c._id]);
           } else {
-            rootComments.push(commentMap[comment._id]);
+            rootComments.push(commentMap[c._id]);
           }
         }
 
@@ -198,42 +204,36 @@ export default function PromptDetailPage() {
           setMissing(true);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchData();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id]);
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <ArticleLayout>
         <p className="py-20 text-center text-gray-text">Loading prompt...</p>
-      </div>
+      </ArticleLayout>
     );
   }
 
   if (missing || !prompt) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <ArticleLayout>
         <p className="py-20 text-center text-gray-text">Prompt not found.</p>
-      </div>
+      </ArticleLayout>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <ArticleLayout>
       <span className="font-mono text-xs text-primary">{prompt.category}</span>
-      <h1 className="mt-2 text-3xl font-bold">{prompt.title}</h1>
-      {prompt.description ? (
-        <p className="mt-3 text-gray-text">{prompt.description}</p>
-      ) : null}
-      <div className="mt-3 flex items-center gap-3 text-sm text-gray-text">
+      <h2 className="!mt-2">{prompt.title}</h2>
+      {prompt.description ? <p>{prompt.description}</p> : null}
+      <div className="flex items-center gap-3 text-sm text-[#666]">
         <span>{prompt.author.name}</span>
         <span>|</span>
         <span>{new Date(prompt.createdAt).toLocaleDateString()}</span>
@@ -246,11 +246,7 @@ export default function PromptDetailPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-xl border border-dark-border bg-dark-card p-6">
-        <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-          {prompt.content}
-        </pre>
-      </div>
+      <pre className="mt-8">{prompt.content}</pre>
 
       <div className="mt-6 flex gap-3">
         <LikeButton
@@ -261,7 +257,7 @@ export default function PromptDetailPage() {
         />
         <a
           href={`/api/prompts/${id}/download`}
-          className="rounded-lg border border-dark-border px-3 py-1.5 text-sm text-gray-text transition hover:text-white"
+          className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-[#A1A1AA] transition hover:text-white"
         >
           Download .txt
         </a>
@@ -273,6 +269,6 @@ export default function PromptDetailPage() {
         comments={comments}
         isLoggedIn={isLoggedIn}
       />
-    </div>
+    </ArticleLayout>
   );
 }

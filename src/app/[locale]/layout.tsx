@@ -9,7 +9,7 @@ import Footer from "@/components/layout/Footer";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "EconAgora - AI Toolkit For Economist",
+  title: "EconAgora - AI Toolkit For Scientist",
   description: "AI-powered research infrastructure for economists",
 };
 

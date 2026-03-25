@@ -23,3 +23,19 @@ dist/
 .idea/
 
 /src/generated/prisma
+
+# Temp / reference files
+.tmp-dom.html
+*.png
+*.webp
+*.svg
+!public/**
+fronttemplet/
+website-export/
+skills-lock.json
+tsconfig.tsbuildinfo
+
+# Tool configs
+.agents/
+.claude/
+.playwright-mcp/

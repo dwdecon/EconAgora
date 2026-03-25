@@ -6,16 +6,13 @@ import { getHomeContent, localizeHref } from "@/components/landing/content";
 
 function BrandMark() {
   return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M2 12L9 3L13 6L6 15L2 12Z" fill="white" />
-      <path d="M8 5L22 5L14 19L9 14.5L14.5 9L8 5Z" fill="white" fillOpacity="0.8" />
-    </svg>
+    <img
+      src="/logo.png"
+      alt="EconAgora"
+      width="25"
+      height="25"
+      className="object-contain" style={{ filter: "brightness(0) invert(1)" }}
+    />
   );
 }
 

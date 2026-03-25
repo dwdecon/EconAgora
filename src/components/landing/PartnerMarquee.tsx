@@ -1,29 +1,32 @@
 import { getLocale } from "next-intl/server";
+import { User, GraduationCap, Bot } from "lucide-react";
 import Reveal from "@/components/shared/Reveal";
 import { getHomeContent } from "./content";
 
-function PartnerLogos({ labels }: { labels: string[] }) {
+const DIAMOND_COLORS = [
+  "bg-white",
+  "bg-[#ff5a00]",
+  "bg-[#f51ce6]",
+  "bg-[#146ef5]",
+  "bg-[#00d18f]",
+];
+
+function MarqueeTrack({ labels }: { labels: string[] }) {
+  // Repeat labels enough times to fill the viewport seamlessly
+  const repeated = [...labels, ...labels, ...labels, ...labels];
   return (
-    <div className="flex items-center gap-16 px-8">
-      {labels.map((label, index) => (
+    <div className="flex shrink-0 items-center gap-10">
+      {repeated.map((label, index) => (
         <div
           key={`${label}-${index}`}
-          className="flex items-center gap-3 text-lg font-medium text-[#888]"
+          className="flex shrink-0 items-center gap-3 text-lg font-medium text-[#888]"
         >
           <span
-            className={`inline-block h-3.5 w-3.5 rotate-45 rounded-[2px] ${
-              index % 5 === 0
-                ? "bg-white"
-                : index % 5 === 1
-                  ? "bg-[#ff5a00]"
-                  : index % 5 === 2
-                    ? "bg-[#f51ce6]"
-                    : index % 5 === 3
-                      ? "bg-[#146ef5]"
-                      : "bg-[#00d18f]"
+            className={`inline-block h-3.5 w-3.5 shrink-0 rotate-45 rounded-[2px] ${
+              DIAMOND_COLORS[index % DIAMOND_COLORS.length]
             }`}
           />
-          <span>{label}</span>
+          <span className="whitespace-nowrap">{label}</span>
         </div>
       ))}
     </div>
@@ -38,10 +41,16 @@ export default async function PartnerMarquee() {
     <section className="relative z-10 w-full overflow-hidden bg-transparent pt-20 pb-10">
       <Reveal threshold={0.2} direction="up">
         <div className="mx-auto mb-8 flex max-w-[1440px] items-center gap-4 px-10">
-          <div className="flex -space-x-3">
-            <div className="h-8 w-8 rounded-full border-2 border-black bg-gray-600" />
-            <div className="h-8 w-8 rounded-full border-2 border-black bg-gray-500" />
-            <div className="h-8 w-8 rounded-full border-2 border-black bg-gray-400" />
+          <div className="flex -space-x-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br from-[#ff5a00] to-[#ff2d55]">
+              <User size={14} className="text-white" />
+            </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br from-[#146ef5] to-[#00d18f]">
+              <GraduationCap size={14} className="text-white" />
+            </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black bg-gradient-to-br from-[#f51ce6] to-[#146ef5]">
+              <Bot size={14} className="text-white" />
+            </div>
           </div>
           <span className="text-[13px] font-medium text-[#A1A1AA]">
             {content.marquee.note}
@@ -56,8 +65,8 @@ export default async function PartnerMarquee() {
             }}
           >
             <div className="animate-marquee">
-              <PartnerLogos labels={content.marquee.labels} />
-              <PartnerLogos labels={content.marquee.labels} />
+              <MarqueeTrack labels={content.marquee.labels} />
+              <MarqueeTrack labels={content.marquee.labels} />
             </div>
           </div>
         </div>

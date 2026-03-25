@@ -5,6 +5,40 @@ import { useLocale } from "next-intl";
 import Reveal from "@/components/shared/Reveal";
 import { getHomeContent } from "./content";
 
+function FAQArrow({ isOpen }: { isOpen: boolean }) {
+  return (
+    <div
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300"
+      style={{
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: isOpen ? "#F25325" : "rgba(255,255,255,0.1)",
+        backgroundColor: isOpen ? "#F25325" : "transparent",
+      }}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        style={{
+          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+          transition: "transform 300ms ease",
+          filter: isOpen ? "brightness(200%)" : "none",
+        }}
+      >
+        <path
+          d="M4 6L8 10L12 6"
+          stroke={isOpen ? "#fff" : "rgba(255,255,255,0.4)"}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 export default function FAQAccordion() {
   const [open, setOpen] = useState<number | null>(0);
   const locale = useLocale();
@@ -14,66 +48,80 @@ export default function FAQAccordion() {
     <section id="faq" className="bg-black py-32">
       <div className="mx-auto max-w-[1440px] px-6">
         <div className="grid grid-cols-1 gap-24 lg:grid-cols-2">
+          {/* Left */}
           <Reveal direction="up" threshold={0.22}>
             <div>
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em]">
-              {content.faq.eyebrow}
-            </div>
-            <h2 className="mb-10 text-5xl font-semibold leading-[0.9] tracking-[-0.04em] md:text-[80px]">
-              {content.faq.title[0]}
-              <br />
-              <span className="text-white/30">{content.faq.title[1]}</span>
-            </h2>
-            <p className="mb-12 max-w-md text-lg font-medium leading-relaxed text-white/40 md:text-[20px]">
-              {content.faq.description}
-            </p>
-            <a
-              href="https://github.com/dwdecon/EconAgora"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-full border border-white/10 bg-white/5 px-10 py-5 text-[15px] font-bold transition-all hover:bg-white hover:text-black"
-            >
-              {content.faq.action}
-            </a>
+              <h2 className="mb-10 text-[36px] font-semibold tracking-[-0.03em] sm:text-[44px] md:text-[52px]">
+                <div className="leading-[1.05]">{content.faq.title[0]}</div>
+                {content.faq.title[1] && (
+                  <div className="mt-3 leading-[1.1] text-white/30">
+                    {content.faq.title[1]}
+                  </div>
+                )}
+              </h2>
+              <p className="mb-12 max-w-md text-lg leading-relaxed text-white/40 md:text-[20px]">
+                {content.faq.description}
+              </p>
+              <a
+                href="https://github.com/dwdecon/EconAgora"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex rounded-full border border-white/10 bg-white/5 px-10 py-5 text-[15px] font-bold transition-all hover:bg-white hover:text-black"
+              >
+                {content.faq.action}
+              </a>
             </div>
           </Reveal>
 
-          <div className="space-y-4">
-            {content.faq.items.map((faq, index) => (
-              <Reveal
-                key={faq.question}
-                direction="up"
-                delay={index * 120}
-                threshold={0.2}
-              >
-                <div
-                  className="overflow-hidden rounded-[32px] border border-white/8 bg-white/[0.03] backdrop-blur-2xl"
+          {/* Right */}
+          <div className="space-y-3">
+            {content.faq.items.map((faq, index) => {
+              const isOpen = open === index;
+              return (
+                <Reveal
+                  key={faq.question}
+                  direction="up"
+                  delay={index * 120}
+                  threshold={0.2}
                 >
-                  <button
-                    className="group flex w-full items-center justify-between p-8 text-left"
-                    onClick={() => setOpen(open === index ? null : index)}
+                  <div
+                    className="transition-all duration-300"
+                    style={{
+                      padding: "20px 24px",
+                      borderBottomWidth: isOpen ? 4 : 0,
+                      borderBottomStyle: "solid",
+                      borderBottomColor: "#F25325",
+                      backgroundColor: "#000",
+                    }}
                   >
-                    <span className="text-xl font-semibold tracking-tight md:text-2xl">
-                      {faq.question}
-                    </span>
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full border border-white/10 transition-all ${
-                        open === index
-                          ? "rotate-45 bg-white text-black"
-                          : "group-hover:border-white/30"
-                      }`}
+                    <button
+                      className="flex w-full items-center justify-between text-left"
+                      onClick={() => setOpen(isOpen ? null : index)}
                     >
-                      +
+                      <span className="flex-1 pr-4 text-xl font-semibold text-white md:text-2xl">
+                        {faq.question}
+                      </span>
+                      <FAQArrow isOpen={isOpen} />
+                    </button>
+
+                    {/* Answer — smooth gridTemplateRows animation */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateRows: isOpen ? "1fr" : "0fr",
+                        transition: "grid-template-rows 300ms ease",
+                      }}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="pt-5 text-lg leading-relaxed text-white/40">
+                          {faq.answer}
+                        </p>
+                      </div>
                     </div>
-                  </button>
-                  {open === index && (
-                    <div className="px-8 pb-8 text-lg leading-relaxed text-white/40">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              </Reveal>
-            ))}
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </div>

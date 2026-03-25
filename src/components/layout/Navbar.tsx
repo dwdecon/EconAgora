@@ -23,16 +23,13 @@ interface NavUser {
 
 function BrandMark() {
   return (
-    <svg
-      width="26"
-      height="26"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M2 12L9 3L13 6L6 15L2 12Z" fill="white" />
-      <path d="M8 5L22 5L14 19L9 14.5L14.5 9L8 5Z" fill="white" />
-    </svg>
+    <img
+      src="/logo.png"
+      alt="EconAgora"
+      width="25"
+      height="25"
+      className="object-contain" style={{ filter: "brightness(0) invert(1)" }}
+    />
   );
 }
 
@@ -53,6 +50,7 @@ export default function Navbar() {
       if (navRef.current) {
         navRef.current.style.transform = "translate3d(0px, 0px, 0px)";
         navRef.current.style.backgroundColor = "rgb(10, 10, 10)";
+        navRef.current.style.opacity = "1";
       }
       return;
     }
@@ -72,23 +70,20 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", update);
   }, [isHome]);
 
-  // Fade-in on mount: slide from -30px above initial position, blur→clear
+  // Fade-in on mount: only on home page
   useEffect(() => {
-    if (!navRef.current) return;
+    if (!isHome || !navRef.current) return;
     const el = navRef.current;
     const start = performance.now();
-    const DURATION = 1200; // ms, same speed as scroll translateY feel
+    const DURATION = 1200;
 
     function animate(now: number) {
       const t = Math.min((now - start) / DURATION, 1);
-      // ease-out cubic
       const ease = 1 - Math.pow(1 - t, 3);
-      // slide: from -30px offset to 0 (relative to initial 45px position)
       const offsetY = -30 * (1 - ease);
       const scrollT = Math.min(window.scrollY / 80, 1);
       const baseY = 45 * (1 - scrollT);
       el.style.transform = `translate3d(0px, ${baseY + offsetY}px, 0px)`;
-      // opacity + blur resolve faster
       const fastT = Math.min(t * 2, 1);
       const fastEase = 1 - Math.pow(1 - fastT, 3);
       el.style.opacity = String(fastEase);
@@ -97,7 +92,7 @@ export default function Navbar() {
     }
 
     requestAnimationFrame(animate);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let mounted = true;
