@@ -34,7 +34,7 @@ export default async function CTASection() {
           </div>
 
           {/* Heading */}
-          <h1 className="cta-heading mb-6 text-[44px] font-medium leading-[1.05] text-white md:text-[68px]">
+          <h1 className="cta-heading mb-8 text-[40px] font-medium leading-[1.2] text-white md:text-[64px]">
             {content.cta.title[0]}
             <br />
             <span className="font-serif italic text-white/30">

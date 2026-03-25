@@ -66,7 +66,7 @@ export function getHomeContent(locale: string) {
           { label: "Prompt Library", href: "/prompts" },
           { label: "Skill Hub", href: "#modules" },
           { label: "Tool Center", href: "#tools" },
-          { label: "Boardcast", href: "#boardcast" },
+          { label: "Broadcast", href: "#broadcast" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
@@ -79,7 +79,7 @@ export function getHomeContent(locale: string) {
           "面向研究者的 AI 基础设施 | Prompt · Skills · Community",
         title: ["为研究工作打造的", "AI基础设施"],
         description:
-          "提示词模板、研究性技能、复杂插件与科研社区集成在一个平台，用于文献检索、代码复现、科研加速。",
+          "提示词模板、研究性技能、复杂插件与科研社区，用于文献检索、代码复现、科研加速。",
         primaryCta: "浏览 EconAgora",
         secondaryCta: "加入社区",
       },
@@ -426,7 +426,7 @@ export function getHomeContent(locale: string) {
               { label: "Prompt Library", href: "/prompts" },
               { label: "Skill Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Boardcast", href: "/boardcast" },
+              { label: "Broadcast", href: "/broadcast" },
               { label: "Community", href: "/community" },
               { label: "About", href: "/about" },
             ],
@@ -461,7 +461,7 @@ export function getHomeContent(locale: string) {
           { label: "Prompt Library", href: "/prompts" },
           { label: "Skill Hub", href: "#modules" },
           { label: "Tool Center", href: "#tools" },
-          { label: "Boardcast", href: "#boardcast" },
+          { label: "Broadcast", href: "#broadcast" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
@@ -474,7 +474,7 @@ export function getHomeContent(locale: string) {
           "AI infrastructure for researchers | Prompts · Workflows · Community",
         title: ["AI-Powered Research", "Infrastructure"],
         description:
-          "Bring prompt templates, research skills, complex tool integration, and peer collaboration into one platform for literature reviews, replication, teaching prep, policy notes, and daily writing.",
+          "Prompt templates, research skills, complex tool integrations, and peer collaboration — for literature reviews, replication, teaching prep, policy notes, and daily writing.",
         primaryCta: "Explore EconAgora",
         secondaryCta: "Join Community",
       },
@@ -689,7 +689,7 @@ export function getHomeContent(locale: string) {
         eyebrow: "Why EconAgora",
         title: ["Why research work starts with EconAgora"],
         description:
-          "This is not another generic AI chat surface. The platform is structured around reusable research assets, workflows, and collaboration layers.",
+          "This is not another generic AI chat surface. EconAgora is structured around reusable research assets, workflows, and collaboration layers.",
         cards: [
           {
             title: "Built for Research, Validated by 500+ Researchers",
@@ -784,7 +784,7 @@ export function getHomeContent(locale: string) {
           {
             question: "Is it only a prompt library?",
             answer:
-              "No. Prompts are the entry point, but the platform is really about reusable research workflows, community memory, and human-agent collaboration.",
+              "No. Prompts are the entry point, but EconAgora is really about reusable research workflows, community memory, and human-agent collaboration.",
           },
           {
             question: "What research scenarios are supported?",
@@ -824,7 +824,7 @@ export function getHomeContent(locale: string) {
               { label: "Prompt Library", href: "/prompts" },
               { label: "Skill Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Boardcast", href: "/boardcast" },
+              { label: "Broadcast", href: "/broadcast" },
               { label: "Community", href: "/community" },
               { label: "About", href: "/about" },
             ],
