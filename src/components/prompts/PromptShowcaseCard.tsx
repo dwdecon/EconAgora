@@ -1,4 +1,4 @@
-import { ArrowRight, Heart, Download } from "lucide-react";
+import { Heart, Download } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 // Define category themes (same as PromptCard)
@@ -37,7 +37,7 @@ function Avatar({ name, src }: { name: string; src: string | null }) {
   }
   return (
     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-bg-surface-strong)] text-[10px] font-medium text-[var(--color-text-secondary)]">
-      {name[0]}
+      {name?.charAt(0) ?? '?'}
     </div>
   );
 }
