@@ -125,23 +125,20 @@ export default function PromptsPage() {
         );
         const authorMap: Record<string, Author> = {};
 
-        await Promise.all(
-          authorIds.map(async (uid) => {
-            const { data: profile } = await db
-              .from("user_profile")
-              .select("cloudbase_uid, name, avatar")
-              .eq("cloudbase_uid", uid)
-              .single();
+        if (authorIds.length > 0) {
+          const { data: profiles } = await db
+            .from("user_profile")
+            .select("cloudbase_uid, name, avatar")
+            .in("cloudbase_uid", authorIds);
 
-            authorMap[uid] = profile
-              ? {
-                  id: uid,
-                  name: (profile as any).name,
-                  avatar: (profile as any).avatar,
-                }
-              : { id: uid, name: "Unknown user", avatar: null };
-          }),
-        );
+          for (const p of (profiles as any[]) || []) {
+            authorMap[p.cloudbase_uid] = {
+              id: p.cloudbase_uid,
+              name: p.name,
+              avatar: p.avatar,
+            };
+          }
+        }
 
         setPrompts(
           promptRows
