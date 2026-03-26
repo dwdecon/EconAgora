@@ -51,11 +51,11 @@ export default function PromptShowcaseCard({
 
   return (
     <Link href={`/prompts/${prompt.id}`} className="block h-full">
-      <article className={`group flex h-full rounded-[24px] bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 transition-transform duration-300 hover:-translate-y-1 hover:border-primary/30 sm:p-8 ${isFeatured ? 'flex-col md:flex-row md:items-stretch' : 'flex-col'}`}>
+      <article className={`group flex h-full rounded-[24px] bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] p-6 transition-transform duration-300 hover:-translate-y-1 hover:border-primary/30 sm:p-8 ${isFeatured ? 'flex-col md:flex-row md:items-stretch' : 'flex-col'}`}>
         {/* Content Wrapper */}
         <div className={`${isFeatured ? 'flex flex-col md:w-[55%]' : 'flex flex-col flex-1'}`}>
           {/* Title */}
-          <h3 className={`font-medium tracking-tight text-[var(--color-text-primary)] sm:leading-tight ${isFeatured ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-[28px]'}`}>
+          <h3 className={`font-medium tracking-tight text-[var(--color-text-primary)] sm:leading-tight ${isFeatured ? 'text-3xl' : 'text-2xl sm:text-[28px]'}`}>
             {prompt.title}
           </h3>
 
