@@ -1,15 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowUpRight, Plus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
+import PageShell from "@/components/layout/PageShell";
+import PromptFilters from "@/components/prompts/PromptFilters";
+import PromptShowcaseCard from "@/components/prompts/PromptShowcaseCard";
+import Pagination from "@/components/shared/Pagination";
+import Reveal from "@/components/shared/Reveal";
 import { db } from "@/lib/cloudbase";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
-import PromptCard from "@/components/prompts/PromptCard";
-import PromptFilters from "@/components/prompts/PromptFilters";
-import Pagination from "@/components/shared/Pagination";
 
 const PAGE_SIZE = 12;
+
+const CreateNewCard = () => (
+  <Link
+    href="/prompts/new"
+    className="group flex min-h-[300px] flex-col items-center justify-center rounded-[24px] border border-dashed border-[var(--color-border)] p-6 text-center transition-colors hover:border-primary/50 hover:bg-[var(--color-bg-surface)]"
+  >
+    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+      <Plus className="h-6 w-6" />
+    </div>
+    <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Share Your Prompt</h3>
+    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+      Publish your workflow to the community.
+    </p>
+  </Link>
+);
 
 interface Prompt {
   id: string;
@@ -154,33 +172,95 @@ export default function PromptsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <p className="py-20 text-center text-gray-text">Loading prompts...</p>
-      </div>
+      <PageShell width="6xl">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm text-[#8d8173]">Prompt Library</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] md:text-4xl">
+              Loading...
+            </h1>
+          </div>
+        </div>
+        <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div
+              key={i}
+              className="h-[260px] animate-pulse rounded-2xl bg-[var(--color-bg-surface-strong)]"
+            />
+          ))}
+        </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Prompt Library</h1>
-        <Link
-          href="/prompts/new"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
-        >
-          Publish Prompt
-        </Link>
+    <PageShell width="6xl">
+      {/* Redesigned Hero Section */}
+      <div className="mx-auto mb-8 max-w-2xl relative text-center">
+        <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-xl" />
+        <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+          Prompt Library
+        </p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--color-text-primary)] md:text-5xl">
+          Curated Research Prompts
+        </h1>
+        <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
+          Browse reusable workflow systems for literature review, data analysis,
+          paper writing, and peer review.
+        </p>
       </div>
-      <PromptFilters />
-      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {prompts.map((prompt) => (
-          <PromptCard key={prompt.id} prompt={prompt} />
-        ))}
+
+      {/* Filters */}
+      <div className="mt-6">
+        <PromptFilters />
       </div>
-      {prompts.length === 0 ? (
-        <p className="py-20 text-center text-gray-text">No prompts found.</p>
-      ) : null}
-      <Pagination currentPage={page} totalPages={totalPages} basePath="/prompts" />
-    </div>
+
+      {/* Grid */}
+      {prompts.length > 0 ? (
+        <div className="mt-10 flex flex-col gap-8">
+          {/* Featured Prompt: Only show index 0 as featured on Page 1 */}
+          {page === 1 && prompts[0] && (
+            <Reveal delay={0} threshold={0.12}>
+              <PromptShowcaseCard prompt={prompts[0]} isFeatured={true} />
+            </Reveal>
+          )}
+
+          {/* Grid for the rest (or all prompts on page 2+) */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            {page === 1 && (
+              <Reveal delay={70} threshold={0.12}>
+                <CreateNewCard />
+              </Reveal>
+            )}
+            {(page === 1 ? prompts.slice(1) : prompts).map((prompt, index) => (
+              <Reveal
+                key={prompt.id}
+                delay={Math.min((index + (page === 1 ? 2 : 1)) * 70, 280)}
+                threshold={0.12}
+              >
+                <PromptShowcaseCard prompt={prompt} isFeatured={false} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-16 text-center">
+          <p className="text-lg font-medium text-[var(--color-text-primary)]">
+            No prompts found
+          </p>
+          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+            Try a different category, clear your filters, or search with broader
+            terms.
+          </p>
+        </div>
+      )}
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        basePath="/prompts"
+        queryString={searchParams.toString()}
+      />
+    </PageShell>
   );
 }
