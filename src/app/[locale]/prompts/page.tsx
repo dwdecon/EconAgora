@@ -13,6 +13,24 @@ import { db } from "@/lib/cloudbase";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
 const PAGE_SIZE = 12;
+const SKELETON_COUNT = 4;
+
+function PageHero({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mx-auto mb-8 max-w-2xl relative text-center">
+      <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-xl" />
+      <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+        Prompt Library
+      </p>
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--color-text-primary)] md:text-5xl">
+        {title}
+      </h1>
+      <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
+        {subtitle}
+      </p>
+    </div>
+  );
+}
 
 const CreateNewCard = () => (
   <Link
@@ -173,16 +191,9 @@ export default function PromptsPage() {
   if (loading) {
     return (
       <PageShell width="6xl">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-sm text-[#8d8173]">Prompt Library</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] md:text-4xl">
-              Loading...
-            </h1>
-          </div>
-        </div>
-        <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {Array.from({ length: 4 }, (_, i) => (
+        <PageHero title="Loading..." subtitle="Loading curated prompts..." />
+        <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
             <div
               key={i}
               className="h-[260px] animate-pulse rounded-2xl bg-[var(--color-bg-surface-strong)]"
@@ -195,20 +206,10 @@ export default function PromptsPage() {
 
   return (
     <PageShell width="6xl">
-      {/* Redesigned Hero Section */}
-      <div className="mx-auto mb-8 max-w-2xl relative text-center">
-        <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-xl" />
-        <p className="text-sm font-medium text-[var(--color-text-secondary)]">
-          Prompt Library
-        </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--color-text-primary)] md:text-5xl">
-          Curated Research Prompts
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
-          Browse reusable workflow systems for literature review, data analysis,
-          paper writing, and peer review.
-        </p>
-      </div>
+      <PageHero
+        title="Curated Research Prompts"
+        subtitle="Browse reusable workflow systems for literature review, data analysis, paper writing, and peer review."
+      />
 
       {/* Filters */}
       <div className="mt-6">
