@@ -39,36 +39,13 @@ async function queryPrompt(id: string) {
 
 /**
  * Increment the download_count for a prompt
- * Uses read-then-update pattern for reliable increment
+ * Uses arithmetic increment — atomic at the database level, no race condition
  */
 async function incrementDownloadCount(id: string): Promise<boolean> {
   const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
   if (!safeId) return false;
 
   try {
-    // First query to get current count
-    const queryUrl = `${BASE_URL}/v1/rdb/rest/prompt?_id=eq.${encodeURIComponent(safeId)}&select=download_count&limit=1`;
-    const queryRes = await fetch(queryUrl, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${CLOUDBASE_ACCESS_KEY}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!queryRes.ok) {
-      return false;
-    }
-
-    const queryData = await queryRes.json();
-    if (!Array.isArray(queryData) || queryData.length === 0) {
-      return false;
-    }
-
-    const currentCount = queryData[0].download_count || 0;
-    const newCount = currentCount + 1;
-
-    // Then update with incremented value
     const updateUrl = `${BASE_URL}/v1/rdb/rest/prompt?_id=eq.${encodeURIComponent(safeId)}`;
     const updateRes = await fetch(updateUrl, {
       method: "PATCH",
@@ -77,8 +54,9 @@ async function incrementDownloadCount(id: string): Promise<boolean> {
         "Content-Type": "application/json",
         "Prefer": "return=representation",
       },
+      // Arithmetic increment — atomic, no read-then-write race
       body: JSON.stringify({
-        download_count: newCount,
+        "download_count+": 1,
       }),
     });
 

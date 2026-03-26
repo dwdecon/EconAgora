@@ -16,7 +16,7 @@ export default function Testimonials() {
   const total = testimonials.items.length;
 
   const [active, setActive] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const resetTimer = useCallback(() => {
     clearInterval(timerRef.current);

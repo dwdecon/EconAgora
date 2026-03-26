@@ -9,10 +9,15 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@cloudbase/app": "2.26.3",
+    "@cloudbase/auth": "2.26.3",
     "@cloudbase/js-sdk": "2.26.3",
+    "@cloudbase/signature-nodejs": "^2.0.0",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.577.0",
     "next": "^16.2.0",
     "next-intl": "^4.8.3",
+    "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

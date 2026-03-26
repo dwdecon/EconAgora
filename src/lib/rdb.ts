@@ -1,30 +1,7 @@
-"use client";
-
-import cloudbase from "@cloudbase/js-sdk";
-import { registerAuth } from "@cloudbase/auth";
-
-cloudbase.registerVersion("2.26.3");
-
-try {
-  registerAuth(cloudbase as any);
-} catch {}
-
-const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID;
-const accessKey = process.env.NEXT_PUBLIC_CLOUDBASE_ACCESS_KEY;
-const region = process.env.NEXT_PUBLIC_CLOUDBASE_REGION ?? "ap-shanghai";
-const isBrowser = typeof window !== "undefined";
-
-const app =
-  isBrowser && envId
-    ? cloudbase.init({
-        env: envId,
-        region,
-        ...(accessKey ? { accessKey } : {}),
-        auth: { detectSessionInUrl: true },
-      } as any)
-    : null;
-
-export const auth: any = app ? app.auth : null;
+/**
+ * Shared RDB query builder — usable in both server and client contexts.
+ * No browser-specific APIs, no auth dependencies.
+ */
 
 type CountMode = "exact";
 type FilterOperator =
@@ -50,13 +27,11 @@ interface QueryOrder {
   ascending: boolean;
 }
 
-interface QueryResult<T = any> {
+export interface QueryResult<T = any> {
   count: number | null;
   data: T;
   error: { message: string; raw?: unknown } | null;
 }
-
-const baseUrl = envId ? `https://${envId}.api.tcloudbasegateway.com/v1/rdb/rest` : "";
 
 function parseContentRange(contentRange: string | null): number | null {
   if (!contentRange) return null;
@@ -92,16 +67,7 @@ function serializeFilter({ operator, value }: Filter): string {
   }
 }
 
-async function getAuthorizationToken() {
-  try {
-    const session = await auth?.getSession?.();
-    return session?.data?.session?.access_token || accessKey || "";
-  } catch {
-    return accessKey || "";
-  }
-}
-
-class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
+export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
   private readonly table: string;
   private method: "GET" | "POST" | "PATCH" | "DELETE" = "GET";
   private readonly filters: Filter[] = [];
@@ -113,9 +79,13 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
   private singleResult = false;
   private returnRepresentation = false;
   private body: unknown = null;
+  private readonly baseUrl: string;
+  private readonly authorizationToken: string;
 
-  constructor(table: string) {
+  constructor(table: string, baseUrl: string, authorizationToken: string) {
     this.table = table;
+    this.baseUrl = baseUrl;
+    this.authorizationToken = authorizationToken;
   }
 
   select(columns = "*", options?: { count?: CountMode }) {
@@ -221,7 +191,7 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
   }
 
   async execute(): Promise<QueryResult<TData>> {
-    if (!baseUrl) {
+    if (!this.baseUrl) {
       return {
         count: null,
         data: (this.singleResult ? null : []) as TData,
@@ -229,8 +199,7 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
       };
     }
 
-    const authorizationToken = await getAuthorizationToken();
-    if (!authorizationToken) {
+    if (!this.authorizationToken) {
       return {
         count: null,
         data: (this.singleResult ? null : []) as TData,
@@ -238,7 +207,7 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
       };
     }
 
-    const url = new URL(`${baseUrl}/${this.table}`);
+    const url = new URL(`${this.baseUrl}/${this.table}`);
     const shouldSelect = this.method === "GET" || this.returnRepresentation;
 
     if (shouldSelect) {
@@ -273,7 +242,7 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
     }
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${authorizationToken}`,
+      Authorization: `Bearer ${this.authorizationToken}`,
       "Content-Type": "application/json",
     };
     if (preferDirectives.length > 0) {
@@ -351,23 +320,4 @@ class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
   ): PromiseLike<TResult1 | TResult2> {
     return this.execute().then(onfulfilled, onrejected);
   }
-}
-
-export const db = {
-  from<TData = any>(table: string) {
-    return new RdbQueryBuilder<TData>(table);
-  },
-};
-
-export async function getSessionUser() {
-  try {
-    const session = await auth?.getSession?.();
-    return session?.data?.session?.user ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export function useCloudBaseReady() {
-  return Boolean(app);
 }

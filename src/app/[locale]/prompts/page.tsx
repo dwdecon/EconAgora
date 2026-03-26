@@ -1,19 +1,15 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { ArrowUpRight, Plus } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Link } from "@/i18n/navigation";
+import { Plus } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import PromptFilters from "@/components/prompts/PromptFilters";
 import PromptShowcaseCard from "@/components/prompts/PromptShowcaseCard";
 import Pagination from "@/components/shared/Pagination";
 import Reveal from "@/components/shared/Reveal";
-import { db } from "@/lib/cloudbase";
+import { serverDb } from "@/lib/rdb-server";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
 const PAGE_SIZE = 12;
-const SKELETON_COUNT = 4;
 
 function PageHero({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -57,149 +53,123 @@ interface Prompt {
   downloadCount: number;
   authorId: string;
   createdAt: string;
+  author: { id: string; name: string; avatar: string | null };
 }
 
-interface Author {
-  id: string;
-  name: string;
-  avatar: string | null;
-}
+async function fetchPrompts(params: {
+  page: number;
+  category: string;
+  tag: string;
+  search: string;
+}): Promise<{ prompts: Prompt[]; totalPages: number }> {
+  const { page, category, tag, search } = params;
 
-export default function PromptsPage() {
-  const searchParams = useSearchParams();
-  const page = Number(searchParams.get("page")) || 1;
-  const category = searchParams.get("category") || "";
-  const tag = searchParams.get("tag") || "";
-  const search = searchParams.get("search") || "";
+  try {
+    let countQuery = serverDb
+      .from("prompt")
+      .select("_id", { count: "exact" })
+      .eq("status", "PUBLISHED");
+    let dataQuery = serverDb.from("prompt").select("*").eq("status", "PUBLISHED");
 
-  const [prompts, setPrompts] = useState<(Prompt & { author: Author })[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+    if (category) {
+      countQuery = countQuery.eq("category", category);
+      dataQuery = dataQuery.eq("category", category);
+    }
+    if (tag) {
+      countQuery = countQuery.contains("tags", [tag]);
+      dataQuery = dataQuery.contains("tags", [tag]);
+    }
+    if (search) {
+      countQuery = countQuery.ilike("title", `%${search}%`);
+      dataQuery = dataQuery.ilike("title", `%${search}%`);
+    }
 
-  useEffect(() => {
-    let cancelled = false;
+    const [countResponse, promptResponse] = await Promise.all([
+      countQuery,
+      dataQuery
+        .order("created_at", { ascending: false })
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+    ]);
 
-    async function fetchPrompts() {
-      setLoading(true);
+    if (countResponse.error || promptResponse.error) {
+      return { prompts: [], totalPages: 1 };
+    }
 
-      try {
-        let countQuery = db
-          .from("prompt")
-          .select("_id", { count: "exact" })
-          .eq("status", "PUBLISHED");
-        let dataQuery = db.from("prompt").select("*").eq("status", "PUBLISHED");
+    const total = countResponse.count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-        if (category) {
-          countQuery = countQuery.eq("category", category);
-          dataQuery = dataQuery.eq("category", category);
-        }
-        if (tag) {
-          countQuery = countQuery.contains("tags", [tag]);
-          dataQuery = dataQuery.contains("tags", [tag]);
-        }
-        if (search) {
-          countQuery = countQuery.ilike("title", `%${search}%`);
-          dataQuery = dataQuery.ilike("title", `%${search}%`);
-        }
+    const promptRows = (promptResponse.data as any[]) || [];
+    const authorIds = Array.from(
+      new Set(promptRows.map((prompt) => String(prompt.author_id))),
+    );
+    const authorMap: Record<string, { id: string; name: string; avatar: string | null }> = {};
 
-        const [countResponse, promptResponse] = await Promise.all([
-          countQuery,
-          dataQuery
-            .order("created_at", { ascending: false })
-            .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
-        ]);
+    if (authorIds.length > 0) {
+      const { data: profiles } = await serverDb
+        .from("user_profile")
+        .select("cloudbase_uid, name, avatar")
+        .in("cloudbase_uid", authorIds);
 
-        if (cancelled) return;
-        if (countResponse.error || promptResponse.error) {
-          setPrompts([]);
-          setTotalPages(1);
-          return;
-        }
-
-        const total = countResponse.count ?? 0;
-        setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-
-        const promptRows = (promptResponse.data as any[]) || [];
-        const authorIds = Array.from(
-          new Set(promptRows.map((prompt) => String(prompt.author_id))),
-        );
-        const authorMap: Record<string, Author> = {};
-
-        if (authorIds.length > 0) {
-          const { data: profiles } = await db
-            .from("user_profile")
-            .select("cloudbase_uid, name, avatar")
-            .in("cloudbase_uid", authorIds);
-
-          for (const p of (profiles as any[]) || []) {
-            authorMap[p.cloudbase_uid] = {
-              id: p.cloudbase_uid,
-              name: p.name,
-              avatar: p.avatar,
-            };
-          }
-        }
-
-        setPrompts(
-          promptRows
-            .map((prompt) => {
-              const id = extractRowId(prompt);
-              if (!id) return null;
-
-              return {
-                id,
-                title: prompt.title,
-                description: prompt.description,
-                category: prompt.category,
-                tags: normalizeTags(prompt.tags),
-                likeCount: prompt.like_count ?? 0,
-                downloadCount: prompt.download_count ?? 0,
-                authorId: prompt.author_id,
-                createdAt: prompt.created_at,
-                author:
-                  authorMap[prompt.author_id] ?? {
-                    id: prompt.author_id,
-                    name: "Unknown user",
-                    avatar: null,
-                  },
-              };
-            })
-            .filter(Boolean) as (Prompt & { author: Author })[],
-        );
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Failed to fetch prompts:", error);
-          setPrompts([]);
-          setTotalPages(1);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+      for (const p of (profiles as any[]) || []) {
+        authorMap[p.cloudbase_uid] = {
+          id: p.cloudbase_uid,
+          name: p.name,
+          avatar: p.avatar,
+        };
       }
     }
 
-    fetchPrompts();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, category, tag, search]);
+    const prompts = promptRows
+      .map((prompt) => {
+        const id = extractRowId(prompt);
+        if (!id) return null;
 
-  if (loading) {
-    return (
-      <PageShell width="6xl">
-        <PageHero title="Loading..." subtitle="Loading curated prompts..." />
-        <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-            <div
-              key={i}
-              className="h-[260px] animate-pulse rounded-2xl bg-[var(--color-bg-surface-strong)]"
-            />
-          ))}
-        </div>
-      </PageShell>
-    );
+        return {
+          id,
+          title: prompt.title,
+          description: prompt.description,
+          category: prompt.category,
+          tags: normalizeTags(prompt.tags),
+          likeCount: prompt.like_count ?? 0,
+          downloadCount: prompt.download_count ?? 0,
+          authorId: prompt.author_id,
+          createdAt: prompt.created_at,
+          author:
+            authorMap[prompt.author_id] ?? {
+              id: prompt.author_id,
+              name: "Unknown user",
+              avatar: null,
+            },
+        };
+      })
+      .filter(Boolean) as Prompt[];
+
+    return { prompts, totalPages };
+  } catch (error) {
+    console.error("Failed to fetch prompts:", error);
+    return { prompts: [], totalPages: 1 };
   }
+}
+
+export default async function PromptsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const page = Number(sp.page) || 1;
+  const category = (typeof sp.category === "string" ? sp.category : "") || "";
+  const tag = (typeof sp.tag === "string" ? sp.tag : "") || "";
+  const search = (typeof sp.search === "string" ? sp.search : "") || "";
+
+  const { prompts, totalPages } = await fetchPrompts({ page, category, tag, search });
+
+  // Build queryString for pagination
+  const qsParts: string[] = [];
+  if (category) qsParts.push(`category=${encodeURIComponent(category)}`);
+  if (tag) qsParts.push(`tag=${encodeURIComponent(tag)}`);
+  if (search) qsParts.push(`search=${encodeURIComponent(search)}`);
+  const queryString = qsParts.join("&");
 
   return (
     <PageShell width="6xl">
@@ -210,7 +180,9 @@ export default function PromptsPage() {
 
       {/* Filters */}
       <div className="mt-6">
-        <PromptFilters />
+        <Suspense>
+          <PromptFilters />
+        </Suspense>
       </div>
 
       {/* Grid */}
@@ -257,7 +229,7 @@ export default function PromptsPage() {
         currentPage={page}
         totalPages={totalPages}
         basePath="/prompts"
-        queryString={searchParams.toString()}
+        queryString={queryString}
       />
     </PageShell>
   );

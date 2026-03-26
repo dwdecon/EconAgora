@@ -158,19 +158,20 @@ function DbPromptDetail({ id }: { id: string }) {
         );
         const authorMap: Record<string, { id: string; name: string; avatar: string | null }> = {};
 
-        await Promise.all(
-          authorIds.map(async (uid) => {
-            const { data } = await db
-              .from("user_profile")
-              .select("cloudbase_uid, name, avatar")
-              .eq("cloudbase_uid", uid)
-              .single();
+        if (authorIds.length > 0) {
+          const { data: profiles } = await db
+            .from("user_profile")
+            .select("cloudbase_uid, name, avatar")
+            .in("cloudbase_uid", authorIds);
 
-            authorMap[uid] = data
-              ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
-              : { id: uid, name: "Unknown user", avatar: null };
-          }),
-        );
+          for (const p of (profiles as any[]) || []) {
+            authorMap[p.cloudbase_uid] = {
+              id: p.cloudbase_uid,
+              name: p.name,
+              avatar: p.avatar,
+            };
+          }
+        }
 
         if (cancelled) return;
 
