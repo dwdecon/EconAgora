@@ -15,6 +15,9 @@ const categories = [
   { label: "Other", value: "Other" },
 ];
 
+const FILTER_PILL_CLASSES =
+  "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]";
+
 export default function PromptFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,7 +71,12 @@ export default function PromptFilters() {
 
   function clearAll() {
     setDraftSearch("");
-    router.push("/prompts");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("category");
+    params.delete("search");
+    params.delete("tag");
+    params.delete("page");
+    navigate(params);
   }
 
   return (
@@ -86,7 +94,7 @@ export default function PromptFilters() {
                 onClick={() => setCategory(cat.value)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
                   isActive
-                    ? "bg-[#f15325] font-medium text-white"
+                    ? "bg-primary font-medium text-white"
                     : "bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface-strong)]"
                 }`}
               >
@@ -131,7 +139,7 @@ export default function PromptFilters() {
             <button
               type="button"
               onClick={() => clearField("category")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+              className={FILTER_PILL_CLASSES}
             >
               {currentCategory}
               <X className="h-3 w-3" strokeWidth={1.8} />
@@ -141,7 +149,7 @@ export default function PromptFilters() {
             <button
               type="button"
               onClick={() => clearField("tag")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+              className={FILTER_PILL_CLASSES}
             >
               Tag: {currentTag}
               <X className="h-3 w-3" strokeWidth={1.8} />
@@ -151,7 +159,7 @@ export default function PromptFilters() {
             <button
               type="button"
               onClick={() => clearField("search")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+              className={FILTER_PILL_CLASSES}
             >
               &ldquo;{currentSearch}&rdquo;
               <X className="h-3 w-3" strokeWidth={1.8} />
