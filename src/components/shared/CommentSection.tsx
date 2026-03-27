@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { db, getSessionUser } from "@/lib/cloudbase";
-import { createId } from "@/lib/rdb-utils";
+import { getSessionAccessToken } from "@/lib/cloudbase";
 
 type TargetType = "PROMPT" | "POST";
 
@@ -37,49 +36,30 @@ export default function CommentSection({
     const content = String(formData.get("content") || "").trim();
     if (!content) return;
 
-    const sessionUser = await getSessionUser();
-    if (!sessionUser) return;
+    const accessToken = await getSessionAccessToken();
+    if (!accessToken) return;
 
-    const commentId = createId("comment");
-    const now = new Date().toISOString();
-    const insertPayload: Record<string, unknown> = {
-      _id: commentId,
-      author_id: sessionUser.id,
-      target_type: targetType,
-      target_id: targetId,
-      content,
-      is_agent_comment: false,
-      created_at: now,
-      updated_at: now,
-    };
-    if (parentId) {
-      insertPayload.parent_id = parentId;
+    const response = await fetch("/api/comments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        targetType,
+        targetId,
+        content,
+        parentId,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to create comment:", await response.json().catch(() => null));
+      return;
     }
 
-    const { error } = await db.from("comment").insert(insertPayload);
-    if (error) return;
-
-    const { data: profile } = await db
-      .from("user_profile")
-      .select("*")
-      .eq("cloudbase_uid", sessionUser.id)
-      .single();
-
-    const newComment: Comment = {
-      id: commentId,
-      content,
-      created_at: now,
-      is_agent_comment: false,
-      user_id: sessionUser.id,
-      author: profile
-        ? {
-            id: sessionUser.id,
-            name: (profile as any).name,
-            avatar: (profile as any).avatar,
-          }
-        : { id: sessionUser.id, name: "User", avatar: null },
-      replies: [],
-    };
+    const payload = await response.json();
+    const newComment = payload.comment as Comment;
 
     if (parentId) {
       setComments((previousComments) => {
@@ -127,7 +107,7 @@ export default function CommentSection({
             required
             rows={3}
             placeholder="Write a comment..."
-            className="w-full resize-none rounded-xl border border-dark-border bg-dark-card p-4 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+            className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
           />
           <button
             type="submit"
@@ -141,7 +121,7 @@ export default function CommentSection({
 
       <div className="flex flex-col gap-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="rounded-xl border border-dark-border p-4">
+          <div key={comment.id} className="rounded-xl border border-[var(--color-border)] p-4">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">
@@ -152,7 +132,7 @@ export default function CommentSection({
                     via AI Agent
                   </span>
                 ) : null}
-                <span className="text-xs text-gray-text">
+                <span className="text-xs text-[var(--color-text-secondary)]">
                   {new Date(comment.created_at).toLocaleDateString()}
                 </span>
               </div>
@@ -167,7 +147,7 @@ export default function CommentSection({
                 </button>
               ) : null}
             </div>
-            <p className="text-sm text-gray-text">{comment.content}</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">{comment.content}</p>
 
             {replyingTo === comment.id ? (
               <form
@@ -187,7 +167,7 @@ export default function CommentSection({
                   rows={2}
                   placeholder={`Reply to ${comment.author?.name || "User"}...`}
                   autoFocus
-                  className="w-full resize-none rounded-lg border border-dark-border bg-dark-card p-3 text-sm text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+                  className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
                 />
                 <button
                   type="submit"
@@ -200,9 +180,9 @@ export default function CommentSection({
             ) : null}
 
             {comment.replies && comment.replies.length > 0 ? (
-              <div className="mt-3 ml-4 flex flex-col gap-3 border-l border-dark-border pl-4">
+              <div className="mt-3 ml-4 flex flex-col gap-3 border-l border-[var(--color-border)] pl-4">
                 {comment.replies.map((reply) => (
-                  <div key={reply.id} className="rounded-lg border border-dark-border p-3">
+                  <div key={reply.id} className="rounded-lg border border-[var(--color-border)] p-3">
                     <div className="mb-1 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold">
@@ -213,7 +193,7 @@ export default function CommentSection({
                             via AI Agent
                           </span>
                         ) : null}
-                        <span className="text-xs text-gray-text">
+                        <span className="text-xs text-[var(--color-text-secondary)]">
                           {new Date(reply.created_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -228,7 +208,7 @@ export default function CommentSection({
                         </button>
                       ) : null}
                     </div>
-                    <p className="text-sm text-gray-text">{reply.content}</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{reply.content}</p>
 
                     {replyingTo === reply.id ? (
                       <form
@@ -248,7 +228,7 @@ export default function CommentSection({
                           rows={2}
                           placeholder={`Reply to ${reply.author?.name || "User"}...`}
                           autoFocus
-                          className="w-full resize-none rounded-lg border border-dark-border bg-dark-card p-3 text-sm text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+                          className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
                         />
                         <button
                           type="submit"

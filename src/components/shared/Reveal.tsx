@@ -20,6 +20,19 @@ type ObserverOptions = {
   triggerOnce?: boolean;
 };
 
+function isElementVisible(element: HTMLElement, threshold: number) {
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+  const visibleWidth = Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0);
+
+  return (
+    visibleHeight >= Math.min(rect.height, rect.height * threshold) &&
+    visibleWidth > 0
+  );
+}
+
 function useIntersectionObserver(options: ObserverOptions = {}) {
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLDivElement | null>(null);
@@ -36,6 +49,21 @@ function useIntersectionObserver(options: ObserverOptions = {}) {
       setIsVisible(true);
       return;
     }
+
+    const checkVisibility = () => {
+      if (!triggerOnce || isVisible) {
+        return;
+      }
+
+      const currentElement = elementRef.current;
+      if (!currentElement) {
+        return;
+      }
+
+      if (isElementVisible(currentElement, threshold)) {
+        setIsVisible(true);
+      }
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -56,12 +84,28 @@ function useIntersectionObserver(options: ObserverOptions = {}) {
       observer.observe(currentElement);
     }
 
+    const handlePageRestore = () => {
+      requestAnimationFrame(checkVisibility);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(checkVisibility);
+      }
+    };
+
+    requestAnimationFrame(checkVisibility);
+    window.addEventListener("pageshow", handlePageRestore);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       if (currentElement) {
         observer.unobserve(currentElement);
       }
+      window.removeEventListener("pageshow", handlePageRestore);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [
+    isVisible,
     root,
     rootMargin,
     threshold,

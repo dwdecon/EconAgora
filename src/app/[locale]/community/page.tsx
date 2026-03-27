@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
+import PageShell from "@/components/layout/PageShell";
 import { db } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
 import PostCard from "@/components/community/PostCard";
@@ -149,14 +150,14 @@ export default function CommunityPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="py-20 text-center text-gray-text">Loading posts...</p>
-      </div>
+      <PageShell width="3xl">
+        <p className="py-20 text-center text-[var(--color-text-secondary)]">Loading posts...</p>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <PageShell width="3xl">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Community</h1>
         <Link
@@ -172,9 +173,9 @@ export default function CommunityPage() {
         ))}
       </div>
       {posts.length === 0 ? (
-        <p className="py-20 text-center text-gray-text">No posts yet.</p>
+        <p className="py-20 text-center text-[var(--color-text-secondary)]">No posts yet.</p>
       ) : null}
       <Pagination currentPage={page} totalPages={totalPages} basePath="/community" />
-    </div>
+    </PageShell>
   );
 }

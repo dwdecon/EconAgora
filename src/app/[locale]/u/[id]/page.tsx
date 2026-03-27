@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import PageShell from "@/components/layout/PageShell";
 import { db } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
 import PromptCard from "@/components/prompts/PromptCard";
@@ -96,17 +97,23 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-4xl items-center justify-center px-6 py-12">
-        <div className="text-gray-text">Loading...</div>
-      </div>
+      <PageShell
+        width="4xl"
+        className="flex min-h-[40vh] items-center justify-center"
+      >
+        <div className="text-[var(--color-text-secondary)]">Loading...</div>
+      </PageShell>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="mx-auto flex max-w-4xl items-center justify-center px-6 py-12">
-        <div className="text-gray-text">{error || "User not found."}</div>
-      </div>
+      <PageShell
+        width="4xl"
+        className="flex min-h-[40vh] items-center justify-center"
+      >
+        <div className="text-[var(--color-text-secondary)]">{error || "User not found."}</div>
+      </PageShell>
     );
   }
 
@@ -134,17 +141,17 @@ export default function UserProfilePage() {
   }));
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
+    <PageShell width="4xl">
       <div className="mb-8 flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-dark-border bg-dark-card text-2xl font-bold text-primary">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-2xl font-bold text-primary">
           {user.name[0]}
         </div>
         <div>
           <h1 className="text-2xl font-bold">{user.name}</h1>
           {user.affiliation ? (
-            <p className="text-sm text-gray-text">{user.affiliation}</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">{user.affiliation}</p>
           ) : null}
-          {user.bio ? <p className="mt-1 text-sm text-gray-text">{user.bio}</p> : null}
+          {user.bio ? <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{user.bio}</p> : null}
         </div>
       </div>
 
@@ -169,6 +176,6 @@ export default function UserProfilePage() {
           </div>
         </section>
       ) : null}
-    </div>
+    </PageShell>
   );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { db, getSessionUser } from "@/lib/cloudbase";
-import { createId } from "@/lib/rdb-utils";
+import { getSessionAccessToken } from "@/lib/cloudbase";
 
 type TargetType = "PROMPT" | "POST";
 
@@ -22,8 +21,8 @@ export default function LikeButton({
   const [likeCount, setLikeCount] = useState(initialCount);
 
   async function handleToggle() {
-    const sessionUser = await getSessionUser();
-    if (!sessionUser) return;
+    const accessToken = await getSessionAccessToken();
+    if (!accessToken) return;
 
     const previousLiked = liked;
     const previousCount = likeCount;
@@ -31,64 +30,29 @@ export default function LikeButton({
     const nextCount = previousLiked
       ? Math.max(0, previousCount - 1)
       : previousCount + 1;
-    const targetTable = targetType === "PROMPT" ? "prompt" : "post";
 
     setLiked(nextLiked);
     setLikeCount(nextCount);
 
-    const likeMutation = previousLiked
-      ? await db
-          .from("user_like")
-          .delete()
-          .eq("user_id", sessionUser.id)
-          .eq("target_type", targetType)
-          .eq("target_id", targetId)
-      : await db.from("user_like").insert({
-          _id: createId("like"),
-          user_id: sessionUser.id,
-          target_type: targetType,
-          target_id: targetId,
-          created_at: new Date().toISOString(),
-        });
+    const response = await fetch("/api/likes/toggle", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ targetType, targetId }),
+    });
 
-    if (likeMutation.error) {
+    if (!response.ok) {
       setLiked(previousLiked);
       setLikeCount(previousCount);
+      console.error("Failed to toggle like:", await response.json().catch(() => null));
       return;
     }
 
-    const counterMutation = await db
-      .from(targetTable)
-      .update({
-        like_count: nextCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("_id", targetId);
-
-    if (!counterMutation.error) {
-      return;
-    }
-
-    setLiked(previousLiked);
-    setLikeCount(previousCount);
-
-    if (previousLiked) {
-      await db.from("user_like").insert({
-        _id: createId("like"),
-        user_id: sessionUser.id,
-        target_type: targetType,
-        target_id: targetId,
-        created_at: new Date().toISOString(),
-      });
-      return;
-    }
-
-    await db
-      .from("user_like")
-      .delete()
-      .eq("user_id", sessionUser.id)
-      .eq("target_type", targetType)
-      .eq("target_id", targetId);
+    const payload = await response.json();
+    setLiked(Boolean(payload.liked));
+    setLikeCount(Number(payload.likeCount ?? nextCount));
   }
 
   return (
@@ -98,7 +62,7 @@ export default function LikeButton({
       className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition ${
         liked
           ? "border-primary text-primary"
-          : "border-dark-border text-gray-text hover:text-white"
+          : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
       }`}
     >
       {liked ? "Liked" : "Like"} {likeCount}

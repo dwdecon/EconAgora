@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth-helpers";
+import { useRouter } from "@/i18n/navigation";
 import PostForm from "@/components/community/PostForm";
+import PageShell from "@/components/layout/PageShell";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -26,9 +27,9 @@ export default function NewPostPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="text-center text-gray-text py-20">加载中...</p>
-      </div>
+      <PageShell width="3xl">
+        <p className="py-20 text-center text-[var(--color-text-secondary)]">加载中...</p>
+      </PageShell>
     );
   }
 
@@ -37,9 +38,9 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">发帖</h1>
+    <PageShell width="3xl">
+      <h1 className="mb-8 text-3xl font-bold">发帖</h1>
       <PostForm />
-    </div>
+    </PageShell>
   );
 }

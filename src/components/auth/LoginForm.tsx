@@ -45,14 +45,14 @@ export default function LoginForm() {
         type="email"
         required
         placeholder="Email"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <input
         name="password"
         type="password"
         required
         placeholder="Password"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <button
         type="submit"

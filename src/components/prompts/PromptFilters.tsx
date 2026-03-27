@@ -3,22 +3,24 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 
 const categories = [
-  { label: "All", value: "" },
-  { label: "Literature", value: "Literature Review" },
-  { label: "Data", value: "Data Analysis" },
-  { label: "Writing", value: "Paper Writing" },
-  { label: "Review", value: "Peer Review" },
-  { label: "Topic", value: "Topic Selection" },
-  { label: "Other", value: "Other" },
+  { en: "All", zh: "全部", value: "" },
+  { en: "Literature", zh: "文献", value: "Literature Review" },
+  { en: "Data", zh: "数据", value: "Data Analysis" },
+  { en: "Writing", zh: "写作", value: "Paper Writing" },
+  { en: "Review", zh: "评审", value: "Peer Review" },
+  { en: "Topic", zh: "选题", value: "Topic Selection" },
+  { en: "Other", zh: "其他", value: "Other" },
 ];
 
 const FILTER_PILL_CLASSES =
   "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]";
 
 export default function PromptFilters() {
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category") || "";
@@ -87,9 +89,10 @@ export default function PromptFilters() {
         <div className="flex flex-1 gap-1 overflow-x-auto">
           {categories.map((cat) => {
             const isActive = currentCategory === cat.value;
+            const label = locale === "en" ? cat.en : cat.zh;
             return (
               <button
-                key={cat.label}
+                key={cat.value}
                 type="button"
                 onClick={() => setCategory(cat.value)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
@@ -98,7 +101,7 @@ export default function PromptFilters() {
                     : "bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface-strong)]"
                 }`}
               >
-                {cat.label}
+                {label}
               </button>
             );
           })}

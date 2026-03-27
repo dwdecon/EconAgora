@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { Code2 } from "lucide-react";
 import { getShowcaseArticle } from "@/components/landing/content";
+import CopyPromptButton from "@/components/prompts/CopyPromptButton";
 import { db, getSessionUser } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
 import CommentSection from "@/components/shared/CommentSection";
@@ -56,18 +58,22 @@ export default function PromptDetailPage() {
   }
 
   /* 2. DB-backed prompt (user-generated content) */
-  return <DbPromptDetail id={slug} />;
+  return <DbPromptDetail id={slug} locale={locale} />;
 }
 
 /* ── DB detail (unchanged logic, extracted to sub-component) ── */
 
-function DbPromptDetail({ id }: { id: string }) {
+function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [liked, setLiked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
+  const previewLabel = locale === "en" ? "Preview" : "预览";
+  const copyLabel = locale === "en" ? "Copy" : "\u590d\u5236";
+  const copiedLabel = locale === "en" ? "Copied" : "\u5df2\u590d\u5236";
+  const codeAriaLabel = locale === "en" ? "Prompt code block" : "Prompt \u4ee3\u7801\u6846";
 
   useEffect(() => {
     let cancelled = false;
@@ -247,7 +253,38 @@ function DbPromptDetail({ id }: { id: string }) {
         ))}
       </div>
 
-      <pre className="mt-8">{prompt.content}</pre>
+      <div
+        className="mt-8 flex w-full min-w-0 flex-col overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-bg-surface)]"
+        aria-label={codeAriaLabel}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-3 py-2.5">
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary/70" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-text-secondary)]/55" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-text-secondary)]/35" />
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">
+              {previewLabel}
+            </span>
+            <CopyPromptButton
+              content={prompt.content}
+              copyLabel={copyLabel}
+              copiedLabel={copiedLabel}
+              className="shrink-0"
+              stopPropagation={false}
+            />
+            <Code2 className="h-4 w-4 text-[var(--color-text-secondary)]" />
+          </div>
+        </div>
+
+        <div className="h-[320px] min-h-0 overflow-y-auto overflow-x-hidden px-3.5 py-3.5 sm:h-[420px]">
+          <div className="font-mono whitespace-pre-wrap break-words text-[13px] leading-6 text-[var(--color-text-primary)]">
+            {prompt.content}
+          </div>
+        </div>
+      </div>
 
       <div className="mt-6 flex gap-3">
         <LikeButton

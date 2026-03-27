@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { auth, db } from "@/lib/cloudbase";
-import { createId } from "@/lib/rdb-utils";
+import { auth, getSessionAccessToken } from "@/lib/cloudbase";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -50,32 +49,29 @@ export default function RegisterForm() {
       const { data: userData } = await auth.getUser();
       const currentUser = userData?.user;
       if (currentUser) {
+        const accessToken = await getSessionAccessToken();
         const profilePayload = {
           name: name.trim(),
           email: email.trim(),
           role: "USER",
           locale: "zh",
-          updated_at: new Date().toISOString(),
         };
 
-        const existingProfile = await db
-          .from("user_profile")
-          .select("*")
-          .eq("cloudbase_uid", currentUser.id)
-          .single();
-
-        if (existingProfile.data) {
-          await db
-            .from("user_profile")
-            .update(profilePayload)
-            .eq("cloudbase_uid", currentUser.id);
-        } else {
-          await db.from("user_profile").insert({
-            _id: createId("profile"),
-            cloudbase_uid: currentUser.id,
-            ...profilePayload,
-            created_at: new Date().toISOString(),
+        if (accessToken) {
+          const response = await fetch("/api/profile", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(profilePayload),
           });
+
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            setError(payload?.error || "Failed to initialize profile.");
+            return;
+          }
         }
       }
 
@@ -96,7 +92,7 @@ export default function RegisterForm() {
         onChange={(event) => setName(event.target.value)}
         placeholder="Display name"
         required
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <input
         type="email"
@@ -104,7 +100,7 @@ export default function RegisterForm() {
         onChange={(event) => setEmail(event.target.value)}
         placeholder="Email"
         required
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <input
         type="password"
@@ -113,7 +109,7 @@ export default function RegisterForm() {
         placeholder="Password (min. 6 characters)"
         required
         minLength={6}
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <button
         type="submit"

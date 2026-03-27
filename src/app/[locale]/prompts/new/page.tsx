@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import PageShell from "@/components/layout/PageShell";
 import { getSessionUser } from "@/lib/cloudbase";
 import PromptForm from "@/components/prompts/PromptForm";
 
@@ -35,9 +36,9 @@ export default function NewPromptPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="py-20 text-center text-gray-text">Loading...</p>
-      </div>
+      <PageShell width="3xl">
+        <p className="py-20 text-center text-[var(--color-text-secondary)]">Loading...</p>
+      </PageShell>
     );
   }
 
@@ -46,9 +47,9 @@ export default function NewPromptPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <PageShell width="3xl">
       <h1 className="mb-8 text-3xl font-bold">Publish Prompt</h1>
       <PromptForm />
-    </div>
+    </PageShell>
   );
 }

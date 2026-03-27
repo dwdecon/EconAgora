@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { db, getSessionUser } from "@/lib/cloudbase";
-import { createId } from "@/lib/rdb-utils";
+import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { getSessionAccessToken } from "@/lib/cloudbase";
 
 const categories = [
   "Literature Review",
@@ -16,6 +16,7 @@ const categories = [
 
 export default function PromptForm() {
   const router = useRouter();
+  const locale = useLocale();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -24,9 +25,9 @@ export default function PromptForm() {
 
     try {
       const formData = new FormData(event.currentTarget);
-      const sessionUser = await getSessionUser();
+      const accessToken = await getSessionAccessToken();
 
-      if (!sessionUser) {
+      if (!accessToken) {
         alert("Please sign in first.");
         router.push("/auth/login");
         return;
@@ -43,32 +44,39 @@ export default function PromptForm() {
             .map((item) => item.trim())
             .filter(Boolean)
         : [];
-      const promptId = createId("prompt");
-      const now = new Date().toISOString();
-
-      const { error } = await db.from("prompt").insert({
-        _id: promptId,
-        title,
-        category,
-        tags,
-        description: description || null,
-        content,
-        locale: "zh",
-        status: "PUBLISHED",
-        author_id: sessionUser.id,
-        like_count: 0,
-        download_count: 0,
-        created_at: now,
-        updated_at: now,
+      const response = await fetch("/api/prompts", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          category,
+          tags,
+          description,
+          content,
+          locale,
+        }),
       });
 
-      if (error) {
-        console.error("Failed to create prompt:", error);
-        alert("Failed to publish the prompt.");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const errorMessage =
+          payload?.error ||
+          (response.status === 401
+            ? "Please sign in first."
+            : "Failed to publish the prompt.");
+        if (response.status === 401) {
+          router.push("/auth/login");
+        }
+        console.error("Failed to create prompt:", payload);
+        alert(errorMessage);
         return;
       }
 
-      router.push(`/prompts/${promptId}`);
+      const payload = await response.json();
+      router.push(`/prompts/${payload.id}`);
     } catch (error) {
       console.error("Failed to create prompt:", error);
       alert("Failed to publish the prompt.");
@@ -83,12 +91,12 @@ export default function PromptForm() {
         name="title"
         required
         placeholder="Title"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <select
         name="category"
         required
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] focus:border-primary focus:outline-none"
       >
         {categories.map((category) => (
           <option key={category} value={category}>
@@ -99,20 +107,20 @@ export default function PromptForm() {
       <input
         name="tags"
         placeholder="Tags separated by commas"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <textarea
         name="description"
         rows={2}
         placeholder="Short description"
-        className="resize-none rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <textarea
         name="content"
         required
         rows={10}
         placeholder="Prompt content"
-        className="resize-none rounded-lg border border-dark-border bg-dark-card px-4 py-3 font-mono text-sm text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 font-mono text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <button
         type="submit"

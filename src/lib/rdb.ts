@@ -3,6 +3,8 @@
  * No browser-specific APIs, no auth dependencies.
  */
 
+import { toSqlTimestamp } from "@/lib/rdb-utils";
+
 type CountMode = "exact";
 type FilterOperator =
   | "eq"
@@ -33,6 +35,8 @@ export interface QueryResult<T = any> {
   error: { message: string; raw?: unknown } | null;
 }
 
+type AuthorizationToken = string | (() => string | Promise<string>);
+
 function parseContentRange(contentRange: string | null): number | null {
   if (!contentRange) return null;
   const total = contentRange.split("/")[1];
@@ -43,7 +47,7 @@ function parseContentRange(contentRange: string | null): number | null {
 
 function stringifyValue(value: unknown): string {
   if (value === null) return "null";
-  if (value instanceof Date) return value.toISOString();
+  if (value instanceof Date) return toSqlTimestamp(value);
   if (typeof value === "boolean" || typeof value === "number") {
     return String(value);
   }
@@ -67,6 +71,31 @@ function serializeFilter({ operator, value }: Filter): string {
   }
 }
 
+function isRdbErrorPayload(payload: unknown) {
+  if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+    return false;
+  }
+
+  const keys = Object.keys(payload);
+  if (keys.length === 0) {
+    return false;
+  }
+
+  const allowedKeys = new Set([
+    "code",
+    "details",
+    "hint",
+    "message",
+    "request_id",
+    "requestId",
+  ]);
+
+  return (
+    typeof (payload as any).message === "string" &&
+    keys.every((key) => allowedKeys.has(key))
+  );
+}
+
 export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
   private readonly table: string;
   private method: "GET" | "POST" | "PATCH" | "DELETE" = "GET";
@@ -80,9 +109,13 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
   private returnRepresentation = false;
   private body: unknown = null;
   private readonly baseUrl: string;
-  private readonly authorizationToken: string;
+  private readonly authorizationToken: AuthorizationToken;
 
-  constructor(table: string, baseUrl: string, authorizationToken: string) {
+  constructor(
+    table: string,
+    baseUrl: string,
+    authorizationToken: AuthorizationToken,
+  ) {
     this.table = table;
     this.baseUrl = baseUrl;
     this.authorizationToken = authorizationToken;
@@ -199,7 +232,8 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
       };
     }
 
-    if (!this.authorizationToken) {
+    const authorizationToken = await this.resolveAuthorizationToken();
+    if (!authorizationToken) {
       return {
         count: null,
         data: (this.singleResult ? null : []) as TData,
@@ -242,7 +276,7 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
     }
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${this.authorizationToken}`,
+      Authorization: `Bearer ${authorizationToken}`,
       "Content-Type": "application/json",
     };
     if (preferDirectives.length > 0) {
@@ -284,6 +318,17 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
         };
       }
 
+      if (isRdbErrorPayload(payload)) {
+        return {
+          count,
+          data: (this.singleResult ? null : []) as TData,
+          error: {
+            message: String((payload as any).message),
+            raw: payload,
+          },
+        };
+      }
+
       const normalizedData = this.singleResult
         ? (Array.isArray(payload) ? payload[0] ?? null : payload)
         : (Array.isArray(payload)
@@ -319,5 +364,11 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
       | null,
   ): PromiseLike<TResult1 | TResult2> {
     return this.execute().then(onfulfilled, onrejected);
+  }
+
+  private async resolveAuthorizationToken() {
+    return typeof this.authorizationToken === "function"
+      ? await this.authorizationToken()
+      : this.authorizationToken;
   }
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { db, getSessionUser } from "@/lib/cloudbase";
-import { createId } from "@/lib/rdb-utils";
+import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { getSessionAccessToken } from "@/lib/cloudbase";
 
 export default function PostForm() {
   const router = useRouter();
+  const locale = useLocale();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -24,37 +25,44 @@ export default function PostForm() {
             .map((item) => item.trim())
             .filter(Boolean)
         : [];
-
-      const sessionUser = await getSessionUser();
-      if (!sessionUser) {
+      const accessToken = await getSessionAccessToken();
+      if (!accessToken) {
         alert("Please sign in first.");
         router.push("/auth/login");
         return;
       }
 
-      const postId = createId("post");
-      const now = new Date().toISOString();
-      const { error } = await db.from("post").insert({
-        _id: postId,
-        title,
-        content,
-        tags,
-        locale: "zh",
-        pinned: false,
-        is_agent_post: false,
-        like_count: 0,
-        author_id: sessionUser.id,
-        created_at: now,
-        updated_at: now,
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          tags,
+          locale,
+        }),
       });
 
-      if (error) {
-        console.error("Failed to create post:", error);
-        alert("Failed to create the post.");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const errorMessage =
+          payload?.error ||
+          (response.status === 401
+            ? "Please sign in first."
+            : "Failed to create the post.");
+        if (response.status === 401) {
+          router.push("/auth/login");
+        }
+        console.error("Failed to create post:", payload);
+        alert(errorMessage);
         return;
       }
 
-      router.push(`/community/${postId}`);
+      const payload = await response.json();
+      router.push(`/community/${payload.id}`);
     } catch (error) {
       console.error("Failed to create post:", error);
       alert("Failed to create the post.");
@@ -69,19 +77,19 @@ export default function PostForm() {
         name="title"
         required
         placeholder="Post title"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <textarea
         name="content"
         required
         rows={8}
         placeholder="Share your thoughts..."
-        className="resize-none rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <input
         name="tags"
         placeholder="Tags separated by commas"
-        className="rounded-lg border border-dark-border bg-dark-card px-4 py-3 text-white placeholder:text-gray-text focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
       />
       <button
         type="submit"

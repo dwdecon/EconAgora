@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Noto_Sans_SC, Sora } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { ThemeProvider } from "next-themes";
 import { routing } from "@/i18n/routing";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -44,16 +45,18 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${sora.variable} ${notoSansSc.variable} ${ibmPlexMono.variable} bg-dark text-white antialiased selection:bg-[#7a00ff]/35 selection:text-white`}
+        className={`${sora.variable} ${notoSansSc.variable} ${ibmPlexMono.variable} bg-[var(--color-bg)] text-[var(--color-text-primary)] antialiased selection:bg-[var(--color-bg-surface-strong)] selection:text-[var(--color-text-primary)]`}
       >
-        <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </NextIntlClientProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <NextIntlClientProvider messages={messages}>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

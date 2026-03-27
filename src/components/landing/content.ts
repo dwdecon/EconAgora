@@ -410,9 +410,9 @@ export function getHomeContent(locale: string) {
         title: ["现在开始构建你的", "研究工作台"],
         accent: "免费",
         description:
-          "从 prompt 模板到社区协作，再到 agent-native workflow，EconAgora 提供一套更适合经济学研究的起点。",
+          "从 prompt 模板到社区协作，再到 agent-native workflow，EconAgora 提供一套更适合学术研究的起点。",
         primary: "免费注册",
-        secondary: "浏览 Prompts",
+        secondary: "会员计划",
         hint: "有想法？从 Prompt Library 开始",
       },
       footer: {
@@ -434,9 +434,10 @@ export function getHomeContent(locale: string) {
           {
             title: "Platform",
             items: [
-              { label: "发布 Prompt", href: "/prompts/new" },
-              { label: "发起讨论", href: "/community/new" },
               { label: "免费加入", href: "/auth/register" },
+              { label: "发起讨论", href: "/community/new" },
+              { label: "发布资产", href: "/prompts/new" },
+              { label: "会员计划", href: "/pricing" },
             ],
           },
         ] satisfies FooterGroup[],
@@ -806,11 +807,11 @@ export function getHomeContent(locale: string) {
       cta: {
         badge: "Research-ready AI platform",
         title: ["Start building your", "research workspace"],
-        accent: "free",
+        accent: "AI",
         description:
           "From prompt templates to community collaboration and agent-native workflows, EconAgora offers a stronger starting point for economics research.",
         primary: "Create account",
-        secondary: "Browse Prompts",
+        secondary: "Membership",
         hint: "Got a concept? Start with the Prompt Library.",
       },
       footer: {
@@ -832,9 +833,10 @@ export function getHomeContent(locale: string) {
           {
             title: "Platform",
             items: [
-              { label: "Publish Prompt", href: "/prompts/new" },
-              { label: "Start Thread", href: "/community/new" },
               { label: "Create Account", href: "/auth/register" },
+              { label: "Start Thread", href: "/community/new" },
+              { label: "Publish Asset", href: "/prompts/new" },
+              { label: "Membership", href: "/pricing" },
             ],
           },
         ] satisfies FooterGroup[],

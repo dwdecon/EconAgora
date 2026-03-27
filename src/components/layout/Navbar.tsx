@@ -50,7 +50,9 @@ export default function Navbar() {
     if (!isHome) {
       if (navRef.current) {
         navRef.current.style.transform = "translate3d(0px, 0px, 0px)";
-        navRef.current.style.backgroundColor = "var(--color-bg)";
+        navRef.current.style.backgroundColor = "var(--color-nav-glass)";
+        navRef.current.style.backdropFilter = "blur(20px) saturate(180%)";
+        (navRef.current.style as any).webkitBackdropFilter = "blur(20px) saturate(180%)";
         navRef.current.style.opacity = "1";
       }
       return;
