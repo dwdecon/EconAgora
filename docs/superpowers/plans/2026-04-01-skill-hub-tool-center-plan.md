@@ -96,10 +96,15 @@ CREATE TABLE tool (
 
 Insert 3-5 sample records per table for testing.
 
+**Sample structure**:
+- Categories: "Data Analysis", "Visualization", "API Integration", "Automation"
+- Tags: JSON arrays like `["python", "pandas"]`, `["api", "rest"]`
+- Content: Markdown with code blocks for testing syntax highlighting
+
 **Verification**: Query returns sample data
 
 ### Task 1.4: Create shared components
-**Files**: 
+**Files**:
 - `src/components/shared/MarkdownRenderer.tsx`
 - `src/components/shared/CreateNewCard.tsx`
 
@@ -110,8 +115,8 @@ Insert 3-5 sample records per table for testing.
 
 **CreateNewCard**:
 - Props: `href: string`, `title: string`, `description: string`
+- Extract from `prompts/page.tsx` (lines 69-82) and generalize
 - Reusable "Create New" card for listing pages
-- Extracted pattern from prompts page
 
 **Verification**: Components render correctly
 
@@ -123,11 +128,28 @@ Insert 3-5 sample records per table for testing.
 
 Data fetching functions for skills, following `src/app/[locale]/prompts/page.tsx` pattern.
 
+**Type definitions**:
+```typescript
+interface Skill {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  tags: string[];
+  tutorial: string | null;
+  codeExamples: string | null;
+  useCases: string | null;
+  likeCount: number;
+  viewCount: number;
+  author: { id: string; name: string; avatar: string | null };
+}
+```
+
 **Functions**:
 - `fetchSkills({ page, category, tag, search })` - paginated query with filters
 - `fetchFeaturedSkills()` - top 5 by like_count
 - `fetchSkillById(id)` - single record with author
-- `fetchRelatedSkills(id, category)` - 3 related (same category, exclude current, order by like_count)
+- `fetchRelatedSkills(id, category)` - same category, exclude current, order by like_count, limit 3; if <3 results, fallback to any category
 
 **Verification**: Functions return typed data from RDB
 
@@ -170,12 +192,14 @@ Server component with data fetching, filtering, pagination.
 
 **Structure**:
 - PageHero (label, title, subtitle)
-- FeaturedCarousel (top 5, reuse from prompts or create generic version)
+- FeaturedCarousel (create `SkillCarousel.tsx` adapted from `prompts/FeaturedCarousel.tsx`)
 - SkillFilters
 - Grid with CreateNewCard + SkillCard items
 - Pagination
 
 **Data**: Use functions from Task 2.1
+
+**Note**: FeaturedCarousel is tightly coupled to Prompts - create separate SkillCarousel component
 
 **Verification**: Page renders, filters work, pagination works
 
@@ -204,11 +228,29 @@ Skill detail with full tutorial content.
 
 Data fetching functions for tools, mirror Task 2.1 structure.
 
+**Type definitions**:
+```typescript
+interface Tool {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  tags: string[];
+  officialUrl: string | null;
+  docsUrl: string | null;
+  quickStart: string | null;
+  integrationGuide: string | null;
+  likeCount: number;
+  viewCount: number;
+  author: { id: string; name: string; avatar: string | null };
+}
+```
+
 **Functions**:
 - `fetchTools({ page, category, tag, search })`
 - `fetchFeaturedTools()`
 - `fetchToolById(id)`
-- `fetchRelatedTools(id, category)`
+- `fetchRelatedTools(id, category)` - same fallback logic as Skills
 
 **Verification**: Functions return typed data from RDB
 
@@ -246,6 +288,8 @@ Client component for tools filtering, mirror SkillFilters.
 
 Server component, mirror Task 2.5 structure.
 
+**Note**: Create `ToolCarousel.tsx` adapted from `prompts/FeaturedCarousel.tsx`
+
 **Verification**: Page renders, filters work, pagination works
 
 ### Task 3.6: Create Tool detail page
@@ -267,13 +311,18 @@ Tool detail with quick start and integration guide.
 ## Phase 4: Integration
 
 ### Task 4.1: Update Navbar
-**Files**: `src/components/layout/Navbar.tsx`
+**Files**: `src/components/layout/Navbar.tsx`, `src/i18n/messages/zh.json`, `src/i18n/messages/en.json`
 
 Add "Skills" and "Tools" links to navigation.
 
-**Location**: After existing nav links (Prompts, Community)
+**Location**: After Community link, before user menu
+**Order**: Home → Prompts → Community → Skills → Tools
 
-**Verification**: Links visible, navigate to correct pages
+**i18n keys to add**:
+- `nav.skills` (zh: "技能中心", en: "Skills")
+- `nav.tools` (zh: "工具中心", en: "Tools")
+
+**Verification**: Links visible in desktop and mobile nav, navigate correctly
 
 ## Testing Checklist
 
