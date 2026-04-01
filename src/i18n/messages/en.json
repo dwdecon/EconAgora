@@ -2,6 +2,8 @@
   "nav": {
     "prompts": "Prompt Library",
     "community": "Community",
+    "skills": "Skills",
+    "tools": "Tools",
     "login": "Login",
     "register": "Start Free"
   },
@@ -10,5 +12,48 @@
     "subtitle": "AI workflows, prompt libraries, and research infrastructure for economists",
     "explore": "Explore Prompt Library",
     "github": "GitHub"
+  },
+  "skills": {
+    "label": "Skill Hub",
+    "title": "Research Skills Library",
+    "subtitle": "Browse reusable research skills covering data cleaning, visualization, literature analysis, and more.",
+    "share": "Share Your Skill",
+    "shareDesc": "Publish your research skill to the community.",
+    "card": {
+      "author": "Author",
+      "views": "Views",
+      "likes": "Likes"
+    },
+    "empty": {
+      "title": "No skills found",
+      "hint": "Try a different category, clear your filters, or search with broader terms."
+    },
+    "detail": {
+      "tutorial": "Tutorial",
+      "codeExamples": "Code Examples",
+      "related": "Related Skills"
+    }
+  },
+  "tools": {
+    "label": "Tool Center",
+    "title": "Research Tools Library",
+    "subtitle": "Discover tools to boost your research efficiency, from AI assistants to reference managers.",
+    "share": "Share a Tool",
+    "shareDesc": "Recommend your favorite research tools.",
+    "card": {
+      "author": "Author",
+      "views": "Views",
+      "likes": "Likes"
+    },
+    "empty": {
+      "title": "No tools found",
+      "hint": "Try a different category, clear your filters, or search with broader terms."
+    },
+    "detail": {
+      "quickStart": "Quick Start",
+      "integration": "Integration Guide",
+      "links": "Links",
+      "related": "Related Tools"
+    }
   }
 }

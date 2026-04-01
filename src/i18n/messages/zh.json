@@ -2,6 +2,8 @@
   "nav": {
     "prompts": "Prompt Library",
     "community": "Community",
+    "skills": "技能中心",
+    "tools": "工具中心",
     "login": "登录",
     "register": "免费加入"
   },
@@ -10,5 +12,48 @@
     "subtitle": "为经济学研究打造 AI 工作流、Prompt Library 与协作社区",
     "explore": "浏览 Prompt Library",
     "github": "GitHub"
+  },
+  "skills": {
+    "label": "技能中心",
+    "title": "研究技能库",
+    "subtitle": "浏览可复用的研究技能，涵盖数据清洗、可视化、文献分析等领域。",
+    "share": "分享你的技能",
+    "shareDesc": "将你的研究技能发布到社区。",
+    "card": {
+      "author": "作者",
+      "views": "浏览",
+      "likes": "点赞"
+    },
+    "empty": {
+      "title": "未找到相关技能",
+      "hint": "试试其他分类、清除筛选条件，或使用更宽泛的搜索词。"
+    },
+    "detail": {
+      "tutorial": "使用教程",
+      "codeExamples": "代码示例",
+      "related": "相关技能"
+    }
+  },
+  "tools": {
+    "label": "工具中心",
+    "title": "研究工具库",
+    "subtitle": "发现提升研究效率的工具，从 AI 助手到文献管理。",
+    "share": "分享工具",
+    "shareDesc": "推荐你常用的研究工具。",
+    "card": {
+      "author": "作者",
+      "views": "浏览",
+      "likes": "点赞"
+    },
+    "empty": {
+      "title": "未找到相关工具",
+      "hint": "试试其他分类、清除筛选条件，或使用更宽泛的搜索词。"
+    },
+    "detail": {
+      "quickStart": "快速开始",
+      "integration": "集成指南",
+      "links": "相关链接",
+      "related": "相关工具"
+    }
   }
 }
