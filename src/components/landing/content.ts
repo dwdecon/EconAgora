@@ -64,9 +64,8 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
-          { label: "Skill Hub", href: "#modules" },
-          { label: "Tool Center", href: "#tools" },
-          { label: "Agent", href: "#broadcast" },
+          { label: "技能中心", href: "/skills" },
+          { label: "工具中心", href: "/tools" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
@@ -460,9 +459,8 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
-          { label: "Skill Hub", href: "#modules" },
-          { label: "Tool Center", href: "#tools" },
-          { label: "Agent", href: "#broadcast" },
+          { label: "Skills", href: "/skills" },
+          { label: "Tools", href: "/tools" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
