@@ -73,7 +73,7 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", update);
   }, [isHome]);
 
-  // Fade-in on mount: only on home page
+  // Fade-in on mount: only on home page — only animates opacity, not transform/background
   useEffect(() => {
     if (!isHome || !navRef.current) return;
     const el = navRef.current;
@@ -83,10 +83,6 @@ export default function Navbar() {
     function animate(now: number) {
       const t = Math.min((now - start) / DURATION, 1);
       const ease = 1 - Math.pow(1 - t, 3);
-      const offsetY = -30 * (1 - ease);
-      const scrollT = Math.min(window.scrollY / 80, 1);
-      const baseY = 45 * (1 - scrollT);
-      el.style.transform = `translate3d(0px, ${baseY + offsetY}px, 0px)`;
       const fastT = Math.min(t * 2, 1);
       const fastEase = 1 - Math.pow(1 - fastT, 3);
       el.style.opacity = String(fastEase);

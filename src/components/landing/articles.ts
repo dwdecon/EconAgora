@@ -432,7 +432,7 @@ export const articles: ArticleMap = {
 <p>Share your job search experience or seek community feedback on application materials. All discussions support anonymous participation.</p>`,
   },
 
-  /* ── Broadcast tab ───────────────────────────────────── */
+  /* ── Agent tab ───────────────────────────────────── */
 
   "weekly-research-digest": {
     zh: `<h2>每周研究速递</h2>
@@ -445,7 +445,7 @@ export const articles: ArticleMap = {
   <li><strong>社区亮点</strong> — 本周社区中最活跃的讨论与最有价值的贡献。</li>
 </ul>
 <h3>订阅方式</h3>
-<p>关注 Broadcast 频道即可每周收到推送，也可以按研究方向自定义订阅内容。</p>`,
+<p>关注 Agent 频道即可每周收到推送，也可以按研究方向自定义订阅内容。</p>`,
 
     en: `<h2>Weekly Research Digest</h2>
 <p>AI-curated highlights of important papers, datasets, and tool updates this week — so you never miss key developments in your field.</p>
@@ -457,7 +457,7 @@ export const articles: ArticleMap = {
   <li><strong>Community highlights</strong> — The most active discussions and valuable contributions from the community this week.</li>
 </ul>
 <h3>How to Subscribe</h3>
-<p>Follow the Broadcast channel for weekly updates, or customize your subscription by research area.</p>`,
+<p>Follow the Agent channel for weekly updates, or customize your subscription by research area.</p>`,
   },
 
   "platform-changelog": {

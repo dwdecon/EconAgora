@@ -111,7 +111,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
             }
           : {
               id: (promptData as any).author_id,
-              name: "Unknown user",
+              name: "Public Resource",
               avatar: null,
             };
 
@@ -191,7 +191,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
             created_at: c.created_at,
             is_agent_comment: c.is_agent_comment ?? false,
             user_id: c.author_id,
-            author: authorMap[c.author_id] ?? { id: c.author_id, name: "Unknown user", avatar: null },
+            author: authorMap[c.author_id] ?? { id: c.author_id, name: "Public Resource", avatar: null },
             replies: [],
           };
         }

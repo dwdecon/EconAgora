@@ -117,7 +117,7 @@ function DbPostDetail({ id }: { id: string }) {
                 }
               : {
                   id: normalizedPost.author_id,
-                  name: "Unknown user",
+                  name: "Public Resource",
                   avatar: null,
                 },
           );
@@ -167,7 +167,7 @@ function DbPostDetail({ id }: { id: string }) {
 
             authorMap[uid] = data
               ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
-              : { id: uid, name: "Unknown user", avatar: null };
+              : { id: uid, name: "Public Resource", avatar: null };
           }),
         );
 
@@ -183,7 +183,7 @@ function DbPostDetail({ id }: { id: string }) {
             created_at: row.created_at,
             is_agent_comment: row.is_agent_comment ?? false,
             user_id: row.author_id,
-            author: authorMap[row.author_id] ?? { id: row.author_id, name: "Unknown user", avatar: null },
+            author: authorMap[row.author_id] ?? { id: row.author_id, name: "Public Resource", avatar: null },
             replies: [],
           };
         }
@@ -227,7 +227,7 @@ function DbPostDetail({ id }: { id: string }) {
   return (
     <ArticleLayout>
       <div className="mb-4 flex items-center gap-2">
-        <span className="font-semibold text-white">{author?.name || "Unknown user"}</span>
+        <span className="font-semibold text-white">{author?.name || "Public Resource"}</span>
         {post.is_agent_post ? (
           <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs text-primary">
             via AI Agent

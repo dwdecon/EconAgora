@@ -36,6 +36,12 @@ export interface QueryResult<T = any> {
 }
 
 type AuthorizationToken = string | (() => string | Promise<string>);
+const GET_RETRY_DELAYS_MS = [1500, 3000, 6000];
+const TRANSIENT_HTTP_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function parseContentRange(contentRange: string | null): number | null {
   if (!contentRange) return null;
@@ -62,6 +68,9 @@ function serializeFilter({ operator, value }: Filter): string {
       }
       return `like.%${JSON.stringify(value)}%`;
     }
+    case "ilike":
+      // CloudBase MySQL does not support ILike; fall back to LIKE.
+      return `like.${stringifyValue(value)}`;
     case "in": {
       const values = Array.isArray(value) ? value : [value];
       return `in.(${values.map((item) => stringifyValue(item)).join(",")})`;
@@ -94,6 +103,41 @@ function isRdbErrorPayload(payload: unknown) {
     typeof (payload as any).message === "string" &&
     keys.every((key) => allowedKeys.has(key))
   );
+}
+
+function isTransientRdbFailure(input: {
+  method: "GET" | "POST" | "PATCH" | "DELETE";
+  status?: number;
+  payload?: unknown;
+  error?: unknown;
+}) {
+  if (input.method !== "GET") {
+    return false;
+  }
+
+  if (typeof input.status === "number" && TRANSIENT_HTTP_STATUS.has(input.status)) {
+    return true;
+  }
+
+  const payload = input.payload;
+  const code =
+    payload && typeof payload === "object"
+      ? ((payload as any).code ?? "")
+      : "";
+  const message =
+    payload && typeof payload === "object"
+      ? String((payload as any).message ?? "")
+      : "";
+
+  if (code === "SYS_ERR" || message === "Internal system error.") {
+    return true;
+  }
+
+  if (input.error instanceof Error) {
+    return true;
+  }
+
+  return false;
 }
 
 export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TData>> {
@@ -286,73 +330,116 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
       headers.Accept = "application/vnd.pgrst.object+json";
     }
 
-    try {
-      const response = await fetch(url.toString(), {
-        method: this.method,
-        headers,
-        body: this.body !== null ? JSON.stringify(this.body) : undefined,
-      });
+    for (let attempt = 0; attempt <= GET_RETRY_DELAYS_MS.length; attempt += 1) {
+      try {
+        const response = await fetch(url.toString(), {
+          method: this.method,
+          headers,
+          body: this.body !== null ? JSON.stringify(this.body) : undefined,
+        });
 
-      const text = await response.text();
-      let payload: unknown = null;
+        const text = await response.text();
+        let payload: unknown = null;
 
-      if (text) {
-        try {
-          payload = JSON.parse(text);
-        } catch {
-          payload = text;
+        if (text) {
+          try {
+            payload = JSON.parse(text);
+          } catch {
+            payload = text;
+          }
         }
-      }
 
-      const count = parseContentRange(response.headers.get("Content-Range"));
-      if (!response.ok) {
-        const message =
-          (payload as any)?.message ||
-          (payload as any)?.error ||
-          response.statusText ||
-          "CloudBase request failed.";
+        const count = parseContentRange(response.headers.get("Content-Range"));
+        if (!response.ok) {
+          const message =
+            (payload as any)?.message ||
+            (payload as any)?.error ||
+            response.statusText ||
+            "CloudBase request failed.";
+
+          if (
+            attempt < GET_RETRY_DELAYS_MS.length &&
+            isTransientRdbFailure({
+              method: this.method,
+              status: response.status,
+              payload,
+            })
+          ) {
+            await sleep(GET_RETRY_DELAYS_MS[attempt]);
+            continue;
+          }
+
+          return {
+            count,
+            data: (this.singleResult ? null : []) as TData,
+            error: { message, raw: payload },
+          };
+        }
+
+        if (isRdbErrorPayload(payload)) {
+          if (
+            attempt < GET_RETRY_DELAYS_MS.length &&
+            isTransientRdbFailure({
+              method: this.method,
+              payload,
+            })
+          ) {
+            await sleep(GET_RETRY_DELAYS_MS[attempt]);
+            continue;
+          }
+
+          return {
+            count,
+            data: (this.singleResult ? null : []) as TData,
+            error: {
+              message: String((payload as any).message),
+              raw: payload,
+            },
+          };
+        }
+
+        const normalizedData = this.singleResult
+          ? (Array.isArray(payload) ? payload[0] ?? null : payload)
+          : (Array.isArray(payload)
+              ? payload
+              : payload === null
+                ? []
+                : [payload]) as TData;
+
         return {
           count,
-          data: (this.singleResult ? null : []) as TData,
-          error: { message, raw: payload },
+          data: normalizedData as TData,
+          error: null,
         };
-      }
+      } catch (error) {
+        if (
+          attempt < GET_RETRY_DELAYS_MS.length &&
+          isTransientRdbFailure({
+            method: this.method,
+            error,
+          })
+        ) {
+          await sleep(GET_RETRY_DELAYS_MS[attempt]);
+          continue;
+        }
 
-      if (isRdbErrorPayload(payload)) {
         return {
-          count,
+          count: null,
           data: (this.singleResult ? null : []) as TData,
           error: {
-            message: String((payload as any).message),
-            raw: payload,
+            message:
+              error instanceof Error ? error.message : "CloudBase request failed.",
+            raw: error,
           },
         };
       }
-
-      const normalizedData = this.singleResult
-        ? (Array.isArray(payload) ? payload[0] ?? null : payload)
-        : (Array.isArray(payload)
-            ? payload
-            : payload === null
-              ? []
-              : [payload]) as TData;
-
-      return {
-        count,
-        data: normalizedData as TData,
-        error: null,
-      };
-    } catch (error) {
-      return {
-        count: null,
-        data: (this.singleResult ? null : []) as TData,
-        error: {
-          message:
-            error instanceof Error ? error.message : "CloudBase request failed.",
-          raw: error,
-        },
-      };
     }
+
+    return {
+      count: null,
+      data: (this.singleResult ? null : []) as TData,
+      error: { message: "CloudBase request failed." },
+    };
   }
 
   then<TResult1 = QueryResult<TData>, TResult2 = never>(

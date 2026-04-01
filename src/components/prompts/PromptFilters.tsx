@@ -8,12 +8,12 @@ import { useRouter } from "@/i18n/navigation";
 
 const categories = [
   { en: "All", zh: "全部", value: "" },
-  { en: "Literature", zh: "文献", value: "Literature Review" },
-  { en: "Data", zh: "数据", value: "Data Analysis" },
-  { en: "Writing", zh: "写作", value: "Paper Writing" },
-  { en: "Review", zh: "评审", value: "Peer Review" },
-  { en: "Topic", zh: "选题", value: "Topic Selection" },
-  { en: "Other", zh: "其他", value: "Other" },
+  { en: "Literature", zh: "文献", value: "文献" },
+  { en: "Data", zh: "数据", value: "数据" },
+  { en: "Writing", zh: "写作", value: "写作" },
+  { en: "Review", zh: "评审", value: "评审" },
+  { en: "Topic", zh: "选题", value: "选题" },
+  { en: "Other", zh: "其他", value: "其他" },
 ];
 
 const FILTER_PILL_CLASSES =
@@ -36,7 +36,13 @@ export default function PromptFilters() {
 
   function navigate(params: URLSearchParams) {
     const query = params.toString();
-    router.push(query ? `/prompts?${query}` : "/prompts");
+    // 保存当前滚动位置
+    const scrollPosition = window.scrollY;
+    router.push(query ? `/prompts?${query}` : "/prompts", { scroll: false });
+    // 导航后恢复滚动位置
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollPosition, behavior: "instant" });
+    });
   }
 
   function setCategory(category: string) {

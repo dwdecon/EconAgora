@@ -139,6 +139,28 @@ export default function FeaturedCarousel({
     return () => clearInterval(timerRef.current);
   }, [resetTimer, hovered]);
 
+  /* ── pause when tab is hidden, fix position on return ── */
+  useEffect(() => {
+    if (!hasLoop) return;
+    const onVisChange = () => {
+      if (document.visibilityState === "hidden") {
+        clearInterval(timerRef.current);
+      } else {
+        // Snap pos back into the real range [1..total] without animation
+        setPos((prev) => {
+          if (prev <= 0 || prev > total) {
+            setAnimate(false);
+            return ((prev - 1) % total + total) % total + 1;
+          }
+          return prev;
+        });
+        if (!hovered) resetTimer();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisChange);
+    return () => document.removeEventListener("visibilitychange", onVisChange);
+  }, [hasLoop, total, hovered, resetTimer]);
+
   /* ── navigate to a real index (for dots) ── */
   const goTo = (realIdx: number) => {
     setAnimate(true);

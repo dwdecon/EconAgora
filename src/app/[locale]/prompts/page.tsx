@@ -46,6 +46,8 @@ const i18n = {
 } as const;
 
 const PAGE_SIZE = 12;
+const PROMPT_RDB_WARMUP_TTL_MS = 60_000;
+let promptRdbWarmupAt = 0;
 
 function PageHero({ label, title, subtitle }: { label: string; title: string; subtitle: string }) {
   return (
@@ -106,6 +108,39 @@ function getRdbErrorMessage(error: { message: string; raw?: unknown } | null) {
     : error.message;
 }
 
+function getPromptLoadError(error: { message: string; raw?: unknown } | null) {
+  if (!error) return null;
+
+  const code =
+    typeof error.raw === "object" && error.raw !== null
+      ? String((error.raw as any).code ?? "")
+      : "";
+
+  if (code === "SYS_ERR" || error.message === "Internal system error.") {
+    return "CloudBase relational database may be waking up or temporarily unavailable. Please retry in a few seconds.";
+  }
+
+  return getRdbErrorMessage(error);
+}
+
+async function warmupPromptRdb() {
+  const now = Date.now();
+  if (now - promptRdbWarmupAt < PROMPT_RDB_WARMUP_TTL_MS) {
+    return;
+  }
+
+  const warmup = await serverDb
+    .from("prompt")
+    .select("_id")
+    .eq("status", "PUBLISHED")
+    .limit(1)
+    .execute();
+
+  if (!warmup.error) {
+    promptRdbWarmupAt = now;
+  }
+}
+
 async function fetchPrompts(params: {
   page: number;
   category: string;
@@ -115,6 +150,8 @@ async function fetchPrompts(params: {
   const { page, category, tag, search } = params;
 
   try {
+    await warmupPromptRdb();
+
     let countQuery = serverDb
       .from("prompt")
       .select("_id", { count: "exact" })
@@ -143,8 +180,8 @@ async function fetchPrompts(params: {
 
     if (countResponse.error || promptResponse.error) {
       const loadError =
-        getRdbErrorMessage(promptResponse.error) ||
-        getRdbErrorMessage(countResponse.error) ||
+        getPromptLoadError(promptResponse.error) ||
+        getPromptLoadError(countResponse.error) ||
         "CloudBase request failed.";
 
       console.error("Failed to fetch prompts:", {
@@ -198,7 +235,7 @@ async function fetchPrompts(params: {
           author:
             authorMap[prompt.author_id] ?? {
               id: prompt.author_id,
-              name: "Unknown user",
+              name: "Public Resource",
               avatar: null,
             },
         };
@@ -218,6 +255,8 @@ async function fetchPrompts(params: {
 
 async function fetchFeatured(): Promise<Prompt[]> {
   try {
+    await warmupPromptRdb();
+
     const { data, error } = await serverDb
       .from("prompt")
       .select("*")
@@ -264,7 +303,7 @@ async function fetchFeatured(): Promise<Prompt[]> {
           author:
             authorMap[row.author_id] ?? {
               id: row.author_id,
-              name: "Unknown user",
+              name: "Public Resource",
               avatar: null,
             },
         };

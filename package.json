@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "migrate:categories": "tsx scripts/migrate-categories.ts"
   },
   "dependencies": {
     "@cloudbase/app": "2.26.3",
     "@cloudbase/auth": "2.26.3",
     "@cloudbase/js-sdk": "2.26.3",
     "@cloudbase/signature-nodejs": "^2.0.0",
+    "dotenv": "^17.3.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.577.0",
     "next": "^16.2.0",
@@ -20,10 +22,14 @@
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
     "ws": "^8.20.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^22",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -31,6 +37,7 @@
     "eslint-config-next": "^16.2.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

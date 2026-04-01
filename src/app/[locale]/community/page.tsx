@@ -91,7 +91,7 @@ export default function CommunityPage() {
                   name: (profile as any).name,
                   avatar: (profile as any).avatar,
                 }
-              : { id: uid, name: "Unknown user", avatar: null };
+              : { id: uid, name: "Public Resource", avatar: null };
           }),
         );
 
@@ -123,7 +123,7 @@ export default function CommunityPage() {
             author:
               authorMap[post.author_id] ?? {
                 id: post.author_id,
-                name: "Unknown user",
+                name: "Public Resource",
                 avatar: null,
               },
             _count: { comments: commentCountMap[post._id] ?? 0 },

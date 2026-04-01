@@ -66,7 +66,7 @@ export function getHomeContent(locale: string) {
           { label: "Prompt Library", href: "/prompts" },
           { label: "Skill Hub", href: "#modules" },
           { label: "Tool Center", href: "#tools" },
-          { label: "Broadcast", href: "#broadcast" },
+          { label: "Agent", href: "#broadcast" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
@@ -96,7 +96,7 @@ export function getHomeContent(locale: string) {
           "Community",
           "Skill Hub",
           "Tool Center",
-          "Latest Broadcast",
+          "Latest Agent",
         ],
       },
       manifesto: {
@@ -253,7 +253,7 @@ export function getHomeContent(locale: string) {
           },
           {
             key: "broadcast",
-            label: "Broadcast",
+            label: "Agent",
             items: [
               {
                 title: "每周研究速递",
@@ -426,7 +426,7 @@ export function getHomeContent(locale: string) {
               { label: "Prompt Library", href: "/prompts" },
               { label: "Skill Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Broadcast", href: "/broadcast" },
+              { label: "Agent", href: "/broadcast" },
               { label: "Community", href: "/community" },
               { label: "About", href: "/about" },
             ],
@@ -462,7 +462,7 @@ export function getHomeContent(locale: string) {
           { label: "Prompt Library", href: "/prompts" },
           { label: "Skill Hub", href: "#modules" },
           { label: "Tool Center", href: "#tools" },
-          { label: "Broadcast", href: "#broadcast" },
+          { label: "Agent", href: "#broadcast" },
           { label: "Community", href: "/community" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
@@ -492,7 +492,7 @@ export function getHomeContent(locale: string) {
           "Community",
           "Skill Hub",
           "Tool Center",
-          "Latest Broadcast",
+          "Latest Agent",
         ],
       },
       manifesto: {
@@ -652,7 +652,7 @@ export function getHomeContent(locale: string) {
           },
           {
             key: "broadcast",
-            label: "Broadcast",
+            label: "Agent",
             items: [
               {
                 title: "Weekly Research Digest",
@@ -825,7 +825,7 @@ export function getHomeContent(locale: string) {
               { label: "Prompt Library", href: "/prompts" },
               { label: "Skill Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Broadcast", href: "/broadcast" },
+              { label: "Agent", href: "/broadcast" },
               { label: "Community", href: "/community" },
               { label: "About", href: "/about" },
             ],
