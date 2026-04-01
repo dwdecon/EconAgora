@@ -17,7 +17,7 @@ async function viewPrompts() {
   }
 
   console.log("Current prompts:");
-  prompts?.forEach((p) => {
+  (prompts as any[])?.forEach((p) => {
     console.log(`${p._id}: "${p.title}" - category: "${p.category}"`);
   });
 }
