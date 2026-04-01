@@ -9,17 +9,18 @@ Implement two new resource pages: Skill Hub (`/skills`) and Tool Center (`/tools
 
 ## Implementation Strategy
 
-Build in 3 phases:
-1. **Database & Dependencies** - Set up tables and install packages
+Build in 4 phases:
+1. **Database & Dependencies** - Set up tables, install packages, prepare shared components
 2. **Skills Pages** - Complete `/skills` listing and detail pages
 3. **Tools Pages** - Complete `/tools` listing and detail pages
+4. **Integration** - Update navigation and homepage
 
 Each phase is independently testable. Skills and Tools share similar structure but have distinct data models and content rendering.
 
 ## Phase 1: Database & Dependencies
 
 ### Task 1.1: Install npm packages
-**Files**: `package.json`
+**Files**: `package.json`, `tailwind.config.js`
 
 Install markdown rendering dependencies:
 ```bash
@@ -27,12 +28,19 @@ npm install react-markdown remark-gfm rehype-highlight
 npm install -D @tailwindcss/typography
 ```
 
-**Verification**: `npm list react-markdown remark-gfm rehype-highlight @tailwindcss/typography`
+Configure Tailwind typography plugin in `tailwind.config.js`:
+```js
+plugins: [require('@tailwindcss/typography')]
+```
+
+**Verification**:
+- `npm list react-markdown remark-gfm rehype-highlight @tailwindcss/typography`
+- Typography plugin in tailwind.config.js
 
 ### Task 1.2: Create database tables
-**Files**: New SQL script
+**Files**: CloudBase RDB console
 
-Create `skill` and `tool` tables in CloudBase RDB via console or migration script.
+Create `skill` and `tool` tables in CloudBase RDB.
 
 **SQL for `skill` table**:
 ```sql
@@ -84,138 +92,177 @@ CREATE TABLE tool (
 **Verification**: Query tables via CloudBase console
 
 ### Task 1.3: Add sample data
-**Files**: New seed script (optional)
+**Files**: CloudBase RDB console
 
 Insert 3-5 sample records per table for testing.
 
 **Verification**: Query returns sample data
 
+### Task 1.4: Create shared components
+**Files**: 
+- `src/components/shared/MarkdownRenderer.tsx`
+- `src/components/shared/CreateNewCard.tsx`
+
+**MarkdownRenderer**:
+- Props: `content: string`, `className?: string`
+- Uses `react-markdown`, `remark-gfm`, `rehype-highlight`
+- Renders markdown with syntax highlighting
+
+**CreateNewCard**:
+- Props: `href: string`, `title: string`, `description: string`
+- Reusable "Create New" card for listing pages
+- Extracted pattern from prompts page
+
+**Verification**: Components render correctly
+
 
 ## Phase 2: Skills Pages
 
-### Task 2.1: Create MarkdownRenderer component
-**Files**: `src/components/shared/MarkdownRenderer.tsx`
+### Task 2.1: Create Skills data utilities
+**Files**: `src/lib/skills.ts` (new)
 
-Reusable markdown renderer with syntax highlighting.
+Data fetching functions for skills, following `src/app/[locale]/prompts/page.tsx` pattern.
 
-**Dependencies**: `react-markdown`, `remark-gfm`, `rehype-highlight`
+**Functions**:
+- `fetchSkills({ page, category, tag, search })` - paginated query with filters
+- `fetchFeaturedSkills()` - top 5 by like_count
+- `fetchSkillById(id)` - single record with author
+- `fetchRelatedSkills(id, category)` - 3 related (same category, exclude current, order by like_count)
 
-**Props**:
-- `content: string` - markdown content
-- `className?: string` - optional wrapper class
+**Verification**: Functions return typed data from RDB
 
-**Verification**: Renders headings, lists, code blocks with syntax highlighting
+### Task 2.2: Add Skills i18n keys
+**Files**: `src/i18n/messages/zh.json`, `src/i18n/messages/en.json`
 
-### Task 2.2: Create SkillCard component
+Add translation keys:
+- `skills.label`, `skills.title`, `skills.subtitle`
+- `skills.share`, `skills.shareDesc`
+- `skills.card.author`, `skills.card.views`, `skills.card.likes`
+- `skills.empty.title`, `skills.empty.hint`
+- `skills.detail.tutorial`, `skills.detail.codeExamples`, `skills.detail.related`
+
+**Verification**: Keys exist in both language files
+
+### Task 2.3: Create SkillCard component
 **Files**: `src/components/skills/SkillCard.tsx`
 
-Card for skill listing grid, similar to PromptCard but adapted for skills.
+Card for skill listing grid.
 
-**Props**:
-- `skill: { id, title, description, category, tags, likeCount, viewCount, author }`
+**Props**: `skill: { id, title, description, category, tags, likeCount, viewCount, author }`
 
 **Design**: Rounded card, category badge, title, description, tags, author, stats
 
 **Verification**: Renders correctly, links to `/skills/[id]`
 
-### Task 2.3: Create SkillFilters component
+### Task 2.4: Create SkillFilters component
 **Files**: `src/components/skills/SkillFilters.tsx`
 
-Client component for category/tag/search filtering, similar to PromptFilters.
+Client component for filtering, similar to PromptFilters.
 
 **Features**: Category dropdown, tag chips, search input, URL sync
 
 **Verification**: Updates URL params, triggers page reload
 
-### Task 2.4: Create Skills listing page
-**Files**: `src/app/[locale]/skills/page.tsx`
+### Task 2.5: Create Skills listing page
+**Files**: `src/app/[locale]/skills/page.tsx`, `src/app/[locale]/skills/loading.tsx`, `src/app/[locale]/skills/error.tsx`
 
 Server component with data fetching, filtering, pagination.
 
 **Structure**:
 - PageHero (label, title, subtitle)
-- Featured carousel (top 5 by like_count)
+- FeaturedCarousel (top 5, reuse from prompts or create generic version)
 - SkillFilters
 - Grid with CreateNewCard + SkillCard items
 - Pagination
 
-**Data fetching**:
-- `fetchSkills()` - paginated query with filters
-- `fetchFeaturedSkills()` - top 5 for carousel
-- Batch author profiles
-
-**i18n keys**: Add to `src/i18n/messages/*.json`
+**Data**: Use functions from Task 2.1
 
 **Verification**: Page renders, filters work, pagination works
 
-
-### Task 2.5: Create Skill detail page
+### Task 2.6: Create Skill detail page
 **Files**: `src/app/[locale]/skills/[slug]/page.tsx`
 
 Skill detail with full tutorial content.
 
 **Layout**:
 - Breadcrumb navigation
-- Title, category, tags, author, like button
+- Title, category, tags, author
 - Use cases section
 - Tutorial (MarkdownRenderer)
-- Code examples (collapsible)
+- Code examples (use `<details>` for collapsible)
 - Related skills (3 cards)
 
-**Data fetching**:
-- `fetchSkillById(id)` - single record
-- `fetchRelatedSkills(id, category)` - 3 related items
+**Data**: Use `fetchSkillById` and `fetchRelatedSkills` from Task 2.1
 
 **Verification**: Renders markdown correctly, related items display
 
+
 ## Phase 3: Tools Pages
 
-### Task 3.1: Create ToolCard component
+### Task 3.1: Create Tools data utilities
+**Files**: `src/lib/tools.ts` (new)
+
+Data fetching functions for tools, mirror Task 2.1 structure.
+
+**Functions**:
+- `fetchTools({ page, category, tag, search })`
+- `fetchFeaturedTools()`
+- `fetchToolById(id)`
+- `fetchRelatedTools(id, category)`
+
+**Verification**: Functions return typed data from RDB
+
+### Task 3.2: Add Tools i18n keys
+**Files**: `src/i18n/messages/zh.json`, `src/i18n/messages/en.json`
+
+Add translation keys (mirror Task 2.2):
+- `tools.label`, `tools.title`, `tools.subtitle`
+- `tools.share`, `tools.shareDesc`
+- `tools.card.*`, `tools.empty.*`
+- `tools.detail.quickStart`, `tools.detail.integration`, `tools.detail.links`, `tools.detail.related`
+
+**Verification**: Keys exist in both language files
+
+### Task 3.3: Create ToolCard component
 **Files**: `src/components/tools/ToolCard.tsx`
 
-Card for tool listing, similar to SkillCard but adapted for tools.
+Card for tool listing, similar to SkillCard.
 
-**Props**:
-- `tool: { id, title, description, category, tags, likeCount, viewCount, author, officialUrl }`
+**Props**: `tool: { id, title, description, category, tags, likeCount, viewCount, author, officialUrl }`
 
-**Design**: Rounded card, category badge, title, description, tags, author, stats, external link icon
+**Design**: Add external link icon for officialUrl
 
 **Verification**: Renders correctly, links to `/tools/[id]`
 
-### Task 3.2: Create ToolFilters component
+### Task 3.4: Create ToolFilters component
 **Files**: `src/components/tools/ToolFilters.tsx`
 
-Client component for tools filtering, mirrors SkillFilters.
+Client component for tools filtering, mirror SkillFilters.
 
 **Verification**: Updates URL params, triggers page reload
 
-### Task 3.3: Create Tools listing page
-**Files**: `src/app/[locale]/tools/page.tsx`
+### Task 3.5: Create Tools listing page
+**Files**: `src/app/[locale]/tools/page.tsx`, `src/app/[locale]/tools/loading.tsx`, `src/app/[locale]/tools/error.tsx`
 
-Server component for tools listing.
-
-**Structure**: Same as Skills listing page with ToolCard and ToolFilters
+Server component, mirror Task 2.5 structure.
 
 **Verification**: Page renders, filters work, pagination works
 
-### Task 3.4: Create Tool detail page
+### Task 3.6: Create Tool detail page
 **Files**: `src/app/[locale]/tools/[slug]/page.tsx`
 
 Tool detail with quick start and integration guide.
 
 **Layout**:
 - Breadcrumb navigation
-- Title, category, tags, author, like button
+- Title, category, tags, author
 - Quick start (MarkdownRenderer)
 - Integration guide (MarkdownRenderer)
 - External links (Official website, Documentation)
 - Related tools (3 cards)
 
-**Data fetching**:
-- `fetchToolById(id)` - single record
-- `fetchRelatedTools(id, category)` - 3 related items
-
 **Verification**: Renders markdown, external links work
+
 
 ## Phase 4: Integration
 
@@ -228,51 +275,44 @@ Add "Skills" and "Tools" links to navigation.
 
 **Verification**: Links visible, navigate to correct pages
 
-### Task 4.2: Update i18n messages
-**Files**: `src/i18n/messages/zh.json`, `src/i18n/messages/en.json`
-
-Add translation keys for Skills and Tools pages.
-
-**Keys needed**:
-- `skills.label`, `skills.title`, `skills.subtitle`
-- `skills.filters.category`, `skills.filters.tags`, `skills.filters.search`
-- `skills.card.author`, `skills.card.views`, `skills.card.likes`
-- `skills.empty.title`, `skills.empty.hint`
-- `tools.*` (same structure)
-
-**Verification**: Bilingual content displays correctly
-
-### Task 4.3: Update ModulesShowcase
-**Files**: `src/components/landing/ModulesShowcase.tsx`
-
-Add Skills and Tools as new tabs/links.
-
-**Verification**: Skills and Tools visible in homepage modules section
-
 ## Testing Checklist
 
 After all tasks:
 - [ ] `/skills` page renders with sample data
 - [ ] `/skills` filters (category, tags, search) work
 - [ ] `/skills` pagination works
-- [ ] `/skills/[id]` detail page renders tutorial
+- [ ] `/skills/[id]` detail page renders tutorial markdown
 - [ ] `/tools` page renders with sample data
 - [ ] `/tools` filters work
 - [ ] `/tools` pagination works
-- [ ] `/tools/[id]` detail page renders quick_start
+- [ ] `/tools/[id]` detail page renders quick_start markdown
 - [ ] Markdown renders correctly (headings, lists, code)
 - [ ] Syntax highlighting works in code blocks
-- [ ] External links open in new tab
+- [ ] External links open correctly
 - [ ] Bilingual (zh/en) displays correctly
 - [ ] Mobile responsive layout
 - [ ] Empty states display when no data
 - [ ] Error states handle gracefully
+- [ ] Loading states display correctly
 
 ## Notes
 
-- **SSR pattern**: Follow existing `prompt/page.tsx` pattern for server-side data fetching
+- **SSR pattern**: Follow `src/app/[locale]/prompts/page.tsx` for server-side data fetching
 - **Author profiles**: Batch fetch to avoid N+1 queries
-- **Markdown**: Use `react-markdown` with `remark-gfm` for GFM support
+- **Markdown**: Use `react-markdown` with `remark-gfm` for GitHub Flavored Markdown
 - **Syntax highlighting**: Use `rehype-highlight` for code blocks
 - **URL sync**: Filter components sync state to URL params
 - **RDB warmup**: Implement similar warmup logic as Prompt library
+- **Collapsible sections**: Use native `<details>` HTML element
+- **Route naming**: Use `[slug]` consistently (slug = id)
+- **Like/View tracking**: Deferred to future phase (Phase 5)
+- **Create/Edit forms**: Deferred to future phase (Phase 5)
+
+## Future Enhancements (Phase 5)
+
+Not included in current plan:
+- Like/unlike functionality with authentication
+- View count tracking on detail pages
+- Create/edit forms (`/skills/new`, `/tools/new`)
+- Admin approval workflow
+- Homepage ModulesShowcase integration
