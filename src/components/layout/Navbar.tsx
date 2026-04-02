@@ -58,6 +58,12 @@ export default function Navbar() {
       return;
     }
 
+    // Reset styles when returning to home page
+    if (navRef.current) {
+      navRef.current.style.backdropFilter = "";
+      (navRef.current.style as any).webkitBackdropFilter = "";
+    }
+
     function update() {
       if (!navRef.current) return;
       const t = Math.min(window.scrollY / SCROLL_RANGE, 1);
