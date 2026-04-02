@@ -207,9 +207,6 @@ export default function PromptShowcaseCard({
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-text-secondary)]">
-              {labels.preview}
-            </span>
             <CopyPromptButton
               content={copyContent}
               copyLabel={labels.copy}
