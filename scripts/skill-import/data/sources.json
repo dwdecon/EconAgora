@@ -1,0 +1,22 @@
+[
+  {
+    "repo": "dylantmoore/stata-skill",
+    "install_command": "/plugin marketplace add dylantmoore/stata-skill\n/plugin install stata"
+  },
+  {
+    "repo": "hanlulong/econ-writing-skill",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/hanlulong/econ-writing-skill/main/install.sh | bash"
+  },
+  {
+    "repo": "fcakyon/phd-skills",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills"
+  },
+  {
+    "repo": "jusi-aalto/strategic-revision",
+    "install_command": null
+  },
+  {
+    "repo": "lingzhi227/agent-research-skills",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash"
+  }
+]

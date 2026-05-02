@@ -1,0 +1,42 @@
+[
+  {
+    "repo": "dylantmoore/stata-skill",
+    "install_command": "/plugin marketplace add dylantmoore/stata-skill\n/plugin install stata",
+    "stars": 192,
+    "description": "Claude Code skill for writing correct, idiomatic Stata code — covers syntax, data management, econometrics, causal inference, graphics, Mata, and 20 community packages.",
+    "exists": true,
+    "verified": true
+  },
+  {
+    "repo": "hanlulong/econ-writing-skill",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/hanlulong/econ-writing-skill/main/install.sh | bash",
+    "stars": 209,
+    "description": "Agent Skill that transforms AI assistants into expert economics paper writers. Synthesizes 50+ guides by Cochrane, McCloskey, Shapiro, Head, Bellemare, Goldin, Kremer. Compatible with Claude Code and OpenAI Codex.",
+    "exists": true,
+    "verified": true
+  },
+  {
+    "repo": "fcakyon/phd-skills",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "stars": 175,
+    "description": "PhD Research Skills for Claude Code: paper reproduction, experiment design, paper review, result comparison and more.",
+    "exists": true,
+    "verified": true
+  },
+  {
+    "repo": "jusi-aalto/strategic-revision",
+    "install_command": null,
+    "stars": 77,
+    "description": "",
+    "exists": true,
+    "verified": true
+  },
+  {
+    "repo": "lingzhi227/agent-research-skills",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "stars": 42,
+    "description": "Skills for Claude Code — deep-research: systematic academic literature review",
+    "exists": true,
+    "verified": true
+  }
+]

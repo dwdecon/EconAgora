@@ -1,0 +1,656 @@
+[
+  {
+    "id": "dylantmoore/stata-skill/stata-c-plugins",
+    "repo": "dylantmoore/stata-skill",
+    "skill_path": "plugins/stata-c-plugins/skills/stata-c-plugins/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/dylantmoore/stata-skill/main/plugins/stata-c-plugins/skills/stata-c-plugins/SKILL.md",
+    "install_command": "/plugin marketplace add dylantmoore/stata-skill\n/plugin install stata",
+    "skill_name": "stata-c-plugins",
+    "category": "data-analysis",
+    "frontmatter": {
+      "name": "stata-c-plugins",
+      "description": ">-",
+      "lifecycle": "SDK setup, data flow, memory safety, .ado wrappers with"
+    }
+  },
+  {
+    "id": "dylantmoore/stata-skill/stata-skill-contributor",
+    "repo": "dylantmoore/stata-skill",
+    "skill_path": "plugins/stata-skill-contributor/skills/stata-skill-contributor/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/dylantmoore/stata-skill/main/plugins/stata-skill-contributor/skills/stata-skill-contributor/SKILL.md",
+    "install_command": "/plugin marketplace add dylantmoore/stata-skill\n/plugin install stata",
+    "skill_name": "stata-skill-contributor",
+    "category": "data-analysis",
+    "frontmatter": {
+      "name": "stata-skill-contributor",
+      "description": ">"
+    }
+  },
+  {
+    "id": "dylantmoore/stata-skill/stata",
+    "repo": "dylantmoore/stata-skill",
+    "skill_path": "plugins/stata/skills/stata/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/dylantmoore/stata-skill/main/plugins/stata/skills/stata/SKILL.md",
+    "install_command": "/plugin marketplace add dylantmoore/stata-skill\n/plugin install stata",
+    "skill_name": "stata",
+    "category": "data-analysis",
+    "frontmatter": {
+      "name": "stata",
+      "description": ">"
+    }
+  },
+  {
+    "id": "hanlulong/econ-writing-skill/econ-write",
+    "repo": "hanlulong/econ-writing-skill",
+    "skill_path": ".claude/skills/econ-write/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/hanlulong/econ-writing-skill/main/.claude/skills/econ-write/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/hanlulong/econ-writing-skill/main/install.sh | bash",
+    "skill_name": "econ-write",
+    "category": "writing",
+    "frontmatter": {
+      "name": "econ-write",
+      "description": "Expert economics paper writing assistant synthesizing advice from 50+ top guides by Cochrane, McCloskey, Shapiro, Head, Bellemare, Goldin, Glaeser, Kremer, and other leading economists. USE THIS SKILL whenever the user writes, edits, reviews, rewrites, or structures any economics paper, thesis, job market paper, abstract, introduction, conclusion, results section, literature review, or referee response. Also handles LaTeX formatting, presentations, and paper audits. Covers all paper types (applied, theory, structural, mixed) and all sections.",
+      "argument-hint": "<task> e.g. 'write introduction for my DiD paper on minimum wage' or 'rewrite this paragraph for clarity' or 'review my results section' or 'draft conclusion for my RCT paper' or 'help me structure the model section'",
+      "user-invocable": true
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/compare",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/compare/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/compare/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "compare",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "compare",
+      "description": "Same-epoch comparison of training runs across wandb, neptune, tensorboard, or mlflow. Aligns runs at the student's current step (never current-vs-final-of-baseline) and separates proxy metrics from downstream targets. Use when the user asks to compare runs, check if a run is improving, track lag against a baseline, rank experiments, or evaluate run-vs-run performance."
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/dataset-curation",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/dataset-curation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/dataset-curation/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "dataset-curation",
+    "category": "data-analysis",
+    "frontmatter": {
+      "name": "dataset-curation",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/debug",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/debug/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/debug/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "debug",
+    "category": "coding",
+    "frontmatter": {
+      "name": "debug",
+      "description": "Evidence-before-action diagnosis of failing ML experiments. Probes the system before guessing causes, process list, dmesg, GPU stats, log scrollback, checkpoint state, then states a hypothesis as a hypothesis and runs a smoke before claiming a root cause. Use when the user asks why a run is failing, diverging, OOMing, hanging, slow, producing weird metrics, has crashed, or asks to debug, diagnose, troubleshoot, or investigate a training issue."
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/experiment-design",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/experiment-design/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/experiment-design/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "experiment-design",
+    "category": "coding",
+    "frontmatter": {
+      "name": "experiment-design",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/latex-setup",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/latex-setup/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/latex-setup/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "latex-setup",
+    "category": "writing",
+    "frontmatter": {
+      "name": "latex-setup",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/launch",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/launch/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/launch/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "launch",
+    "category": "coding",
+    "frontmatter": {
+      "name": "launch",
+      "description": "Pre-flight checklist for long-running ML training jobs covering config diff, run naming, path verification, monitoring setup, and restart-cleanup. Use when the user asks to launch, kick off, start, restart, or kill a training run, or mentions launching a multi-hour or multi-day GPU job (python train, accelerate launch, torchrun, deepspeed, sbatch, tmux training)."
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/literature-research",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/literature-research/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/literature-research/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "literature-research",
+    "category": "literature",
+    "frontmatter": {
+      "name": "literature-research",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/paper-verification",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/paper-verification/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/paper-verification/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "paper-verification",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-verification",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/paper-writing",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/paper-writing/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/paper-writing/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "paper-writing",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-writing",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/reproduce",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/reproduce/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/reproduce/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "reproduce",
+    "category": "coding",
+    "frontmatter": {
+      "name": "reproduce",
+      "description": "End-to-end paper reproduction from arxiv URL through smoke runs to replication experiments. Handles missing or partial official code, missing training scripts, missing hyperparameters, and private datasets via similar-public-dataset substitution. Use when the user asks to reproduce, implement, replicate, or re-run a paper from scratch, or pastes an arxiv URL with reproduction intent."
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/research-publishing",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/research-publishing/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/research-publishing/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "research-publishing",
+    "category": "literature",
+    "frontmatter": {
+      "name": "research-publishing",
+      "description": ">"
+    }
+  },
+  {
+    "id": "fcakyon/phd-skills/reviewer-defense",
+    "repo": "fcakyon/phd-skills",
+    "skill_path": "plugin/skills/reviewer-defense/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/fcakyon/phd-skills/main/plugin/skills/reviewer-defense/SKILL.md",
+    "install_command": "claude plugin marketplace add fcakyon/phd-skills\nclaude plugin install phd-skills@phd-skills",
+    "skill_name": "reviewer-defense",
+    "category": "literature",
+    "frontmatter": {
+      "name": "reviewer-defense",
+      "description": ">"
+    }
+  },
+  {
+    "id": "jusi-aalto/strategic-revision/strategic-revision",
+    "repo": "jusi-aalto/strategic-revision",
+    "skill_path": "strategic-revision.skill",
+    "source_url": "https://raw.githubusercontent.com/jusi-aalto/strategic-revision/main/strategic-revision.skill",
+    "install_command": null,
+    "skill_name": "strategic-revision",
+    "category": "writing",
+    "frontmatter": {}
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/algorithm-design",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/algorithm-design/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/algorithm-design/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "algorithm-design",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "algorithm-design",
+      "description": "Design algorithms with LaTeX pseudocode and UML diagrams. Generate algorithmic environments, Mermaid class/sequence diagrams, and ensure consistency between pseudocode and implementation. Use when formalizing methods for a paper.",
+      "argument-hint": "[method-description]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/atomic-decomposition",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/atomic-decomposition/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/atomic-decomposition/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "atomic-decomposition",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "atomic-decomposition",
+      "description": "Decompose research ideas into atomic, self-contained concepts with bidirectional math-code mapping. For each concept, extract the math formula from papers and find code implementations. Use for complex system papers requiring formal grounding.",
+      "argument-hint": "[idea-or-paper]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/backward-traceability",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/backward-traceability/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/backward-traceability/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "backward-traceability",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "backward-traceability",
+      "description": "Make every number in the final PDF traceable to the exact code line that produced it. Uses \\hypertarget/\\hyperlink LaTeX commands and \\num{formula} evaluated at compile time. Use for reproducibility and data integrity verification.",
+      "argument-hint": "[paper-directory]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/citation-management",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/citation-management/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/citation-management/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "citation-management",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "citation-management",
+      "description": "Manage BibTeX citations for LaTeX papers. Harvest missing citations from a draft using Semantic Scholar, validate cite keys against .bib files, deduplicate entries, and format bibliography. Use when working with references, BibTeX, or citations.",
+      "argument-hint": "[tex-or-bib-file]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/code-debugging",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/code-debugging/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/code-debugging/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "code-debugging",
+    "category": "coding",
+    "frontmatter": {
+      "name": "code-debugging",
+      "description": "Debug experiment code with structured error analysis. Categorize errors, apply targeted fixes with retry logic, and use reflection to prevent recurring issues. Use when experiment code fails or produces incorrect results.",
+      "argument-hint": "[error-or-code]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/data-analysis",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/data-analysis/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/data-analysis/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "data-analysis",
+    "category": "data-analysis",
+    "frontmatter": {
+      "name": "data-analysis",
+      "description": "Generate statistical analysis code with 4-round review. Select appropriate statistical tests, interpret results, and produce analysis reports with p-values, effect sizes, and confidence intervals. Use when analyzing experimental data for a paper.",
+      "argument-hint": "[data-source]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/deep-research",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/deep-research/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/deep-research/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "deep-research",
+    "category": "literature",
+    "frontmatter": {
+      "name": "deep-research",
+      "description": "Conduct systematic academic literature reviews in 6 phases, producing structured notes, a curated paper database, and a synthesized final report. Output is organized by phase for clarity.",
+      "argument-hint": "[topic]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/excalidraw-skill",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/excalidraw-skill/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/excalidraw-skill/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "excalidraw-skill",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "excalidraw-skill",
+      "description": "Programmatic canvas toolkit for creating, editing, and refining Excalidraw diagrams via MCP tools with real-time canvas sync. Use when an agent needs to (1) draw or lay out diagrams on a live canvas, (2) iteratively refine diagrams using describe_scene and get_canvas_screenshot to see its own work, (3) export/import .excalidraw files or PNG/SVG images, (4) save/restore canvas snapshots, (5) convert Mermaid to Excalidraw, or (6) perform element-level CRUD, alignment, distribution, grouping, duplication, and locking. Requires a running canvas server (EXPRESS_SERVER_URL, default http://localhost:3000)."
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/experiment-code",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/experiment-code/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/experiment-code/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "experiment-code",
+    "category": "coding",
+    "frontmatter": {
+      "name": "experiment-code",
+      "description": "Write ML experiment code with iterative improvement. Generate training/evaluation pipelines, debug errors, and optimize results through code reflection. Use when implementing experiments for a research paper.",
+      "argument-hint": "[plan-or-idea]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/experiment-design",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/experiment-design/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/experiment-design/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "experiment-design",
+    "category": "coding",
+    "frontmatter": {
+      "name": "experiment-design",
+      "description": "Design experiment plans with progressive stages — initial implementation, baseline tuning, creative research, and ablation studies. Plan baselines, datasets, hyperparameter sweeps, and evaluation metrics. Use when planning experiments for a research paper.",
+      "argument-hint": "[idea-or-plan]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/figure-generation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/figure-generation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/figure-generation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "figure-generation",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "figure-generation",
+      "description": "Generate publication-quality scientific figures using matplotlib/seaborn with a three-phase pipeline (query expansion, code generation with execution, VLM visual feedback). Handles bar charts, line plots, heatmaps, training curves, ablation plots, and more. Use when the user needs figures, plots, or visualizations for a paper.",
+      "argument-hint": "[figure-description]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/github-research",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/github-research/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/github-research/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "github-research",
+    "category": "literature",
+    "frontmatter": {
+      "name": "github-research",
+      "description": "Explore and analyze GitHub repositories related to a research topic. Reads deep-research output, discovers repos from multiple sources, deeply analyzes code, and produces integration blueprints.",
+      "argument-hint": "[deep-research-output-dir]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/idea-generation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/idea-generation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/idea-generation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "idea-generation",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "idea-generation",
+      "description": "Generate novel research ideas with iterative refinement and novelty checking against literature. Score ideas on Interestingness, Feasibility, and Novelty. Use when brainstorming research directions or validating idea novelty.",
+      "argument-hint": "[research-area]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/latex-formatting",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/latex-formatting/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/latex-formatting/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "latex-formatting",
+    "category": "writing",
+    "frontmatter": {
+      "name": "latex-formatting",
+      "description": "Handle LaTeX formatting, templates, and styling for academic papers. Set up conference templates (ICML, ICLR, NeurIPS, AAAI, ACL), fix formatting issues, manage packages, and ensure venue-specific compliance. Use when the user needs to set up a paper template, fix LaTeX formatting, or prepare for submission.",
+      "argument-hint": "[venue-or-file]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/literature-review",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/literature-review/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/literature-review/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "literature-review",
+    "category": "literature",
+    "frontmatter": {
+      "name": "literature-review",
+      "description": "Conduct comprehensive literature reviews using multi-perspective dialogue simulation. Generate diverse expert personas, conduct grounded Q&A conversations, and synthesize findings into structured knowledge. Use when starting a new research project or writing a survey section.",
+      "argument-hint": "[topic]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/literature-search",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/literature-search/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/literature-search/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "literature-search",
+    "category": "literature",
+    "frontmatter": {
+      "name": "literature-search",
+      "description": "Search academic literature using Semantic Scholar, arXiv, and OpenAlex APIs. Returns structured JSONL with title, authors, year, venue, abstract, citations, and BibTeX. Use when the user needs to find papers, check related work, or build a bibliography.",
+      "argument-hint": "[search-query]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/math-reasoning",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/math-reasoning/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/math-reasoning/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "math-reasoning",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "math-reasoning",
+      "description": "Formal mathematical reasoning for research papers — derive equations, write proofs, formalize problem settings, select statistical tests, and generate LaTeX math notation. Use when the user needs mathematical derivations, theorem proofs, notation tables, or statistical analysis formalization.",
+      "argument-hint": "[task-or-context]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/novelty-assessment",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/novelty-assessment/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/novelty-assessment/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "novelty-assessment",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "novelty-assessment",
+      "description": "Assess research idea novelty through systematic literature search. Multi-round search-evaluate loops with harsh critic persona. Binary novel/not-novel decision with justification. Use before committing to a research direction.",
+      "argument-hint": "[idea]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/paper-assembly",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/paper-assembly/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/paper-assembly/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "paper-assembly",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-assembly",
+      "description": "Orchestrate the full paper pipeline end-to-end. Manage state propagation between phases (literature → plan → code → experiments → figures → tables → writing → review), support checkpointing and resumption. Use for assembling a complete paper from components.",
+      "argument-hint": "[paper-directory]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/paper-compilation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/paper-compilation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/paper-compilation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "paper-compilation",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-compilation",
+      "description": "Compile LaTeX papers to PDF with automatic error detection, chktex style checking, and citation/reference validation. Runs the full pdflatex + bibtex pipeline. Use when the user wants to compile a paper, fix compilation errors, or debug LaTeX.",
+      "argument-hint": "[tex-file-path]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/paper-revision",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/paper-revision/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/paper-revision/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "paper-revision",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-revision",
+      "description": "Revise papers based on reviewer feedback. Map reviewer concerns to specific sections, apply targeted edits, run additional experiments if needed, and verify improvements. Use after receiving peer review with revision requests.",
+      "argument-hint": "[reviews-or-draft]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/paper-to-code",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/paper-to-code/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/paper-to-code/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "paper-to-code",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-to-code",
+      "description": "Convert an ML research paper into a complete, runnable code repository. 3-stage pipeline from Paper2Code — Planning (UML + dependency graph) → Analysis (per-file logic) → Coding (dependency-ordered generation). Use for reproducing paper methods.",
+      "argument-hint": "[paper-pdf-or-text]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/paper-writing-section",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/paper-writing-section/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/paper-writing-section/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "paper-writing-section",
+    "category": "writing",
+    "frontmatter": {
+      "name": "paper-writing-section",
+      "description": "Write a specific section of an academic paper (Abstract, Introduction, Background, Related Work, Methods, Experiments, Results, Discussion/Conclusion) with section-specific guidance and two-pass refinement. Use when the user wants to write, draft, or improve a paper section.",
+      "argument-hint": "[section-name]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/rebuttal-writing",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/rebuttal-writing/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/rebuttal-writing/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "rebuttal-writing",
+    "category": "writing",
+    "frontmatter": {
+      "name": "rebuttal-writing",
+      "description": "Write point-by-point rebuttals to reviewer comments. Extract concerns from reviews, generate evidence-based responses, and format as a structured rebuttal document. Use after receiving peer review feedback.",
+      "argument-hint": "[reviews-file]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/related-work-writing",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/related-work-writing/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/related-work-writing/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "related-work-writing",
+    "category": "writing",
+    "frontmatter": {
+      "name": "related-work-writing",
+      "description": "Write Related Work sections that compare and contrast prior work with your approach. Organize by theme, cite broadly, and explain how your work differs. Use when writing or improving the Related Work section of a paper.",
+      "argument-hint": "[paper-draft]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/research-planning",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/research-planning/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/research-planning/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "research-planning",
+    "category": "literature",
+    "frontmatter": {
+      "name": "research-planning",
+      "description": "Design research plans and paper architectures. Given a research topic or idea, generate structured plans with methodology outlines, paper structure, dependency-ordered task lists, UML diagrams, and experiment designs. Use when starting a new research project or paper.",
+      "argument-hint": "[topic-or-idea]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/self-review",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/self-review/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/self-review/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "self-review",
+    "category": "literature",
+    "frontmatter": {
+      "name": "self-review",
+      "description": "Automatically review an academic paper using the NeurIPS review form with three reviewer personas, ensemble scoring, and reflection refinement. Extracts text from PDF, runs structured review, and outputs actionable feedback. Use when the user wants to review a paper before submission or get feedback on a draft.",
+      "argument-hint": "[pdf-or-tex-file]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/slide-generation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/slide-generation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/slide-generation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "slide-generation",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "slide-generation",
+      "description": "Convert a completed paper into presentation slides (Beamer LaTeX) or poster. Extract key figures, tables, equations, and create a narrative flow for oral presentation. Identified gap in existing tools — designed from best practices.",
+      "argument-hint": "[paper-tex]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/survey-generation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/survey-generation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/survey-generation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "survey-generation",
+    "category": "literature",
+    "frontmatter": {
+      "name": "survey-generation",
+      "description": "Generate complete academic survey papers using multi-LLM parallel outline generation, RAG-based subsection writing, citation validation, and local coherence enhancement. Based on AutoSurvey pipeline. Use for writing comprehensive literature surveys.",
+      "argument-hint": "[topic]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/symbolic-equation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/symbolic-equation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/symbolic-equation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "symbolic-equation",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "symbolic-equation",
+      "description": "Discover scientific equations from data using LLM-guided evolutionary search (LLM-SR). Multi-island algorithm with softmax-based cluster sampling, island reset, and LLM-proposed equation mutations. Use for symbolic regression and equation discovery.",
+      "argument-hint": "[data-and-variables]"
+    }
+  },
+  {
+    "id": "lingzhi227/agent-research-skills/table-generation",
+    "repo": "lingzhi227/agent-research-skills",
+    "skill_path": "skills/table-generation/SKILL.md",
+    "source_url": "https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/skills/table-generation/SKILL.md",
+    "install_command": "curl -fsSL https://raw.githubusercontent.com/lingzhi227/agent-research-skills/main/install.sh | bash",
+    "skill_name": "table-generation",
+    "category": "research-tools",
+    "frontmatter": {
+      "name": "table-generation",
+      "description": "Generate publication-quality LaTeX tables from experimental results. Convert JSON/CSV data to booktabs-styled tables with bold best results, multi-row layouts, and proper captions. Use when creating result tables, comparison tables, or ablation tables for papers.",
+      "argument-hint": "[data-source]"
+    }
+  }
+]
