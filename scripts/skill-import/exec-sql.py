@@ -2,7 +2,12 @@ import json, os, sys, time, hashlib, hmac, urllib.request, urllib.error
 
 SECRET_ID = os.environ.get("CB_SECRET_ID")
 SECRET_KEY = os.environ.get("CB_SECRET_KEY")
-ENV_ID = "agora-8glrfnss7758021c"
+TOKEN = os.environ.get("CB_TOKEN")
+ENV_ID = os.environ.get("CB_ENV_ID", "agora-8glrfnss7758021c")
+
+if not all([SECRET_ID, SECRET_KEY, TOKEN]):
+    print("ERROR: CB_SECRET_ID, CB_SECRET_KEY, CB_TOKEN env vars required.")
+    sys.exit(1)
 
 def sign_request(payload_str):
     """Simple HMAC-SHA256 signature for CloudBase RDB API."""
