@@ -3,10 +3,15 @@ import { join } from 'path';
 import https from 'https';
 import crypto from 'crypto';
 
-const SECRET_ID = process.env.CB_SECRET_ID || process.env.CB_SECRET_ID;
-const SECRET_KEY = process.env.CB_SECRET_KEY ;
-const TOKEN = process.env.CB_TOKEN || "";
-const ENV_ID = "agora-8glrfnss7758021c";
+const SECRET_ID = process.env.CB_SECRET_ID;
+const SECRET_KEY = process.env.CB_SECRET_KEY;
+const TOKEN = process.env.CB_TOKEN;
+const ENV_ID = process.env.CB_ENV_ID || "agora-8glrfnss7758021c";
+
+if (!SECRET_ID || !SECRET_KEY || !TOKEN) {
+  console.error("ERROR: CB_SECRET_ID, CB_SECRET_KEY, CB_TOKEN env vars required.");
+  process.exit(1);
+}
 
 if (!TOKEN) {
   console.error("ERROR: CB_TOKEN env var required. Get it from MCP auth get_temp_credentials.");
