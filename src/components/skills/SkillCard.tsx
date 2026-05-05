@@ -20,41 +20,12 @@ const CATEGORY_THEME: Record<string, string> = {
 
 interface SkillCardProps {
   skill: Skill;
+  locale: string;
   labels: {
     author: string;
     views: string;
     likes: string;
   };
-}
-
-function Avatar({
-  name,
-  src,
-  compact = false,
-}: {
-  name: string;
-  src: string | null;
-  compact?: boolean;
-}) {
-  const sizeClass = compact ? "h-7 w-7" : "h-10 w-10";
-
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        className={`${sizeClass} rounded-full object-cover`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[10px] font-semibold uppercase text-[var(--color-text-secondary)]`}
-    >
-      {name?.charAt(0) ?? "?"}
-    </div>
-  );
 }
 
 function formatCount(value: number) {
@@ -71,7 +42,7 @@ function shouldSkipNavigation(target: EventTarget | null) {
   );
 }
 
-export default function SkillCard({ skill, labels }: SkillCardProps) {
+export default function SkillCard({ skill, locale, labels }: SkillCardProps) {
   const router = useRouter();
   const categoryTheme =
     CATEGORY_THEME[skill.category] || CATEGORY_THEME.Default;
@@ -102,7 +73,7 @@ export default function SkillCard({ skill, labels }: SkillCardProps) {
       aria-label={skill.title}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-all duration-500 ease-out hover:border-black/10 hover:shadow-xl hover:shadow-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:hover:border-white/15 dark:focus-visible:ring-white/15 sm:p-5 hover:-translate-y-1 min-h-[280px]"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-all duration-300 ease-out hover:border-[var(--color-border-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-hover)] dark:focus-visible:ring-white/15 sm:p-6 min-h-[280px]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -112,26 +83,26 @@ export default function SkillCard({ skill, labels }: SkillCardProps) {
             {skill.category}
           </span>
         </div>
-
-        <div
-          className="inline-flex max-w-[48%] shrink-0 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
-          aria-label={labels.author}
-          title={labels.author}
-        >
-          <Avatar name={skill.author.name} src={skill.author.avatar} compact />
-          <span className="truncate font-medium">{skill.author.name}</span>
-        </div>
       </div>
 
-      <h3 className="mt-5 text-[1.5rem] font-semibold leading-[1.2] tracking-[-0.02em] text-[var(--color-text-primary)]">
+      <h3 className="mt-5 text-[1.25rem] font-normal leading-[1.25] text-[var(--color-text-primary)]">
         {skill.title}
       </h3>
+      {locale === "zh" && skill.titleZh && (
+        <p className="mt-1 text-[13px] leading-[1.3] text-[var(--color-text-secondary)]">
+          {skill.titleZh}
+        </p>
+      )}
 
-      <p className="mt-3 line-clamp-2 text-[15px] leading-7 text-[var(--color-text-secondary)]">
-        {skill.description || "可复用的研究技能，帮助你提升工作效率。"}
+      <p className="mt-3 text-[14px] text-[var(--color-text-secondary)] break-words">
+        {labels.author}: {skill.author.name}
       </p>
 
-      <div className="mt-auto flex items-end justify-between gap-4 border-t border-[var(--color-border)] pt-4">
+      <p className="mt-3 line-clamp-2 text-[14px] leading-[1.5] text-[var(--color-text-secondary)]">
+        {(locale === "zh" && skill.descriptionZh ? skill.descriptionZh : skill.description) || "可复用的研究技能，帮助你提升工作效率。"}
+      </p>
+
+      <div className="mt-auto flex items-end justify-between gap-4 pt-6">
         <div className="flex flex-wrap gap-2">
           {metaTags.map((tag) => (
             <span
@@ -146,11 +117,11 @@ export default function SkillCard({ skill, labels }: SkillCardProps) {
         <div className="flex shrink-0 items-center gap-3 text-xs font-medium text-[var(--color-text-secondary)]">
           <span className="inline-flex items-center gap-1.5">
             <Eye className="h-3.5 w-3.5" />
-            {formatCount(skill.viewCount)}
+            {labels.views} {formatCount(skill.viewCount)}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Heart className="h-3.5 w-3.5" />
-            {formatCount(skill.likeCount)}
+            {labels.likes} {formatCount(skill.likeCount)}
           </span>
         </div>
       </div>

@@ -1,0 +1,238 @@
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { ChevronLeft, Eye, Heart, ExternalLink } from "lucide-react";
+import PageShell from "@/components/layout/PageShell";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import SkillCard from "@/components/skills/SkillCard";
+import SkillSidebar from "@/components/skills/SkillSidebar";
+import { fetchSkillById, fetchRelatedSkills } from "@/lib/skills";
+
+const i18n = {
+  zh: {
+    backToSkills: "返回技能库",
+    tutorial: "Skill内容",
+    related: "相关技能",
+    views: "浏览",
+    likes: "点赞",
+    cardAuthor: "作者",
+    workflowStage: "工作流阶段",
+    platform: "适用平台",
+    about: "关于",
+    stats: "统计",
+    lastUpdated: "最后更新",
+    category: "分类",
+    tags: "标签",
+    source: "来源",
+    author: "作者",
+  },
+  en: {
+    backToSkills: "Back to Skills",
+    tutorial: "Skill Content",
+    related: "Related Skills",
+    views: "Views",
+    likes: "Likes",
+    cardAuthor: "Author",
+    workflowStage: "Workflow Stage",
+    platform: "Platform",
+    about: "About",
+    stats: "Statistics",
+    lastUpdated: "Last updated",
+    category: "Category",
+    tags: "Tags",
+    source: "Source",
+    author: "Author",
+  },
+} as const;
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+    notation: value >= 1000 ? "compact" : "standard",
+  }).format(value);
+}
+
+interface PageProps {
+  params: Promise<{ locale: string; slug: string[] }>;
+}
+
+export default async function SkillDetailPage({ params }: PageProps) {
+  const { locale, slug: slugParts } = await params;
+  const slug = slugParts.join("/");
+  const t = i18n[locale as keyof typeof i18n] || i18n.zh;
+
+  const skill = await fetchSkillById(slug);
+
+  if (!skill) {
+    notFound();
+  }
+
+  const relatedSkills = await fetchRelatedSkills(slug, skill.category);
+
+  const isImported = skill.sourceRepo === "meleantonio/awesome-econ-ai-stuff";
+  const githubRepoUrl = isImported
+    ? `https://github.com/meleantonio/awesome-econ-ai-stuff`
+    : null;
+
+  const initials = skill.author.name.charAt(0).toUpperCase();
+
+  return (
+    <PageShell width="6xl" className="pb-20">
+      <div className="mb-6">
+        <Link
+          href="/skills"
+          className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          {t.backToSkills}
+        </Link>
+      </div>
+
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        {/* ── Left column ── */}
+        <div className="min-w-0 flex-1">
+          {/* Header */}
+          <header className="mb-8">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface-strong)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                {skill.category}
+              </span>
+              {skill.workflowStage && (
+                <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                  {skill.workflowStage}
+                </span>
+              )}
+              {skill.tags
+                .filter((tag) => tag !== skill.category)
+                .slice(0, 3)
+                .map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-secondary)]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-[var(--color-text-primary)]">
+              {skill.title}
+            </h1>
+            {locale === "zh" && skill.titleZh && (
+              <p className="mt-2 text-lg text-[var(--color-text-secondary)]">
+                {skill.titleZh}
+              </p>
+            )}
+
+            {(locale === "zh" && skill.descriptionZh ? skill.descriptionZh : skill.description) && (
+              <p className="mt-4 text-lg text-[var(--color-text-secondary)]">
+                {locale === "zh" && skill.descriptionZh ? skill.descriptionZh : skill.description}
+              </p>
+            )}
+
+            {/* Author + Source attribution */}
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <Link
+                href={`/u/${skill.author.id}`}
+                className="flex items-center gap-2 transition hover:opacity-80"
+              >
+                {skill.author.avatar ? (
+                  <Image
+                    src={skill.author.avatar}
+                    alt={skill.author.name}
+                    width={28}
+                    height={28}
+                    unoptimized
+                    className="h-7 w-7 rounded-full object-cover"
+                  />
+                ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[10px] font-semibold uppercase text-[var(--color-text-secondary)]">
+                  {initials}
+                </div>
+                )}
+                <span className="text-[14px] font-medium text-[var(--color-text-primary)] transition hover:text-[var(--color-text-secondary)]">
+                  {skill.author.name}
+                </span>
+              </Link>
+
+              {isImported && githubRepoUrl && (
+                <a
+                  href={githubRepoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[14px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {t.source}: {skill.sourceRepo}
+                </a>
+              )}
+            </div>
+
+            {/* Stats row */}
+            <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-[var(--color-text-secondary)]">
+              <span className="inline-flex items-center gap-1.5">
+                <Eye className="h-4 w-4" />
+                {formatCount(skill.viewCount)} {t.views}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Heart className="h-4 w-4" />
+                {formatCount(skill.likeCount)} {t.likes}
+              </span>
+              {skill.platform && (
+                <span className="inline-flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs">{t.platform}:</span>
+                  {skill.platform.split(",").map((p) => (
+                    <span
+                      key={p.trim()}
+                      className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]"
+                    >
+                      {p.trim()}
+                    </span>
+                  ))}
+                </span>
+              )}
+            </div>
+          </header>
+
+          {/* Tutorial / Skill MD */}
+          {(skill.skillMd ?? skill.tutorial) && (
+            <section className="mb-12">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
+                {t.tutorial}
+              </h2>
+              <div className="rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+                <MarkdownRenderer content={skill.skillMd ?? skill.tutorial ?? ""} />
+              </div>
+            </section>
+          )}
+
+          {/* Related Skills */}
+          {relatedSkills.length > 0 && (
+            <section className="mt-16">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
+                {t.related}
+              </h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedSkills.map((relatedSkill) => (
+                  <SkillCard
+                    key={relatedSkill.id}
+                    skill={relatedSkill}
+                    locale={locale}
+                    labels={{
+                      author: t.cardAuthor,
+                      views: t.views,
+                      likes: t.likes,
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* ── Right sidebar ── */}
+        <SkillSidebar skill={skill} locale={locale} />
+      </div>
+    </PageShell>
+  );
+}

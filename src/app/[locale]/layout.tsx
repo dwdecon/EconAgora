@@ -12,6 +12,9 @@ import "../globals.css";
 export const metadata: Metadata = {
   title: "EconAgora - AI Toolkit For Scientist",
   description: "AI-powered research infrastructure for economists",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 const sora = Sora({

@@ -1,15 +1,26 @@
 import { serverDb } from "@/lib/rdb-server";
+import { applyFullTextSearch } from "@/lib/fullTextSearch";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
 export interface Skill {
   id: string;
   title: string;
+  titleZh: string | null;
   description: string | null;
+  descriptionZh: string | null;
   category: string;
   tags: string[];
   tutorial: string | null;
   codeExamples: string | null;
   useCases: string | null;
+  skillMd: string | null;
+  workflowStage: string | null;
+  platform: string | null;
+  sourceRepo: string | null;
+  sourceSlug: string | null;
+  repoFolder: string | null;
+  sourceUrl: string | null;
+  installCommand: string | null;
   likeCount: number;
   viewCount: number;
   author: { id: string; name: string; avatar: string | null };
@@ -19,6 +30,19 @@ export interface Skill {
 const PAGE_SIZE = 12;
 const SKILL_RDB_WARMUP_TTL_MS = 60_000;
 let skillRdbWarmupAt = 0;
+
+const SKILL_FULL_TEXT_COLUMNS = [
+  "title",
+  "description",
+  "category",
+  "tags",
+  "tutorial",
+  "code_examples",
+  "use_cases",
+  "skill_md",
+  "workflow_stage",
+  "platform",
+];
 
 function getRdbErrorMessage(error: { message: string; raw?: unknown } | null) {
   if (!error) return null;
@@ -92,7 +116,7 @@ export async function fetchSkills(params: {
   category: string;
   tag: string;
   search: string;
-}): Promise<{ skills: Skill[]; totalPages: number; loadError: string | null }> {
+}): Promise<{ skills: Skill[]; totalPages: number; total: number; loadError: string | null }> {
   const { page, category, tag, search } = params;
 
   try {
@@ -113,8 +137,8 @@ export async function fetchSkills(params: {
       dataQuery = dataQuery.contains("tags", [tag]);
     }
     if (search) {
-      countQuery = countQuery.ilike("title", `%${search}%`);
-      dataQuery = dataQuery.ilike("title", `%${search}%`);
+      countQuery = applyFullTextSearch(countQuery, search, SKILL_FULL_TEXT_COLUMNS);
+      dataQuery = applyFullTextSearch(dataQuery, search, SKILL_FULL_TEXT_COLUMNS);
     }
 
     const [countResponse, skillResponse] = await Promise.all([
@@ -135,7 +159,7 @@ export async function fetchSkills(params: {
         skillError: skillResponse.error,
       });
 
-      return { skills: [], totalPages: 1, loadError };
+      return { skills: [], totalPages: 1, total: 0, loadError };
     }
 
     const total = countResponse.count ?? 0;
@@ -155,31 +179,44 @@ export async function fetchSkills(params: {
         return {
           id,
           title: skill.title,
+          titleZh: skill.title_zh ?? null,
           description: skill.description,
+          descriptionZh: skill.description_zh ?? null,
           category: skill.category,
           tags: normalizeTags(skill.tags),
           tutorial: skill.tutorial,
           codeExamples: skill.code_examples,
           useCases: skill.use_cases,
+          skillMd: skill.skill_md,
+          workflowStage: skill.workflow_stage,
+          platform: skill.platform,
+          sourceRepo: skill.source_repo,
+          sourceSlug: skill.source_slug,
+          repoFolder: skill.repo_folder,
+          sourceUrl: skill.source_url ?? null,
+          installCommand: skill.install_command ?? null,
           likeCount: skill.like_count ?? 0,
           viewCount: skill.view_count ?? 0,
           author:
-            authorMap[skill.author_id] ?? {
-              id: skill.author_id,
-              name: "Public Resource",
-              avatar: null,
-            },
+            skill.source_repo === "meleantonio/awesome-econ-ai-stuff"
+              ? { id: "meleantonio", name: "meleantonio", avatar: null }
+              : authorMap[skill.author_id] ?? {
+                  id: skill.author_id,
+                  name: "Unknown",
+                  avatar: null,
+                },
           createdAt: skill.created_at,
         };
       })
       .filter(Boolean) as Skill[];
 
-    return { skills, totalPages, loadError: null };
+    return { skills, totalPages, total, loadError: null };
   } catch (error) {
     console.error("Failed to fetch skills:", error);
     return {
       skills: [],
       totalPages: 1,
+      total: 0,
       loadError: error instanceof Error ? error.message : "CloudBase request failed.",
     };
   }
@@ -209,20 +246,32 @@ export async function fetchFeaturedSkills(): Promise<Skill[]> {
         return {
           id,
           title: row.title,
+          titleZh: row.title_zh ?? null,
           description: row.description,
+          descriptionZh: row.description_zh ?? null,
           category: row.category,
           tags: normalizeTags(row.tags),
           tutorial: row.tutorial,
           codeExamples: row.code_examples,
           useCases: row.use_cases,
+          skillMd: row.skill_md,
+          workflowStage: row.workflow_stage,
+          platform: row.platform,
+          sourceRepo: row.source_repo,
+          sourceSlug: row.source_slug,
+          repoFolder: row.repo_folder,
+          sourceUrl: row.source_url ?? null,
+          installCommand: row.install_command ?? null,
           likeCount: row.like_count ?? 0,
           viewCount: row.view_count ?? 0,
           author:
-            authorMap[row.author_id] ?? {
-              id: row.author_id,
-              name: "Public Resource",
-              avatar: null,
-            },
+            row.source_repo === "meleantonio/awesome-econ-ai-stuff"
+              ? { id: "meleantonio", name: "meleantonio", avatar: null }
+              : authorMap[row.author_id] ?? {
+                  id: row.author_id,
+                  name: "Unknown",
+                  avatar: null,
+                },
           createdAt: row.created_at,
         };
       })
@@ -241,6 +290,7 @@ export async function fetchSkillById(id: string): Promise<Skill | null> {
       .from("skill")
       .select("*")
       .eq("_id", id)
+      .eq("status", "PUBLISHED")
       .single();
 
     if (error || !data) return null;
@@ -248,23 +298,38 @@ export async function fetchSkillById(id: string): Promise<Skill | null> {
     const row = data as any;
     const authorMap = await fetchAuthorMap([row.author_id]);
 
+    // Imported skills from meleantonio repo show meleantonio as author
+    const isImportedSkill = row.source_repo === "meleantonio/awesome-econ-ai-stuff";
+    const author = isImportedSkill
+      ? { id: "meleantonio", name: "meleantonio", avatar: null }
+      : authorMap[row.author_id] ?? {
+          id: row.author_id,
+          name: "Unknown",
+          avatar: null,
+        };
+
     return {
       id: extractRowId(row) ?? id,
       title: row.title,
+      titleZh: row.title_zh ?? null,
       description: row.description,
+      descriptionZh: row.description_zh ?? null,
       category: row.category,
       tags: normalizeTags(row.tags),
       tutorial: row.tutorial,
       codeExamples: row.code_examples,
       useCases: row.use_cases,
+      skillMd: row.skill_md,
+      workflowStage: row.workflow_stage,
+      platform: row.platform,
+      sourceRepo: row.source_repo,
+      sourceSlug: row.source_slug,
+          repoFolder: row.repo_folder,
+      sourceUrl: row.source_url ?? null,
+      installCommand: row.install_command ?? null,
       likeCount: row.like_count ?? 0,
       viewCount: row.view_count ?? 0,
-      author:
-        authorMap[row.author_id] ?? {
-          id: row.author_id,
-          name: "Public Resource",
-          avatar: null,
-        },
+      author,
       createdAt: row.created_at,
     };
   } catch (error) {
@@ -313,20 +378,32 @@ export async function fetchRelatedSkills(
           return {
             id: skillId,
             title: row.title,
+            titleZh: row.title_zh ?? null,
             description: row.description,
+            descriptionZh: row.description_zh ?? null,
             category: row.category,
             tags: normalizeTags(row.tags),
             tutorial: row.tutorial,
             codeExamples: row.code_examples,
             useCases: row.use_cases,
+            skillMd: row.skill_md,
+            workflowStage: row.workflow_stage,
+            platform: row.platform,
+            sourceRepo: row.source_repo,
+            sourceSlug: row.source_slug,
+          repoFolder: row.repo_folder,
+            sourceUrl: row.source_url ?? null,
+            installCommand: row.install_command ?? null,
             likeCount: row.like_count ?? 0,
             viewCount: row.view_count ?? 0,
             author:
-              authorMap[row.author_id] ?? {
-                id: row.author_id,
-                name: "Public Resource",
-                avatar: null,
-              },
+              row.source_repo === "meleantonio/awesome-econ-ai-stuff"
+                ? { id: "meleantonio", name: "meleantonio", avatar: null }
+                : authorMap[row.author_id] ?? {
+                    id: row.author_id,
+                    name: "Unknown",
+                    avatar: null,
+                  },
             createdAt: row.created_at,
           };
         })
@@ -344,20 +421,32 @@ export async function fetchRelatedSkills(
         return {
           id: skillId,
           title: row.title,
+          titleZh: row.title_zh ?? null,
           description: row.description,
+          descriptionZh: row.description_zh ?? null,
           category: row.category,
           tags: normalizeTags(row.tags),
           tutorial: row.tutorial,
           codeExamples: row.code_examples,
           useCases: row.use_cases,
+          skillMd: row.skill_md,
+          workflowStage: row.workflow_stage,
+          platform: row.platform,
+          sourceRepo: row.source_repo,
+          sourceSlug: row.source_slug,
+          repoFolder: row.repo_folder,
+          sourceUrl: row.source_url ?? null,
+          installCommand: row.install_command ?? null,
           likeCount: row.like_count ?? 0,
           viewCount: row.view_count ?? 0,
           author:
-            authorMap[row.author_id] ?? {
-              id: row.author_id,
-              name: "Public Resource",
-              avatar: null,
-            },
+            row.source_repo === "meleantonio/awesome-econ-ai-stuff"
+              ? { id: "meleantonio", name: "meleantonio", avatar: null }
+              : authorMap[row.author_id] ?? {
+                  id: row.author_id,
+                  name: "Unknown",
+                  avatar: null,
+                },
           createdAt: row.created_at,
         };
       })
@@ -368,7 +457,7 @@ export async function fetchRelatedSkills(
   }
 }
 
-export async function fetchSkillCategories(): Promise<string[]> {
+export async function fetchSkillCategories(locale = "en"): Promise<string[]> {
   try {
     await warmupSkillRdb();
 
@@ -379,10 +468,17 @@ export async function fetchSkillCategories(): Promise<string[]> {
 
     if (error || !data) return [];
 
-    const categories = new Set(
-      (data as any[]).map((row) => row.category).filter(Boolean),
+    const categories = Array.from(
+      new Set(
+        (data as Array<{ category?: string | null }>)
+          .map((row) => row.category?.trim())
+          .filter((value): value is string => Boolean(value)),
+      ),
     );
-    return Array.from(categories).sort();
+
+    return categories.sort((left, right) =>
+      left.localeCompare(right, locale === "en" ? "en" : "zh-CN"),
+    );
   } catch (error) {
     console.error("Failed to fetch skill categories:", error);
     return [];
