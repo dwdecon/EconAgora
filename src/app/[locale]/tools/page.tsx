@@ -1,16 +1,16 @@
-import { Suspense } from "react";
 import PageShell from "@/components/layout/PageShell";
-import ToolCarousel from "@/components/tools/ToolCarousel";
-import ToolFilters from "@/components/tools/ToolFilters";
+import ToolActiveFilters, {
+  ToolSearchBar,
+  ToolSidebarFilters,
+} from "@/components/tools/ToolFilters";
 import ToolCard from "@/components/tools/ToolCard";
-import CreateNewCard from "@/components/shared/CreateNewCard";
 import Pagination from "@/components/shared/Pagination";
 import Reveal from "@/components/shared/Reveal";
-import { fetchTools, fetchFeaturedTools } from "@/lib/tools";
+import { fetchToolCategories, fetchTools } from "@/lib/tools";
 
 const i18n = {
   zh: {
-    label: "工具中心",
+    label: "Tool Center",
     title: "研究工具库",
     subtitle: "发现提升研究效率的工具，从 AI 助手到文献管理。",
     share: "分享工具",
@@ -36,7 +36,6 @@ const i18n = {
 } as const;
 
 function PageHero({
-  label,
   title,
   subtitle,
 }: {
@@ -45,15 +44,11 @@ function PageHero({
   subtitle: string;
 }) {
   return (
-    <div className="mx-auto mb-8 max-w-2xl relative text-center">
-      <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-xl" />
-      <p className="text-sm font-medium text-[var(--color-text-secondary)]">
-        {label}
-      </p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--color-text-primary)] md:text-5xl">
+    <div className="mb-6 pt-2 pb-2">
+      <h1 className="text-4xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-5xl leading-[1.1]">
         {title}
       </h1>
-      <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
+      <p className="mt-3 text-base leading-[1.5] text-[var(--color-text-secondary)] font-normal max-w-xl">
         {subtitle}
       </p>
     </div>
@@ -73,12 +68,7 @@ function EmptyState({ title, hint }: { title: string; hint: string }) {
 
 interface PageProps {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{
-    page?: string;
-    category?: string;
-    tag?: string;
-    search?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function ToolsPage({ params, searchParams }: PageProps) {
@@ -87,15 +77,30 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
 
   const t = i18n[locale as keyof typeof i18n] || i18n.zh;
 
-  const page = Math.max(1, parseInt(resolvedSearchParams.page || "1", 10));
-  const category = resolvedSearchParams.category || "";
-  const tag = resolvedSearchParams.tag || "";
-  const search = resolvedSearchParams.search || "";
+  const pageValue =
+    typeof resolvedSearchParams.page === "string" ? resolvedSearchParams.page : "1";
+  const page = Math.max(1, parseInt(pageValue || "1", 10));
+  const category =
+    (typeof resolvedSearchParams.category === "string"
+      ? resolvedSearchParams.category
+      : "") || "";
+  const tag =
+    (typeof resolvedSearchParams.tag === "string" ? resolvedSearchParams.tag : "") || "";
+  const search =
+    (typeof resolvedSearchParams.search === "string"
+      ? resolvedSearchParams.search
+      : "") || "";
 
-  const [{ tools, totalPages, loadError }, featuredTools] = await Promise.all([
+  const [{ tools, totalPages, loadError }, categories] = await Promise.all([
     fetchTools({ page, category, tag, search }),
-    page === 1 ? fetchFeaturedTools() : Promise.resolve([]),
+    fetchToolCategories(locale),
   ]);
+
+  const qsParts: string[] = [];
+  if (category) qsParts.push(`category=${encodeURIComponent(category)}`);
+  if (tag) qsParts.push(`tag=${encodeURIComponent(tag)}`);
+  if (search) qsParts.push(`search=${encodeURIComponent(search)}`);
+  const queryString = qsParts.join("&");
 
   return (
     <PageShell>
@@ -103,66 +108,63 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
         <PageHero label={t.label} title={t.title} subtitle={t.subtitle} />
       </Reveal>
 
-      {featuredTools.length > 0 && (
-        <Reveal delay={100}>
-          <div className="mb-8 -mx-4 md:-mx-8">
-            <ToolCarousel
-              tools={featuredTools}
-              labels={{
-                author: t.cardAuthor,
-                views: t.cardViews,
-                likes: t.cardLikes,
-              }}
-            />
-          </div>
+      {/* Search Bar - Replaces Featured Carousel */}
+      <div className="mb-8">
+        <Reveal delay={0} threshold={0.12}>
+          <ToolSearchBar />
         </Reveal>
-      )}
+      </div>
 
-      <Reveal delay={200}>
-        <div className="mb-6">
-          <ToolFilters />
-        </div>
-      </Reveal>
+      <div className="flex flex-col lg:flex-row gap-8 mt-12">
+        <Reveal delay={100} className="w-full lg:w-64 shrink-0">
+          <ToolSidebarFilters categories={categories} />
+        </Reveal>
 
-      <Reveal delay={300}>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <CreateNewCard href="/tools/new" title={t.share} description={t.shareDesc} />
+        <div className="flex-1 min-w-0">
+          <Reveal delay={200}>
+            <ToolActiveFilters />
+          </Reveal>
 
-          {tools.length === 0 && !loadError ? (
-            <EmptyState title={t.noResults} hint={t.noResultsHint} />
-          ) : (
-            tools.map((tool) => (
-              <ToolCard
-                key={tool.id}
-                tool={tool}
-                labels={{
-                  author: t.cardAuthor,
-                  views: t.cardViews,
-                  likes: t.cardLikes,
-                }}
-              />
-            ))
+          <Reveal delay={300}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-2">
+              {tools.length === 0 && !loadError ? (
+                <EmptyState title={t.noResults} hint={t.noResultsHint} />
+              ) : (
+                tools.map((tool) => (
+                  <ToolCard
+                    key={tool.id}
+                    tool={tool}
+                    labels={{
+                      author: t.cardAuthor,
+                      views: t.cardViews,
+                      likes: t.cardLikes,
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          </Reveal>
+
+          {totalPages > 1 && (
+            <Reveal delay={400}>
+              <div className="mt-8">
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  basePath="/tools"
+                  queryString={queryString}
+                />
+              </div>
+            </Reveal>
+          )}
+
+          {loadError && (
+            <div className="mt-4 text-center text-sm text-red-500">
+              {loadError}
+            </div>
           )}
         </div>
-      </Reveal>
-
-      {totalPages > 1 && (
-        <Reveal delay={400}>
-          <div className="mt-8">
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              basePath="/tools"
-            />
-          </div>
-        </Reveal>
-      )}
-
-      {loadError && (
-        <div className="mt-4 text-center text-sm text-red-500">
-          {loadError}
-        </div>
-      )}
+      </div>
     </PageShell>
   );
 }

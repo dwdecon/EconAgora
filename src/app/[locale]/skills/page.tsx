@@ -34,7 +34,6 @@ const i18n = {
 } as const;
 
 function PageHero({
-  label,
   title,
   subtitle,
 }: {
@@ -43,14 +42,11 @@ function PageHero({
   subtitle: string;
 }) {
   return (
-    <div className="mx-auto mb-16 pt-16 pb-8 max-w-2xl relative text-center">
-      <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">
-        {label}
-      </p>
-      <h1 className="mt-3 text-5xl font-semibold tracking-[-1.5px] text-[var(--color-text-primary)] md:text-6xl leading-[1.1]">
+    <div className="mb-6 pt-2 pb-2">
+      <h1 className="text-4xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-5xl leading-[1.1]">
         {title}
       </h1>
-      <p className="mt-6 text-lg leading-[1.38] text-[var(--color-text-secondary)] font-normal">
+      <p className="mt-3 text-base leading-[1.5] text-[var(--color-text-secondary)] font-normal max-w-xl">
         {subtitle}
       </p>
     </div>
@@ -110,7 +106,7 @@ export default async function SkillsPage({ params, searchParams }: PageProps) {
         <PageHero label={t.label} title={t.title} subtitle={t.subtitle} />
       </Reveal>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="mb-8">
         <Reveal delay={100}>
           <SkillSearchBar />
         </Reveal>

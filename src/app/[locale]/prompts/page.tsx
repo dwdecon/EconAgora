@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-import { Link } from "@/i18n/navigation";
-import { Plus } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
-import FeaturedCarousel from "@/components/prompts/FeaturedCarousel";
-import PromptFilters from "@/components/prompts/PromptFilters";
+import PromptActiveFilters, { PromptSidebarFilters } from "@/components/prompts/PromptFilters";
 import PromptShowcaseCard from "@/components/prompts/PromptShowcaseCard";
 import Pagination from "@/components/shared/Pagination";
 import Reveal from "@/components/shared/Reveal";
+import { applyFullTextSearch } from "@/lib/fullTextSearch";
 import { serverDb } from "@/lib/rdb-server";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
+import { PromptSearchBar } from "@/components/prompts/PromptLayoutFilters";
 
 const i18n = {
   zh: {
@@ -49,37 +48,26 @@ const PAGE_SIZE = 12;
 const PROMPT_RDB_WARMUP_TTL_MS = 60_000;
 let promptRdbWarmupAt = 0;
 
-function PageHero({ label, title, subtitle }: { label: string; title: string; subtitle: string }) {
+const PROMPT_FULL_TEXT_COLUMNS = [
+  "title",
+  "description",
+  "category",
+  "tags",
+  "content",
+];
+
+function PageHero({ title, subtitle }: { label: string; title: string; subtitle: string }) {
   return (
-    <div className="mx-auto mb-8 max-w-2xl relative text-center">
-      <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-xl" />
-      <p className="text-sm font-medium text-[var(--color-text-secondary)]">
-        {label}
-      </p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--color-text-primary)] md:text-5xl">
+    <div className="mb-6 pt-2 pb-2">
+      <h1 className="text-4xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-5xl leading-[1.1]">
         {title}
       </h1>
-      <p className="mt-4 text-base leading-relaxed text-[var(--color-text-secondary)]">
+      <p className="mt-3 text-base leading-[1.5] text-[var(--color-text-secondary)] font-normal max-w-xl">
         {subtitle}
       </p>
     </div>
   );
 }
-
-const CreateNewCard = ({ t }: { t: { share: string; shareDesc: string } }) => (
-  <Link
-    href="/prompts/new"
-    className="group flex min-h-[300px] flex-col items-center justify-center rounded-[24px] border border-dashed border-[var(--color-border)] p-6 text-center transition-colors hover:border-primary/50 hover:bg-[var(--color-bg-surface)]"
-  >
-    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-      <Plus className="h-6 w-6" />
-    </div>
-    <h3 className="text-lg font-medium text-[var(--color-text-primary)]">{t.share}</h3>
-    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-      {t.shareDesc}
-    </p>
-  </Link>
-);
 
 interface Prompt {
   id: string;
@@ -89,6 +77,7 @@ interface Prompt {
   category: string;
   tags: string[];
   likeCount: number;
+  viewCount: number;
   downloadCount: number;
   authorId: string;
   createdAt: string;
@@ -167,14 +156,14 @@ async function fetchPrompts(params: {
       dataQuery = dataQuery.contains("tags", [tag]);
     }
     if (search) {
-      countQuery = countQuery.ilike("title", `%${search}%`);
-      dataQuery = dataQuery.ilike("title", `%${search}%`);
+      countQuery = applyFullTextSearch(countQuery, search, PROMPT_FULL_TEXT_COLUMNS);
+      dataQuery = applyFullTextSearch(dataQuery, search, PROMPT_FULL_TEXT_COLUMNS);
     }
 
     const [countResponse, promptResponse] = await Promise.all([
       countQuery,
       dataQuery
-        .order("created_at", { ascending: false })
+        .order("like_count", { ascending: false })
         .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
     ]);
 
@@ -229,13 +218,14 @@ async function fetchPrompts(params: {
           category: prompt.category,
           tags: normalizeTags(prompt.tags),
           likeCount: prompt.like_count ?? 0,
+          viewCount: prompt.view_count ?? 0,
           downloadCount: prompt.download_count ?? 0,
           authorId: prompt.author_id,
           createdAt: prompt.created_at,
           author:
             authorMap[prompt.author_id] ?? {
               id: prompt.author_id,
-              name: "Public Resource",
+              name: "Unknown",
               avatar: null,
             },
         };
@@ -253,64 +243,32 @@ async function fetchPrompts(params: {
   }
 }
 
-async function fetchFeatured(): Promise<Prompt[]> {
+async function fetchPromptCategories(locale: string): Promise<string[]> {
   try {
     await warmupPromptRdb();
 
     const { data, error } = await serverDb
       .from("prompt")
-      .select("*")
-      .eq("status", "PUBLISHED")
-      .order("like_count", { ascending: false })
-      .range(0, 4);
+      .select("category")
+      .eq("status", "PUBLISHED");
 
-    if (error || !data) return [];
-
-    const rows = data as any[];
-    const authorIds = Array.from(new Set(rows.map((r) => String(r.author_id))));
-    const authorMap: Record<string, { id: string; name: string; avatar: string | null }> = {};
-
-    if (authorIds.length > 0) {
-      const { data: profiles } = await serverDb
-        .from("user_profile")
-        .select("cloudbase_uid, name, avatar")
-        .in("cloudbase_uid", authorIds);
-
-      for (const p of (profiles as any[]) || []) {
-        authorMap[p.cloudbase_uid] = {
-          id: p.cloudbase_uid,
-          name: p.name,
-          avatar: p.avatar,
-        };
-      }
+    if (error || !data) {
+      return [];
     }
 
-    return rows
-      .map((row) => {
-        const id = extractRowId(row);
-        if (!id) return null;
-        return {
-          id,
-          title: row.title,
-          description: row.description,
-          content: row.content,
-          category: row.category,
-          tags: normalizeTags(row.tags),
-          likeCount: row.like_count ?? 0,
-          downloadCount: row.download_count ?? 0,
-          authorId: row.author_id,
-          createdAt: row.created_at,
-          author:
-            authorMap[row.author_id] ?? {
-              id: row.author_id,
-              name: "Public Resource",
-              avatar: null,
-            },
-        };
-      })
-      .filter(Boolean) as Prompt[];
+    const categories = Array.from(
+      new Set(
+        (data as Array<{ category?: string | null }>)
+          .map((row) => row.category?.trim())
+          .filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    return categories.sort((left, right) =>
+      left.localeCompare(right, locale === "en" ? "en" : "zh-CN"),
+    );
   } catch (error) {
-    console.error("Failed to fetch featured prompts:", error);
+    console.error("Failed to fetch prompt categories:", error);
     return [];
   }
 }
@@ -330,9 +288,9 @@ export default async function PromptsPage({
   const tag = (typeof sp.tag === "string" ? sp.tag : "") || "";
   const search = (typeof sp.search === "string" ? sp.search : "") || "";
 
-  const [{ prompts, totalPages, loadError }, featured] = await Promise.all([
+  const [{ prompts, totalPages, loadError }, categories] = await Promise.all([
     fetchPrompts({ page, category, tag, search }),
-    page === 1 ? fetchFeatured() : Promise.resolve([]),
+    fetchPromptCategories(locale),
   ]);
 
   // Build queryString for pagination
@@ -350,94 +308,77 @@ export default async function PromptsPage({
         subtitle={t.subtitle}
       />
 
-      {/* Featured Carousel: page 1 only, above filters */}
-      {page === 1 && featured.length > 0 && (
-        <div className="mt-10">
-          <Reveal delay={0} threshold={0.12}>
-            <FeaturedCarousel
-              prompts={featured}
-              labels={{
-                author: t.cardAuthor,
-                code: t.cardCode,
-                preview: t.cardPreview,
-                featured: t.cardFeatured,
-                prompt: t.cardPrompt,
-                copy: t.cardCopy,
-                copied: t.cardCopied,
-              }}
-            />
-          </Reveal>
-        </div>
-      )}
-
-      {/* Filters — below carousel */}
-      <div className="mt-8">
-        <Suspense>
-          <PromptFilters />
-        </Suspense>
+      {/* Search Bar - Replaces Featured Carousel */}
+      <div className="mb-8">
+        <Reveal delay={0} threshold={0.12}>
+          <PromptSearchBar />
+        </Reveal>
       </div>
 
-      {/* Grid */}
-      {prompts.length > 0 ? (
-        <div className="mt-8 flex flex-col gap-8">
-          {/* Grid for all paginated prompts */}
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            {page === 1 && (
-              <Reveal delay={70} threshold={0.12}>
-                <CreateNewCard t={t} />
-              </Reveal>
-            )}
-            {prompts.map((prompt, index) => (
-              <Reveal
-                key={prompt.id}
-                delay={Math.min((index + (page === 1 ? 2 : 1)) * 70, 280)}
-                threshold={0.12}
-              >
-                <PromptShowcaseCard
-                  prompt={prompt}
-                  isFeatured={false}
-                  labels={{
-                    author: t.cardAuthor,
-                    code: t.cardCode,
-                    preview: t.cardPreview,
-                    featured: t.cardFeatured,
-                    prompt: t.cardPrompt,
-                    copy: t.cardCopy,
-                    copied: t.cardCopied,
-                  }}
-                />
-              </Reveal>
-            ))}
-          </div>
+      <div className="flex flex-col lg:flex-row gap-8 mt-12">
+        <div className="w-full lg:w-64 shrink-0">
+          <Suspense>
+            <PromptSidebarFilters categories={categories} />
+          </Suspense>
         </div>
-      ) : loadError ? (
-        <div className="mt-16 text-center">
-          <p className="text-lg font-medium text-[var(--color-text-primary)]">
-            {locale === "en" ? "Prompt library is temporarily unavailable" : "Prompt 列表暂时无法加载"}
-          </p>
-          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-            {locale === "en"
-              ? `CloudBase returned: ${loadError}`
-              : `CloudBase 返回错误：${loadError}`}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-16 text-center">
-          <p className="text-lg font-medium text-[var(--color-text-primary)]">
-            {t.noResults}
-          </p>
-          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-            {t.noResultsHint}
-          </p>
-        </div>
-      )}
 
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        basePath="/prompts"
-        queryString={queryString}
-      />
+        <div className="flex-1 min-w-0">
+          <Suspense>
+            <PromptActiveFilters />
+          </Suspense>
+
+          {prompts.length > 0 ? (
+            <div className="flex flex-col gap-8">
+              <div className="columns-1 gap-5 xl:columns-2 [&>article]:mb-5">
+                {prompts.map((prompt) => (
+                  <PromptShowcaseCard
+                    key={prompt.id}
+                    prompt={prompt}
+                    isFeatured={false}
+                    labels={{
+                      author: t.cardAuthor,
+                      code: t.cardCode,
+                      preview: t.cardPreview,
+                      featured: t.cardFeatured,
+                      prompt: t.cardPrompt,
+                      copy: t.cardCopy,
+                      copied: t.cardCopied,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : loadError ? (
+            <div className="mt-16 text-center">
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                {locale === "en"
+                  ? "Service temporarily unavailable due to network instability. Please wait a few minutes and try again."
+                  : "由于网络波动，服务暂不可用，请等待几分钟后重试"}
+              </p>
+            </div>
+          ) : (
+            <div className="mt-16 text-center">
+              <p className="text-lg font-medium text-[var(--color-text-primary)]">
+                {t.noResults}
+              </p>
+              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                {t.noResultsHint}
+              </p>
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                basePath="/prompts"
+                queryString={queryString}
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </PageShell>
   );
 }
