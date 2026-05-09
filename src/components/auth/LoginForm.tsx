@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { auth } from "@/lib/cloudbase";
 
 export default function LoginForm() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +29,8 @@ export default function LoginForm() {
         return;
       }
 
-      router.replace("/");
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      window.location.href = callbackUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed.");
     } finally {
@@ -45,22 +46,22 @@ export default function LoginForm() {
         type="email"
         required
         placeholder="Email"
-        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-hover)] focus:shadow-[var(--shadow-focus)] focus:outline-none transition-shadow"
       />
       <input
         name="password"
         type="password"
         required
         placeholder="Password"
-        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none"
+        className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-3 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-hover)] focus:shadow-[var(--shadow-focus)] focus:outline-none transition-shadow"
       />
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-lg bg-primary px-4 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Signing in..." : "Sign in"}
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded-[6px] bg-[var(--color-text-primary)] px-4 py-3 font-normal text-[var(--color-bg)] transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 shadow-[var(--shadow-inset-button)]"
+        >
+          {loading ? "Signing In..." : "Sign In"}
+        </button>
     </form>
   );
 }

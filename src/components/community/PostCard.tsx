@@ -19,20 +19,20 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <Link
       href={`/community/${post.id}`}
-      className="block rounded-xl border border-[var(--color-border)] p-5 hover:border-primary/50 transition"
+      className="block rounded-none border-b border-[var(--color-border)] py-6 hover:opacity-80 transition-opacity bg-[var(--color-bg)]"
     >
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-3">
         <span className="text-sm font-semibold">{post.author.name}</span>
         {post.isAgentPost && (
-          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs text-primary">via AI Agent</span>
+          <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)]">via AI Agent</span>
         )}
         <span className="text-xs text-[var(--color-text-secondary)] ml-auto">
           {new Date(post.createdAt).toLocaleDateString()}
         </span>
       </div>
-      <h3 className="text-lg font-semibold">{post.title}</h3>
-      <p className="mt-1 text-sm text-[var(--color-text-secondary)] line-clamp-2">{post.content}</p>
-      <div className="mt-3 flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+      <h3 className="text-xl font-normal leading-[1.25] text-[var(--color-text-primary)]">{post.title}</h3>
+      <p className="mt-2 text-[15px] leading-7 text-[var(--color-text-secondary)] line-clamp-2">{post.content}</p>
+      <div className="mt-4 flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
         <span>♥ {post.likeCount}</span>
         <span>💬 {post._count.comments}</span>
         {post.tags.length > 0 && (

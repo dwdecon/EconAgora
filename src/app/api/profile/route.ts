@@ -7,6 +7,60 @@ import {
 import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
 
+export async function GET(request: NextRequest) {
+  const auth = await requireCloudBaseUser(request);
+  if ("response" in auth) {
+    return auth.response;
+  }
+
+  const { searchParams } = new URL(request.url);
+  const rawFields = searchParams.get("fields");
+  const requestedFields = rawFields
+    ? rawFields.split(",").map((f) => f.trim()).filter(Boolean)
+    : null;
+
+  const profileFields = ["name", "avatar", "affiliation", "bio", "locale"];
+  const fieldsToFetch = requestedFields
+    ? profileFields.filter((f) => requestedFields.includes(f))
+    : profileFields;
+
+  const selectFields = ["cloudbase_uid", ...fieldsToFetch];
+
+  try {
+    const { data: profile, error } = await serverDb
+      .from("user_profile")
+      .select(selectFields.join(","))
+      .eq("cloudbase_uid", auth.user.id)
+      .single();
+
+    if (error && error.raw) {
+      const rawMessage = JSON.stringify(error.raw);
+      if (!rawMessage.includes("0 rows") && !rawMessage.includes("PGRST116")) {
+        console.error("Failed to fetch user profile:", error);
+        return serverError("Failed to fetch profile.");
+      }
+    }
+
+    if (!profile) {
+      return NextResponse.json({ profile: null });
+    }
+
+    return NextResponse.json({
+      profile: {
+        name: profile.name ?? "",
+        avatar: profile.avatar ?? null,
+        affiliation: profile.affiliation ?? "",
+        bio: profile.bio ?? "",
+        locale: profile.locale ?? "zh",
+        email: auth.user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch profile:", error);
+    return serverError("Failed to fetch profile.");
+  }
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireCloudBaseUser(request);
   if ("response" in auth) {
@@ -16,18 +70,21 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const now = toSqlTimestamp();
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: typeof body?.name === "string" ? body.name.trim() : "",
-      role:
-        typeof body?.role === "string" && body.role.trim()
-          ? body.role.trim()
-          : "USER",
-      locale:
-        typeof body?.locale === "string" && body.locale.trim()
-          ? body.locale.trim()
-          : "zh",
+      locale: normalizeProfileLocale(body?.locale),
       updated_at: now,
     };
+
+    if (typeof body?.affiliation === "string") {
+      payload.affiliation = body.affiliation.trim();
+    }
+    if (typeof body?.bio === "string") {
+      payload.bio = body.bio.trim();
+    }
+    if (typeof body?.avatar === "string" && body.avatar) {
+      payload.avatar = body.avatar.trim();
+    }
 
     if (!payload.name) {
       return badRequest("Profile name is required.");
@@ -77,4 +134,8 @@ export async function POST(request: NextRequest) {
     console.error("Failed to parse profile payload:", error);
     return badRequest("Invalid profile payload.");
   }
+}
+
+function normalizeProfileLocale(value: unknown) {
+  return value === "en" ? "en" : "zh";
 }

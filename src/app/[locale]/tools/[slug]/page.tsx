@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { ChevronLeft, Eye, Heart, ExternalLink } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import ToolCard from "@/components/tools/ToolCard";
+import ToolInteractionBar from "@/components/tools/ToolInteractionBar";
 import { fetchToolById, fetchRelatedTools } from "@/lib/tools";
 
 const i18n = {
@@ -32,13 +33,6 @@ const i18n = {
     cardAuthor: "Author",
   },
 } as const;
-
-function formatCount(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 1,
-    notation: value >= 1000 ? "compact" : "standard",
-  }).format(value);
-}
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -72,7 +66,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
         {/* Header */}
         <header className="mb-8">
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
+            <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface-strong)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
               {tool.category}
             </span>
             {tool.tags
@@ -98,16 +92,12 @@ export default async function ToolDetailPage({ params }: PageProps) {
             </p>
           )}
 
-          <div className="mt-6 flex items-center gap-6 text-sm text-[var(--color-text-secondary)]">
-            <span className="inline-flex items-center gap-1.5">
-              <Eye className="h-4 w-4" />
-              {formatCount(tool.viewCount)} {t.views}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Heart className="h-4 w-4" />
-              {formatCount(tool.likeCount)} {t.likes}
-            </span>
-          </div>
+          <ToolInteractionBar
+            toolId={tool.id}
+            initialLikeCount={tool.likeCount}
+            initialViewCount={tool.viewCount}
+            locale={locale}
+          />
         </header>
 
         {/* Quick Start */}
@@ -146,7 +136,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                   href={tool.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-5 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:border-primary hover:text-primary transition"
+                  className="inline-flex items-center gap-2 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {t.officialWebsite}
@@ -157,7 +147,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                   href={tool.docsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-5 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:border-primary hover:text-primary transition"
+                  className="inline-flex items-center gap-2 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {t.documentation}

@@ -16,6 +16,7 @@ export async function GET(
       .from("prompt")
       .select("_id,title,content,download_count")
       .eq("_id", id)
+      .eq("status", "PUBLISHED")
       .single();
 
     if (error || !prompt) {

@@ -14,7 +14,7 @@
     "github": "GitHub"
   },
   "skills": {
-    "label": "Skill Hub",
+    "label": "Skills Hub",
     "title": "Research Skills Library",
     "subtitle": "Browse reusable research skills covering data cleaning, visualization, literature analysis, and more.",
     "share": "Share Your Skill",
@@ -54,6 +54,61 @@
       "integration": "Integration Guide",
       "links": "Links",
       "related": "Related Tools"
+    }
+  },
+  "account": {
+    "title": "Account Settings",
+    "loading": "Loading...",
+    "profile": "Profile",
+    "security": "Security",
+    "content": "My Content",
+    "form": {
+      "title": "Profile",
+      "avatar": "Avatar",
+      "name": "Display Name",
+      "affiliation": "Affiliation",
+      "affiliationPlaceholder": "e.g. Professor, Tsinghua University",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "locale": "Interface Language",
+      "localeZh": "中文",
+      "localeEn": "English",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "uploadAvatar": "Change Avatar",
+      "uploading": "Uploading..."
+    },
+    "security": {
+      "title": "Account Security",
+      "email": "Email",
+      "emailChange": "Change Email",
+      "password": "Password",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "passwordUpdated": "Password updated",
+      "logout": "Sign Out",
+      "logoutConfirm": "Are you sure you want to sign out?",
+      "logoutSuccess": "Signed out",
+      "saving": "Saving...",
+      "error": "Operation failed",
+      "minLength": "Password must be at least 6 characters",
+      "mismatch": "Passwords do not match",
+      "wrongPassword": "Current password is incorrect",
+      "cancel": "Cancel"
+    },
+    "content": {
+      "title": "My Content",
+      "prompts": "Published Prompts",
+      "posts": "Published Posts",
+      "emptyPrompts": "No published prompts yet",
+      "emptyPosts": "No published posts yet",
+      "views": "Views",
+      "likes": "Likes",
+      "goToPrompt": "View Prompt",
+      "goToPost": "View Post"
     }
   }
 }

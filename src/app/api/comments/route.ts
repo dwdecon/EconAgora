@@ -37,15 +37,9 @@ export async function POST(request: NextRequest) {
       return badRequest("Comment content is required.");
     }
 
-    const targetTable = targetType === "POST" ? "post" : "prompt";
-    const { data: targetRow, error: targetError } = await serverDb
-      .from(targetTable)
-      .select("_id")
-      .eq("_id", targetId)
-      .single();
-
-    if (targetError || !targetRow) {
-      return NextResponse.json({ error: "Comment target not found." }, { status: 404 });
+    const targetValidation = await validateCommentTarget(targetType, targetId);
+    if (targetValidation.error) {
+      return targetValidation.error;
     }
 
     if (parentId) {
@@ -126,4 +120,22 @@ export async function POST(request: NextRequest) {
 
 function normalizeTargetType(value: unknown): TargetType | null {
   return value === "POST" || value === "PROMPT" ? value : null;
+}
+
+async function validateCommentTarget(targetType: TargetType, targetId: string) {
+  const targetTable = targetType === "POST" ? "post" : "prompt";
+  let query = serverDb.from(targetTable).select("_id").eq("_id", targetId);
+
+  if (targetTable === "prompt") {
+    query = query.eq("status", "PUBLISHED");
+  }
+
+  const { data, error } = await query.single();
+  if (error || !data) {
+    return {
+      error: NextResponse.json({ error: "Comment target not found." }, { status: 404 }),
+    };
+  }
+
+  return { error: null };
 }

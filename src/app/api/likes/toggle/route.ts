@@ -8,7 +8,7 @@ import { syncLikeCount } from "@/lib/rdb-counters";
 import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
 
-type TargetType = "POST" | "PROMPT";
+type TargetType = "POST" | "PROMPT" | "SKILL" | "TOOL";
 
 export async function POST(request: NextRequest) {
   const auth = await requireCloudBaseUser(request);
@@ -29,16 +29,12 @@ export async function POST(request: NextRequest) {
       return badRequest("Like target ID is required.");
     }
 
-    const targetTable = targetType === "POST" ? "post" : "prompt";
-    const { data: target, error: targetError } = await serverDb
-      .from(targetTable)
-      .select("_id")
-      .eq("_id", targetId)
-      .single();
-
-    if (targetError || !target) {
-      return NextResponse.json({ error: "Like target not found." }, { status: 404 });
+    const targetValidation = await validateLikeTarget(targetType, targetId);
+    if (targetValidation.error) {
+      return targetValidation.error;
     }
+
+    const { table: targetTable } = targetValidation;
 
     const { data: existingLike, error: likeLookupError } = await serverDb
       .from("user_like")
@@ -114,7 +110,9 @@ export async function POST(request: NextRequest) {
 }
 
 function normalizeTargetType(value: unknown): TargetType | null {
-  return value === "POST" || value === "PROMPT" ? value : null;
+  return value === "POST" || value === "PROMPT" || value === "SKILL" || value === "TOOL"
+    ? value
+    : null;
 }
 
 function isDuplicateLikeError(error: { message: string; raw?: unknown }) {
@@ -123,4 +121,30 @@ function isDuplicateLikeError(error: { message: string; raw?: unknown }) {
     message.includes("Duplicate entry") &&
     message.includes("user_like.uk_user_target")
   );
+}
+
+async function validateLikeTarget(targetType: TargetType, targetId: string) {
+  const table: "post" | "prompt" | "skill" | "tool" =
+    targetType === "POST"
+      ? "post"
+      : targetType === "PROMPT"
+        ? "prompt"
+        : targetType === "SKILL"
+          ? "skill"
+          : "tool";
+
+  let query = serverDb.from(table).select("_id").eq("_id", targetId);
+  if (table !== "post") {
+    query = query.eq("status", "PUBLISHED");
+  }
+
+  const { data, error } = await query.single();
+  if (error || !data) {
+    return {
+      table,
+      error: NextResponse.json({ error: "Like target not found." }, { status: 404 }),
+    };
+  }
+
+  return { table, error: null };
 }

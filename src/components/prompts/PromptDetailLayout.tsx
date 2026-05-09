@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { Eye } from "lucide-react";
+import { ChevronLeft, Eye } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import PageShell from "@/components/layout/PageShell";
 import CopyPromptButton from "@/components/prompts/CopyPromptButton";
@@ -68,47 +69,77 @@ export default function PromptDetailLayout({
 
   return (
     <PageShell width="6xl" className="pb-20">
+      <div className="mb-6">
+        <Link
+          href="/prompts"
+          className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          {locale === "en" ? "Back to Prompt Library" : "返回 Prompt 库"}
+        </Link>
+      </div>
+
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         {/* ── 左栏 ── */}
         <div className="min-w-0 flex-1">
           {/* 标题区 */}
-          <span className="font-mono text-xs text-primary">{prompt.category}</span>
-          <h1 className="mt-2 text-2xl font-bold text-[var(--color-text-primary)]">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${
+                prompt.category === "Research" || prompt.category === "文献"
+                  ? "border-sky-200/70 bg-sky-50/80 text-sky-700"
+                  : prompt.category === "Writing" || prompt.category === "写作"
+                    ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-700"
+                    : prompt.category === "Coding" || prompt.category === "编程"
+                      ? "border-violet-200/70 bg-violet-50/80 text-violet-700"
+                      : prompt.category === "Analysis" || prompt.category === "数据"
+                        ? "border-amber-200/70 bg-amber-50/80 text-amber-700"
+                        : "border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
+              }`}
+            >
+              {prompt.category}
+            </span>
+          </div>
+          <h1 className="mt-4 text-[32px] font-normal tracking-[-0.02em] leading-tight text-[var(--color-text-primary)]">
             {prompt.title}
           </h1>
           {prompt.description && (
-            <p className="mt-2 text-[var(--color-text-secondary)]">{prompt.description}</p>
+            <p className="mt-4 text-[15px] leading-7 text-[var(--color-text-secondary)]">{prompt.description}</p>
           )}
 
           {/* 作者 */}
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-6 flex items-center gap-2">
             <Link
               href={`/u/${prompt.author.id}`}
               className="flex items-center gap-2 transition hover:opacity-80"
             >
               {prompt.author.avatar ? (
-                <img
+                <Image
                   src={prompt.author.avatar}
                   alt={prompt.author.name}
+                  width={28}
+                  height={28}
+                  unoptimized
                   className="h-7 w-7 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[10px] font-semibold uppercase text-[var(--color-text-secondary)]">
                   {initials}
                 </div>
               )}
-              <span className="text-sm font-medium text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]">
+              <span className="text-[14px] font-medium text-[var(--color-text-primary)] transition hover:text-[var(--color-text-secondary)]">
                 {prompt.author.name}
               </span>
             </Link>
           </div>
 
-          <hr className="my-6 border-[var(--color-border)]" />
+          <hr className="my-8 border-[var(--color-border)]" />
 
           {/* Prompt 内容块 */}
-          <div className="overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-[var(--color-bg-surface)]">
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-4 py-3">
-              <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+          <div className="relative my-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] overflow-hidden group">
+            {/* Header Bar */}
+            <div className="flex items-center justify-between px-4 py-2 bg-[var(--color-bg-surface-strong)]">
+              <span className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
                 Prompt
               </span>
               <CopyPromptButton
@@ -116,10 +147,13 @@ export default function PromptDetailLayout({
                 copyLabel={copyLabel}
                 copiedLabel={copiedLabel}
                 stopPropagation={false}
+                className="!h-7 !min-h-0 !border-transparent !bg-transparent !text-[var(--color-text-secondary)] hover:!bg-[var(--color-bg-surface)] hover:!text-[var(--color-text-primary)] !rounded-md !px-2.5 !py-0 !text-xs transition-all duration-200"
               />
             </div>
-            <div className="px-4 py-4">
-              <pre className="min-h-[120px] whitespace-pre-wrap break-words font-mono text-[13px] leading-6 text-[var(--color-text-primary)]">
+
+            {/* Code content */}
+            <div className="p-4 overflow-x-auto">
+              <pre className="min-h-[120px] whitespace-pre-wrap break-words font-mono text-[13px] leading-relaxed text-[var(--color-text-primary)]">
                 {prompt.content}
               </pre>
             </div>

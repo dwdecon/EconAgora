@@ -44,6 +44,9 @@ export default function UserProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [postCommentCounts, setPostCommentCounts] = useState<Record<string, number>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +61,7 @@ export default function UserProfilePage() {
             .from("prompt")
             .select("*")
             .eq("author_id", id)
+            .eq("status", "PUBLISHED")
             .order("created_at", { ascending: false })
             .limit(6),
           db
@@ -73,9 +77,27 @@ export default function UserProfilePage() {
           return;
         }
 
+        const loadedPosts = (postsRes.data as Post[]) || [];
+        const postIds = loadedPosts.map((post) => post._id);
+        const counts: Record<string, number> = {};
+
+        if (postIds.length > 0) {
+          const { data: commentRows } = await db
+            .from("comment")
+            .select("target_id")
+            .eq("target_type", "POST")
+            .in("target_id", postIds);
+
+          for (const row of ((commentRows as { target_id: string }[]) || [])) {
+            counts[row.target_id] = (counts[row.target_id] || 0) + 1;
+          }
+        }
+
+        if (cancelled) return;
         setUser(userRes.data as UserProfile);
         setPrompts((promptsRes.data as Prompt[]) || []);
-        setPosts((postsRes.data as Post[]) || []);
+        setPosts(loadedPosts);
+        setPostCommentCounts(counts);
       } catch (fetchError) {
         if (!cancelled) {
           setError(
@@ -137,13 +159,13 @@ export default function UserProfilePage() {
     likeCount: post.like_count ?? 0,
     createdAt: new Date(post.created_at),
     author: { id: post.author_id, name: user.name, avatar: user.avatar },
-    _count: { comments: 0 },
+    _count: { comments: postCommentCounts[post._id] ?? 0 },
   }));
 
   return (
     <PageShell width="4xl">
       <div className="mb-8 flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-2xl font-bold text-primary">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-2xl font-bold text-[var(--color-text-secondary)]">
           {user.name[0]}
         </div>
         <div>

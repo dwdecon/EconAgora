@@ -1,29 +1,35 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Semantic color tokens ── */
+/* ── Semantic color tokens (Lovable Style) ── */
 :root {
-  --color-bg:              #FAF7F2;
-  --color-bg-card:         #F0EDE8;
-  --color-bg-surface:      rgba(0, 0, 0, 0.03);
-  --color-bg-surface-strong: rgba(0, 0, 0, 0.06);
-  --color-border:          #E0DDD8;
-  --color-text-primary:    #1a1a1a;
-  --color-text-secondary:  rgba(0, 0, 0, 0.5);
-  --color-text-muted:      rgba(0, 0, 0, 0.35);
-  --color-nav-glass:       rgba(246, 243, 236, 0.65);
+  --color-bg:              #f7f4ed;
+  --color-bg-card:         #f7f4ed;
+  --color-bg-surface:      rgba(28, 28, 28, 0.03);
+  --color-bg-surface-strong: rgba(28, 28, 28, 0.06);
+  --color-border:          #eceae4;
+  --color-border-hover:    rgba(28, 28, 28, 0.4);
+  --color-text-primary:    #1c1c1c;
+  --color-text-secondary:  #5f5f5d;
+  --color-text-muted:      rgba(28, 28, 28, 0.4);
+  --color-nav-glass:       rgba(247, 244, 237, 0.82);
+  --shadow-focus:          rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  --shadow-inset-button:   rgba(255, 255, 255, 0.2) 0px 0.5px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 0px 0px 0.5px inset, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 }
 
 .dark {
-  --color-bg:              #0a0a0a;
-  --color-bg-card:         #141414;
-  --color-bg-surface:      rgba(255, 255, 255, 0.05);
-  --color-bg-surface-strong: rgba(255, 255, 255, 0.1);
-  --color-border:          #1f1f1f;
-  --color-text-primary:    #ffffff;
-  --color-text-secondary:  rgba(255, 255, 255, 0.5);
-  --color-text-muted:      rgba(255, 255, 255, 0.35);
-  --color-nav-glass:       rgba(10, 10, 10, 0.82);
+  --color-bg:              #1c1c1c;
+  --color-bg-card:         #1c1c1c;
+  --color-bg-surface:      rgba(247, 244, 237, 0.03);
+  --color-bg-surface-strong: rgba(247, 244, 237, 0.06);
+  --color-border:          rgba(247, 244, 237, 0.15);
+  --color-border-hover:    rgba(247, 244, 237, 0.4);
+  --color-text-primary:    #f7f4ed;
+  --color-text-secondary:  rgba(247, 244, 237, 0.6);
+  --color-text-muted:      rgba(247, 244, 237, 0.4);
+  --color-nav-glass:       rgba(28, 28, 28, 0.82);
+  --shadow-focus:          rgba(255, 255, 255, 0.1) 0px 4px 12px;
+  --shadow-inset-button:   rgba(255, 255, 255, 0.1) 0px 0.5px 0px 0px inset, rgba(255, 255, 255, 0.05) 0px 0px 0px 0.5px inset, rgba(0, 0, 0, 0.2) 0px 1px 2px 0px;
 }
 
 @theme {
@@ -347,4 +353,9 @@ section {
 .prose-article pre code {
   background: none;
   padding: 0;
+}
+
+.markdown-content code::before,
+.markdown-content code::after {
+  content: none !important;
 }

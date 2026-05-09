@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const cloudbase = require('@cloudbase/node-sdk');
 
 const app = cloudbase.init({

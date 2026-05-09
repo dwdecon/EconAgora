@@ -24,6 +24,11 @@ interface Filter {
   value: unknown;
 }
 
+interface RawFilter {
+  key: string;
+  value: string;
+}
+
 interface QueryOrder {
   column: string;
   ascending: boolean;
@@ -144,6 +149,7 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
   private readonly table: string;
   private method: "GET" | "POST" | "PATCH" | "DELETE" = "GET";
   private readonly filters: Filter[] = [];
+  private readonly rawFilters: RawFilter[] = [];
   private readonly orders: QueryOrder[] = [];
   private columns = "*";
   private limitValue: number | null = null;
@@ -243,6 +249,18 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
     return this;
   }
 
+  or(expression: string) {
+    if (!expression) {
+      return this;
+    }
+
+    this.rawFilters.push({
+      key: "or",
+      value: expression.startsWith("(") ? expression : `(${expression})`,
+    });
+    return this;
+  }
+
   order(column: string, options?: { ascending?: boolean }) {
     this.orders.push({
       column,
@@ -307,6 +325,9 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
     }
     for (const filter of this.filters) {
       url.searchParams.append(filter.column, serializeFilter(filter));
+    }
+    for (const filter of this.rawFilters) {
+      url.searchParams.append(filter.key, filter.value);
     }
 
     const preferDirectives: string[] = [];

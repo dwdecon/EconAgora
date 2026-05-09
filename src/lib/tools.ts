@@ -1,4 +1,5 @@
 import { serverDb } from "@/lib/rdb-server";
+import { applyFullTextSearch } from "@/lib/fullTextSearch";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
 export interface Tool {
@@ -20,6 +21,17 @@ export interface Tool {
 const PAGE_SIZE = 12;
 const TOOL_RDB_WARMUP_TTL_MS = 60_000;
 let toolRdbWarmupAt = 0;
+
+const TOOL_FULL_TEXT_COLUMNS = [
+  "title",
+  "description",
+  "category",
+  "tags",
+  "quick_start",
+  "integration_guide",
+  "official_url",
+  "docs_url",
+];
 
 function getRdbErrorMessage(error: { message: string; raw?: unknown } | null) {
   if (!error) return null;
@@ -114,8 +126,8 @@ export async function fetchTools(params: {
       dataQuery = dataQuery.contains("tags", [tag]);
     }
     if (search) {
-      countQuery = countQuery.ilike("title", `%${search}%`);
-      dataQuery = dataQuery.ilike("title", `%${search}%`);
+      countQuery = applyFullTextSearch(countQuery, search, TOOL_FULL_TEXT_COLUMNS);
+      dataQuery = applyFullTextSearch(dataQuery, search, TOOL_FULL_TEXT_COLUMNS);
     }
 
     const [countResponse, toolResponse] = await Promise.all([
@@ -168,7 +180,7 @@ export async function fetchTools(params: {
           author:
             authorMap[tool.author_id] ?? {
               id: tool.author_id,
-              name: "Public Resource",
+              name: "Unknown",
               avatar: null,
             },
           createdAt: tool.created_at,
@@ -223,7 +235,7 @@ export async function fetchFeaturedTools(): Promise<Tool[]> {
           author:
             authorMap[row.author_id] ?? {
               id: row.author_id,
-              name: "Public Resource",
+              name: "Unknown",
               avatar: null,
             },
           createdAt: row.created_at,
@@ -244,6 +256,7 @@ export async function fetchToolById(id: string): Promise<Tool | null> {
       .from("tool")
       .select("*")
       .eq("_id", id)
+      .eq("status", "PUBLISHED")
       .single();
 
     if (error || !data) return null;
@@ -266,7 +279,7 @@ export async function fetchToolById(id: string): Promise<Tool | null> {
       author:
         authorMap[row.author_id] ?? {
           id: row.author_id,
-          name: "Public Resource",
+          name: "Unknown",
           avatar: null,
         },
       createdAt: row.created_at,
@@ -327,7 +340,7 @@ export async function fetchRelatedTools(
             author:
               authorMap[row.author_id] ?? {
                 id: row.author_id,
-                name: "Public Resource",
+                name: "Unknown",
                 avatar: null,
               },
             createdAt: row.created_at,
@@ -359,7 +372,7 @@ export async function fetchRelatedTools(
           author:
             authorMap[row.author_id] ?? {
               id: row.author_id,
-              name: "Public Resource",
+              name: "Unknown",
               avatar: null,
             },
           createdAt: row.created_at,
@@ -368,6 +381,34 @@ export async function fetchRelatedTools(
       .filter(Boolean) as Tool[];
   } catch (error) {
     console.error("Failed to fetch related tools:", error);
+    return [];
+  }
+}
+
+export async function fetchToolCategories(locale = "en"): Promise<string[]> {
+  try {
+    await warmupToolRdb();
+
+    const { data, error } = await serverDb
+      .from("tool")
+      .select("category")
+      .eq("status", "PUBLISHED");
+
+    if (error || !data) return [];
+
+    const categories = Array.from(
+      new Set(
+        (data as Array<{ category?: string | null }>)
+          .map((row) => row.category?.trim())
+          .filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    return categories.sort((left, right) =>
+      left.localeCompare(right, locale === "en" ? "en" : "zh-CN"),
+    );
+  } catch (error) {
+    console.error("Failed to fetch tool categories:", error);
     return [];
   }
 }

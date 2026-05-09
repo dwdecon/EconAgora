@@ -80,6 +80,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
           .from("prompt")
           .select("*")
           .eq("_id", id)
+          .eq("status", "PUBLISHED")
           .single();
 
         if (cancelled) return;

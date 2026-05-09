@@ -117,7 +117,7 @@ function DbPostDetail({ id }: { id: string }) {
                 }
               : {
                   id: normalizedPost.author_id,
-                  name: "Public Resource",
+                  name: "Unknown",
                   avatar: null,
                 },
           );
@@ -167,7 +167,7 @@ function DbPostDetail({ id }: { id: string }) {
 
             authorMap[uid] = data
               ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
-              : { id: uid, name: "Public Resource", avatar: null };
+              : { id: uid, name: "Unknown", avatar: null };
           }),
         );
 
@@ -183,7 +183,7 @@ function DbPostDetail({ id }: { id: string }) {
             created_at: row.created_at,
             is_agent_comment: row.is_agent_comment ?? false,
             user_id: row.author_id,
-            author: authorMap[row.author_id] ?? { id: row.author_id, name: "Public Resource", avatar: null },
+            author: authorMap[row.author_id] ?? { id: row.author_id, name: "Unknown", avatar: null },
             replies: [],
           };
         }
@@ -227,13 +227,13 @@ function DbPostDetail({ id }: { id: string }) {
   return (
     <ArticleLayout>
       <div className="mb-4 flex items-center gap-2">
-        <span className="font-semibold text-white">{author?.name || "Public Resource"}</span>
+        <span className="font-medium text-[var(--color-text-primary)]">{author?.name || "Unknown"}</span>
         {post.is_agent_post ? (
-          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs text-primary">
+          <span className="rounded border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)]">
             via AI Agent
           </span>
         ) : null}
-        <span className="ml-auto text-sm text-[#666]">
+        <span className="ml-auto text-sm text-[var(--color-text-secondary)]">
           {new Date(post.created_at).toLocaleDateString()}
         </span>
       </div>

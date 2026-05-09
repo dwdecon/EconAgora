@@ -1,45 +1,23 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-
-const categories = [
-  { en: "All", zh: "全部", value: "" },
-  { en: "Literature", zh: "文献", value: "文献" },
-  { en: "Data", zh: "数据", value: "数据" },
-  { en: "Writing", zh: "写作", value: "写作" },
-  { en: "Review", zh: "评审", value: "评审" },
-  { en: "Topic", zh: "选题", value: "选题" },
-  { en: "Other", zh: "其他", value: "其他" },
-];
+import { X } from "lucide-react";
 
 const FILTER_PILL_CLASSES =
   "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]";
 
-export default function PromptFilters() {
+export function PromptSidebarFilters({ categories }: { categories: string[] }) {
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category") || "";
-  const currentSearch = searchParams.get("search") || "";
-  const currentTag = searchParams.get("tag") || "";
-  const hasActiveFilters = Boolean(currentCategory || currentSearch || currentTag);
-
-  const [draftSearch, setDraftSearch] = useState(currentSearch);
-
-  useEffect(() => {
-    setDraftSearch(currentSearch);
-  }, [currentSearch]);
 
   function navigate(params: URLSearchParams) {
     const query = params.toString();
-    // 保存当前滚动位置
     const scrollPosition = window.scrollY;
     router.push(query ? `/prompts?${query}` : "/prompts", { scroll: false });
-    // 导航后恢复滚动位置
     requestAnimationFrame(() => {
       window.scrollTo({ top: scrollPosition, behavior: "instant" });
     });
@@ -56,29 +34,68 @@ export default function PromptFilters() {
     navigate(params);
   }
 
-  function submitSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const params = new URLSearchParams(searchParams.toString());
-    const value = draftSearch.trim();
-    if (value) {
-      params.set("search", value);
-    } else {
-      params.delete("search");
-    }
-    params.delete("page");
-    navigate(params);
+  const sidebarItems = [
+    { value: "", label: locale === "en" ? "All Categories" : "全部" },
+    ...categories.map((category) => ({ value: category, label: category })),
+  ];
+
+  return (
+    <div className="sticky top-24 space-y-6">
+      <div>
+        <h3 className="mb-3 px-2 text-sm font-medium text-[var(--color-text-secondary)]">
+          {locale === "en" ? "Categories" : "分类"}
+        </h3>
+        <ul className="space-y-1.5">
+          {sidebarItems.map((category) => {
+            const isActive = currentCategory === category.value;
+
+            return (
+              <li key={category.value || "__all__"}>
+                <button
+                  type="button"
+                  onClick={() => setCategory(category.value)}
+                  className={`flex w-full items-center justify-between rounded-full border px-4 py-2.5 text-[14px] transition-colors ${
+                    isActive
+                      ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] font-medium text-[var(--color-bg)] shadow-[var(--shadow-inset-button)]"
+                      : "border-[var(--color-border)] bg-transparent text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]"
+                  }`}
+                >
+                  <span>{category.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default function PromptActiveFilters() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentSearch = searchParams.get("search") || "";
+  const currentTag = searchParams.get("tag") || "";
+  const currentCategory = searchParams.get("category") || "";
+  const hasActiveFilters = Boolean(currentSearch || currentTag || currentCategory);
+
+  function navigate(params: URLSearchParams) {
+    const query = params.toString();
+    const scrollPosition = window.scrollY;
+    router.push(query ? `/prompts?${query}` : "/prompts", { scroll: false });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollPosition, behavior: "instant" });
+    });
   }
 
   function clearField(field: "category" | "search" | "tag") {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(field);
     params.delete("page");
-    if (field === "search") setDraftSearch("");
     navigate(params);
   }
 
   function clearAll() {
-    setDraftSearch("");
     const params = new URLSearchParams(searchParams.toString());
     params.delete("category");
     params.delete("search");
@@ -87,102 +104,47 @@ export default function PromptFilters() {
     navigate(params);
   }
 
+  if (!hasActiveFilters) return null;
+
   return (
-    <div className="space-y-3">
-      {/* Single row: tabs + search */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        {/* Category tabs */}
-        <div className="flex flex-1 gap-1 overflow-x-auto">
-          {categories.map((cat) => {
-            const isActive = currentCategory === cat.value;
-            const label = locale === "en" ? cat.en : cat.zh;
-            return (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => setCategory(cat.value)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
-                  isActive
-                    ? "bg-primary font-medium text-white"
-                    : "bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface-strong)]"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search */}
-        <form
-          onSubmit={submitSearch}
-          className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2 lg:w-[280px]"
+    <div className="mb-6 flex flex-wrap items-center gap-2">
+      {currentCategory && (
+        <button
+          type="button"
+          onClick={() => clearField("category")}
+          className={FILTER_PILL_CLASSES}
         >
-          <Search className="h-4 w-4 shrink-0 text-[var(--color-text-secondary)]" strokeWidth={1.8} />
-          <input
-            value={draftSearch}
-            onChange={(e) => setDraftSearch(e.target.value)}
-            placeholder="Search prompts..."
-            className="min-w-0 flex-1 bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)]"
-          />
-          {draftSearch && (
-            <button
-              type="button"
-              onClick={() => {
-                setDraftSearch("");
-                if (currentSearch) clearField("search");
-              }}
-              className="text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
-              aria-label="Clear search"
-            >
-              <X className="h-3.5 w-3.5" strokeWidth={1.8} />
-            </button>
-          )}
-        </form>
-      </div>
-
-      {/* Active filter badges */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2">
-          {currentCategory && (
-            <button
-              type="button"
-              onClick={() => clearField("category")}
-              className={FILTER_PILL_CLASSES}
-            >
-              {currentCategory}
-              <X className="h-3 w-3" strokeWidth={1.8} />
-            </button>
-          )}
-          {currentTag && (
-            <button
-              type="button"
-              onClick={() => clearField("tag")}
-              className={FILTER_PILL_CLASSES}
-            >
-              Tag: {currentTag}
-              <X className="h-3 w-3" strokeWidth={1.8} />
-            </button>
-          )}
-          {currentSearch && (
-            <button
-              type="button"
-              onClick={() => clearField("search")}
-              className={FILTER_PILL_CLASSES}
-            >
-              &ldquo;{currentSearch}&rdquo;
-              <X className="h-3 w-3" strokeWidth={1.8} />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={clearAll}
-            className="text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
-          >
-            Clear all
-          </button>
-        </div>
+          {currentCategory}
+          <X className="h-3 w-3" strokeWidth={1.8} />
+        </button>
       )}
+      {currentTag && (
+        <button
+          type="button"
+          onClick={() => clearField("tag")}
+          className={FILTER_PILL_CLASSES}
+        >
+          Tag: {currentTag}
+          <X className="h-3 w-3" strokeWidth={1.8} />
+        </button>
+      )}
+      {currentSearch && (
+        <button
+          type="button"
+          onClick={() => clearField("search")}
+          className={FILTER_PILL_CLASSES}
+        >
+          &ldquo;{currentSearch}&rdquo;
+          <X className="h-3 w-3" strokeWidth={1.8} />
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={clearAll}
+        className="text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+      >
+        Clear all
+      </button>
     </div>
   );
 }

@@ -12,11 +12,27 @@ import { Link } from "@/i18n/navigation";
 import { getHomeContent } from "./content";
 import HeroHalo from "./HeroHalo";
 import Reveal from "@/components/shared/Reveal";
+import { serverDb } from "@/lib/rdb-server";
 
 export default async function Hero() {
   const locale = await getLocale();
   const content = getHomeContent(locale);
   const isZh = locale === "zh";
+
+  // Fetch real counts from DB
+  const [prompts, skills, tools, users] = await Promise.all([
+    serverDb.from("prompt").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("skill").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("tool").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("user_profile").select("_id", { count: "exact" }).limit(1),
+  ]);
+
+  const stats = [
+    { value: `${prompts.count ?? 0}+`, label: content.stats[0].label },
+    { value: `${skills.count ?? 0}+`, label: content.stats[1].label },
+    { value: `${tools.count ?? 0}+`, label: content.stats[2].label },
+    { value: `${users.count ?? 0}+`, label: content.stats[3].label },
+  ];
 
   return (
     <section className="relative min-h-screen overflow-visible bg-black text-white">
@@ -89,7 +105,7 @@ export default async function Hero() {
           </Reveal>
 
           <div className="mt-16 flex w-full flex-row justify-between px-4 text-center md:mt-20 md:px-12">
-            {content.stats.map((stat, index) => (
+            {stats.map((stat, index) => (
               <Reveal
                 key={stat.label}
                 direction="up"

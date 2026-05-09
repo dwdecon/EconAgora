@@ -6,14 +6,6 @@ type NavItem = {
   external?: boolean;
 };
 
-type LinkCard = {
-  title: string;
-  description: string;
-  href: string;
-  tag: string;
-  external?: boolean;
-};
-
 type ShowcaseItem = {
   title: string;
   description: string;
@@ -64,9 +56,9 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
-          { label: "技能中心", href: "/skills" },
-          { label: "工具中心", href: "/tools" },
-          { label: "Community", href: "/community" },
+          { label: "Skills Hub", href: "/skills" },
+          { label: "Tool Center", href: "/tools" },
+          { label: "Blog", href: "/blog" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
         login: "登录",
@@ -93,7 +85,7 @@ export function getHomeContent(locale: string) {
         labels: [
           "Prompt Library",
           "Community",
-          "Skill Hub",
+          "Skills Hub",
           "Tool Center",
           "Latest Agent",
         ],
@@ -423,11 +415,10 @@ export function getHomeContent(locale: string) {
             items: [
               { label: "首页", href: "/" },
               { label: "Prompt Library", href: "/prompts" },
-              { label: "Skill Hub", href: "/skills" },
+              { label: "Skills Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Agent", href: "/broadcast" },
-              { label: "Community", href: "/community" },
-              { label: "About", href: "/about" },
+              { label: "Blog", href: "/blog" },
+              { label: "About", href: "#about" },
             ],
           },
           {
@@ -436,7 +427,6 @@ export function getHomeContent(locale: string) {
               { label: "免费加入", href: "/auth/register" },
               { label: "发起讨论", href: "/community/new" },
               { label: "发布资产", href: "/prompts/new" },
-              { label: "会员计划", href: "/pricing" },
             ],
           },
         ] satisfies FooterGroup[],
@@ -449,8 +439,8 @@ export function getHomeContent(locale: string) {
           external: true,
         },
         updatesSecondary: {
-          label: "Join Community",
-          href: "/community",
+          label: "Read Blog",
+          href: "/blog",
         },
         legal: "© 2026 EconAgora. All rights reserved.",
       },
@@ -459,9 +449,9 @@ export function getHomeContent(locale: string) {
       nav: {
         items: [
           { label: "Prompt Library", href: "/prompts" },
-          { label: "Skills", href: "/skills" },
-          { label: "Tools", href: "/tools" },
-          { label: "Community", href: "/community" },
+          { label: "Skills Hub", href: "/skills" },
+          { label: "Tool Center", href: "/tools" },
+          { label: "Blog", href: "/blog" },
           { label: "About", href: "#about" },
         ] satisfies NavItem[],
         login: "Login",
@@ -488,7 +478,7 @@ export function getHomeContent(locale: string) {
         labels: [
           "Prompt Library",
           "Community",
-          "Skill Hub",
+          "Skills Hub",
           "Tool Center",
           "Latest Agent",
         ],
@@ -821,11 +811,10 @@ export function getHomeContent(locale: string) {
             items: [
               { label: "Home", href: "/" },
               { label: "Prompt Library", href: "/prompts" },
-              { label: "Skill Hub", href: "/skills" },
+              { label: "Skills Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
-              { label: "Agent", href: "/broadcast" },
-              { label: "Community", href: "/community" },
-              { label: "About", href: "/about" },
+              { label: "Blog", href: "/blog" },
+              { label: "About", href: "#about" },
             ],
           },
           {
@@ -834,7 +823,6 @@ export function getHomeContent(locale: string) {
               { label: "Create Account", href: "/auth/register" },
               { label: "Start Thread", href: "/community/new" },
               { label: "Publish Asset", href: "/prompts/new" },
-              { label: "Membership", href: "/pricing" },
             ],
           },
         ] satisfies FooterGroup[],
@@ -847,8 +835,8 @@ export function getHomeContent(locale: string) {
           external: true,
         },
         updatesSecondary: {
-          label: "Join Community",
-          href: "/community",
+          label: "Read Blog",
+          href: "/blog",
         },
         legal: "© 2026 EconAgora. All rights reserved.",
       },

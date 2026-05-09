@@ -30,7 +30,7 @@ export default function ToolsError({
         </p>
         <button
           onClick={reset}
-          className="mt-4 px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-hover transition"
+          className="mt-4 rounded-[6px] bg-[var(--color-text-primary)] px-6 py-2 font-normal text-[var(--color-bg)] transition-opacity hover:opacity-80 shadow-[var(--shadow-inset-button)]"
         >
           {locale === "en" ? "Try again" : "重试"}
         </button>

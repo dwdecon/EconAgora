@@ -27,36 +27,6 @@ interface ToolCardProps {
   };
 }
 
-function Avatar({
-  name,
-  src,
-  compact = false,
-}: {
-  name: string;
-  src: string | null;
-  compact?: boolean;
-}) {
-  const sizeClass = compact ? "h-7 w-7" : "h-10 w-10";
-
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        className={`${sizeClass} rounded-full object-cover`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[10px] font-semibold uppercase text-[var(--color-text-secondary)]`}
-    >
-      {name?.charAt(0) ?? "?"}
-    </div>
-  );
-}
-
 function formatCount(value: number) {
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
@@ -101,7 +71,7 @@ export default function ToolCard({ tool, labels }: ToolCardProps) {
       aria-label={tool.title}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-all duration-500 ease-out hover:border-black/10 hover:shadow-xl hover:shadow-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:hover:border-white/15 dark:focus-visible:ring-white/15 sm:p-5 hover:-translate-y-1 min-h-[280px]"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-all duration-300 ease-out hover:border-[var(--color-border-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-hover)] dark:focus-visible:ring-white/15 sm:p-6 min-h-[280px]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -112,41 +82,34 @@ export default function ToolCard({ tool, labels }: ToolCardProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {tool.officialUrl && (
-            <a
-              href={tool.officialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              data-prevent-navigation="true"
-              className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2 text-[var(--color-text-secondary)] hover:text-primary transition"
-              title="Official Website"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          )}
-
-          <div
-            className="inline-flex max-w-[48%] shrink-0 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
-            aria-label={labels.author}
-            title={labels.author}
+        {tool.officialUrl && (
+          <a
+            href={tool.officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            data-prevent-navigation="true"
+            className="shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2 text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] transition-colors"
+            title="Official Website"
           >
-            <Avatar name={tool.author.name} src={tool.author.avatar} compact />
-            <span className="truncate font-medium">{tool.author.name}</span>
-          </div>
-        </div>
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        )}
       </div>
 
-      <h3 className="mt-5 text-[1.5rem] font-semibold leading-[1.2] tracking-[-0.02em] text-[var(--color-text-primary)]">
+      <h3 className="mt-5 text-[1.25rem] font-normal leading-[1.25] text-[var(--color-text-primary)]">
         {tool.title}
       </h3>
 
-      <p className="mt-3 line-clamp-2 text-[15px] leading-7 text-[var(--color-text-secondary)]">
+      <p className="mt-3 text-[14px] text-[var(--color-text-secondary)] break-words">
+        {labels.author}: {tool.author.name}
+      </p>
+
+      <p className="mt-3 line-clamp-2 text-[14px] leading-[1.5] text-[var(--color-text-secondary)]">
         {tool.description || "研究工具，提升你的工作效率。"}
       </p>
 
-      <div className="mt-auto flex items-end justify-between gap-4 border-t border-[var(--color-border)] pt-4">
+      <div className="mt-auto flex items-end justify-between gap-4 pt-6">
         <div className="flex flex-wrap gap-2">
           {metaTags.map((tag) => (
             <span

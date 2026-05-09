@@ -75,10 +75,10 @@ export default function CopyPromptButton({
       onClick={handleCopy}
       aria-label={copied ? copiedLabel : copyLabel}
       title={copied ? copiedLabel : copyLabel}
-      className={`inline-flex min-h-[36px] whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/15 ${
+      className={`inline-flex min-h-[36px] whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-hover)] ${
         copied
-          ? "border-black/10 bg-black/[0.04] text-[var(--color-text-primary)] dark:border-white/15 dark:bg-white/[0.08]"
-          : "border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-black/10 hover:text-[var(--color-text-primary)] dark:hover:border-white/15"
+          ? "border-[var(--color-border-hover)] bg-[var(--color-bg-surface-strong)] text-[var(--color-text-primary)]"
+          : "border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)]"
       } ${className}`}
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}

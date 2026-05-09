@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowUpRight } from "lucide-react";
 import Reveal from "@/components/shared/Reveal";
 import { getHomeContent, localizeHref } from "./content";
+import type { Prompt } from "@/lib/prompts";
+import type { Skill } from "@/lib/skills";
+import type { Tool } from "@/lib/tools";
+import type { Post } from "@/lib/posts";
 
 const GRADIENTS = [
   "from-[#ff5a00]/20 to-[#ff2d55]/10",
@@ -18,10 +22,93 @@ const GRADIENTS = [
   "from-[#ff2d55]/20 to-[#146ef5]/10",
 ];
 
-export default function ModulesShowcase({ locale }: { locale: string }) {
+interface ModulesShowcaseProps {
+  locale: string;
+  featuredPrompts?: Prompt[];
+  featuredSkills?: Skill[];
+  featuredTools?: Tool[];
+  featuredPosts?: Post[];
+  featuredAgentPosts?: Post[];
+}
+
+type ModuleCardItem = {
+  title: string;
+  description: string;
+  tags: string[];
+  href: string;
+  slug: string;
+  external?: boolean;
+  preview?: string;
+};
+
+export default function ModulesShowcase({
+  locale,
+  featuredPrompts = [],
+  featuredSkills = [],
+  featuredTools = [],
+  featuredPosts = [],
+  featuredAgentPosts = [],
+}: ModulesShowcaseProps) {
   const content = getHomeContent(locale);
-  const tabs = content.modules.tabs;
   const [activeTab, setActiveTab] = useState(0);
+
+  const tabs = useMemo(() => {
+    const staticTabs = content.modules.tabs;
+
+    return staticTabs.map((tab) => {
+      let items: ModuleCardItem[] = tab.items;
+
+      // Inject real data based on tab key
+      if (tab.key === "prompts" && featuredPrompts.length > 0) {
+        items = featuredPrompts.map((p) => ({
+          title: p.title,
+          description: p.description || "",
+          tags: p.tags,
+          href: `/prompts/${p.id}`,
+          slug: p.id,
+          preview: p.content,
+        }));
+      } else if (tab.key === "skills" && featuredSkills.length > 0) {
+        items = featuredSkills.map((s) => ({
+          title: s.title,
+          description: s.description || "",
+          tags: s.tags,
+          href: `/skills/${s.id}`,
+          slug: s.id,
+          preview: s.codeExamples || s.tutorial || "",
+        }));
+      } else if (tab.key === "tools" && featuredTools.length > 0) {
+        items = featuredTools.map((t) => ({
+          title: t.title,
+          description: t.description || "",
+          tags: t.tags,
+          href: `/tools/${t.id}`,
+          slug: t.id,
+          preview: t.quickStart || t.integrationGuide || "",
+        }));
+      } else if (tab.key === "community" && featuredPosts.length > 0) {
+        items = featuredPosts.map((post) => ({
+          title: post.title,
+          description: post.content.substring(0, 100).replace(/[#*`]/g, "") + "...",
+          tags: post.tags,
+          href: `/community/${post.id}`,
+          slug: post.id,
+          preview: post.content,
+        }));
+      } else if (tab.key === "broadcast" && featuredAgentPosts.length > 0) {
+        items = featuredAgentPosts.map((post) => ({
+          title: post.title,
+          description: post.content.substring(0, 100).replace(/[#*`]/g, "") + "...",
+          tags: post.tags,
+          href: `/community/${post.id}`,
+          slug: post.id,
+          preview: post.content,
+        }));
+      }
+
+      return { ...tab, items };
+    });
+  }, [content.modules.tabs, featuredPrompts, featuredSkills, featuredTools, featuredPosts, featuredAgentPosts]);
 
   return (
     <section id="modules" className="relative bg-black py-24">
@@ -83,6 +170,8 @@ export default function ModulesShowcase({ locale }: { locale: string }) {
         >
           {tabs[activeTab].items.map((item, idx) => {
             const gradient = GRADIENTS[(activeTab * 4 + idx) % GRADIENTS.length];
+            const previewText = item.preview || "";
+
             return (
               <a
                 key={item.title}
@@ -93,11 +182,11 @@ export default function ModulesShowcase({ locale }: { locale: string }) {
                   <h3 className="mb-2 text-[18px] font-semibold tracking-tight text-white">
                     {item.title}
                   </h3>
-                  <p className="mb-4 text-[13px] leading-relaxed text-[#888]">
+                  <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-[#888]">
                     {item.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {item.tags.map((tag, ti) => (
+                    {item.tags.slice(0, 3).map((tag, ti) => (
                       <span
                         key={tag}
                         className={`rounded-full px-3 py-1 text-[11px] font-medium ${
@@ -111,11 +200,22 @@ export default function ModulesShowcase({ locale }: { locale: string }) {
                     ))}
                   </div>
                 </div>
-                <div className={`relative mx-4 mb-4 h-[200px] overflow-hidden rounded-xl bg-gradient-to-br ${gradient}`}>
+                <div className={`relative mx-4 mb-4 h-[280px] overflow-hidden rounded-xl bg-gradient-to-br ${gradient} p-6 transition-transform duration-500 group-hover:scale-[1.01]`}>
+                  {/* Code/Prompt Preview Overlay */}
+                  <div className="pointer-events-none select-none font-mono text-[12px] leading-[1.6] tracking-tight text-white/20 transition-opacity duration-500 group-hover:text-white/35">
+                    <div className="line-clamp-[15] whitespace-pre-wrap">
+                      {previewText || "Loading research assets..."}
+                    </div>
+                  </div>
+
+                  {/* Enhanced mask for a more sophisticated code window feel */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[13px] font-medium text-white backdrop-blur-sm">
-                      Explore
-                      <ArrowUpRight size={14} />
+                    <span className="inline-flex items-center gap-2.5 rounded-full bg-white/10 px-6 py-3 text-[15px] font-bold text-white shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl border border-white/20 ring-1 ring-white/10">
+                      Explore Asset
+                      <ArrowUpRight size={18} />
                     </span>
                   </div>
                 </div>

@@ -26,9 +26,12 @@ function isElementVisible(element: HTMLElement, threshold: number) {
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
   const visibleWidth = Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0);
+  const clampedThreshold = Math.min(Math.max(threshold, 0), 1);
+  const requiredVisibleHeight =
+    Math.min(rect.height, viewportHeight) * clampedThreshold;
 
   return (
-    visibleHeight >= Math.min(rect.height, rect.height * threshold) &&
+    visibleHeight >= requiredVisibleHeight &&
     visibleWidth > 0
   );
 }
@@ -37,7 +40,7 @@ function useIntersectionObserver(options: ObserverOptions = {}) {
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLDivElement | null>(null);
   const {
-    threshold = 0.4,
+    threshold = 0.15,
     root = null,
     rootMargin = "0px",
     triggerOnce = true,
@@ -121,7 +124,7 @@ export default function Reveal({
   delay = 0,
   direction = "up",
   duration = 800,
-  threshold = 0.4,
+  threshold = 0.15,
 }: RevealProps) {
   const [ref, isVisible] = useIntersectionObserver({ threshold });
 

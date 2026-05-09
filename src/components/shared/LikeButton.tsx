@@ -2,19 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { getSessionAccessToken } from "@/lib/cloudbase";
+import { Heart } from "lucide-react";
 
-type TargetType = "PROMPT" | "POST";
+type TargetType = "PROMPT" | "POST" | "SKILL";
+type ExtendedTargetType = TargetType | "TOOL";
 
 export default function LikeButton({
   targetType,
   targetId,
   likeCount: initialCount,
   liked: initialLiked,
+  variant = "like",
 }: {
-  targetType: TargetType;
+  targetType: ExtendedTargetType;
   targetId: string;
   likeCount: number;
   liked: boolean;
+  variant?: "like" | "star";
 }) {
   const [isPending, startTransition] = useTransition();
   const [liked, setLiked] = useState(initialLiked);
@@ -22,7 +26,11 @@ export default function LikeButton({
 
   async function handleToggle() {
     const accessToken = await getSessionAccessToken();
-    if (!accessToken) return;
+    if (!accessToken) {
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/auth/login?callbackUrl=${callbackUrl}`;
+      return;
+    }
 
     const previousLiked = liked;
     const previousCount = likeCount;
@@ -55,16 +63,35 @@ export default function LikeButton({
     setLikeCount(Number(payload.likeCount ?? nextCount));
   }
 
+  if (variant === "star") {
+    return (
+      <button
+        disabled={isPending}
+        onClick={() => startTransition(handleToggle)}
+        className={`flex items-center gap-2 text-sm text-[var(--color-text-secondary)] transition ${
+          liked ? "text-red-500" : "hover:text-[var(--color-text-primary)]"
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : "text-red-500"}`} />
+        <span>点赞</span>
+        <span className="ml-auto font-medium text-[var(--color-text-primary)]">
+          {likeCount}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <button
       disabled={isPending}
       onClick={() => startTransition(handleToggle)}
-      className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm transition ${
+      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[14px] transition-colors shadow-[var(--shadow-inset-button)] ${
         liked
-          ? "border-primary text-primary"
-          : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+          ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-80"
+          : "border-[var(--color-border-hover)] bg-[var(--color-bg-surface-strong)] text-[var(--color-text-primary)] hover:bg-[var(--color-text-primary)] hover:text-[var(--color-bg)]"
       }`}
     >
+      <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
       {liked ? "Liked" : "Like"} {likeCount}
     </button>
   );

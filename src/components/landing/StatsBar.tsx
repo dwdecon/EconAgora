@@ -1,15 +1,31 @@
 import { getLocale } from "next-intl/server";
 import Reveal from "@/components/shared/Reveal";
 import { getHomeContent } from "./content";
+import { serverDb } from "@/lib/rdb-server";
 
 export default async function StatsBar() {
   const locale = await getLocale();
   const content = getHomeContent(locale);
 
+  // Fetch real counts from DB
+  const [prompts, skills, tools, users] = await Promise.all([
+    serverDb.from("prompt").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("skill").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("tool").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
+    serverDb.from("user_profile").select("_id", { count: "exact" }).limit(1),
+  ]);
+
+  const stats = [
+    { value: `${prompts.count ?? 0}+`, label: content.stats[0].label },
+    { value: `${skills.count ?? 0}+`, label: content.stats[1].label },
+    { value: `${tools.count ?? 0}+`, label: content.stats[2].label },
+    { value: `${users.count ?? 0}+`, label: content.stats[3].label },
+  ];
+
   return (
     <div className="bg-black px-6 pb-16 md:px-12">
       <div className="mx-auto flex max-w-[1160px] flex-row justify-between text-center">
-        {content.stats.map((stat, index) => (
+        {stats.map((stat, index) => (
           <Reveal
             key={stat.label}
             direction="up"

@@ -151,9 +151,9 @@ export async function setNumericCounter(
 }
 
 export async function syncLikeCount(
-  table: "post" | "prompt",
+  table: "post" | "prompt" | "skill" | "tool",
   targetId: string,
-  targetType: "POST" | "PROMPT",
+  targetType: "POST" | "PROMPT" | "SKILL" | "TOOL",
 ): Promise<CounterResult> {
   const result = await serverDb
     .from("user_like")

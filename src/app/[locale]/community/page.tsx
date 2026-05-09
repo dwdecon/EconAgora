@@ -91,7 +91,7 @@ export default function CommunityPage() {
                   name: (profile as any).name,
                   avatar: (profile as any).avatar,
                 }
-              : { id: uid, name: "Public Resource", avatar: null };
+              : { id: uid, name: "Unknown", avatar: null };
           }),
         );
 
@@ -123,7 +123,7 @@ export default function CommunityPage() {
             author:
               authorMap[post.author_id] ?? {
                 id: post.author_id,
-                name: "Public Resource",
+                name: "Unknown",
                 avatar: null,
               },
             _count: { comments: commentCountMap[post._id] ?? 0 },
@@ -158,11 +158,11 @@ export default function CommunityPage() {
 
   return (
     <PageShell width="3xl">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Community</h1>
+      <div className="mb-16 pt-16 pb-8 flex items-center justify-between border-b border-[var(--color-border)]">
+        <h1 className="text-5xl font-semibold tracking-[-1.5px] text-[var(--color-text-primary)]">Community</h1>
         <Link
           href="/community/new"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
+          className="rounded-md bg-[var(--color-text-primary)] text-[var(--color-bg)] px-4 py-2 text-sm font-medium transition hover:opacity-80 shadow-[var(--shadow-inset-button)]"
         >
           New Post
         </Link>

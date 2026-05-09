@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Heart } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
@@ -48,12 +49,16 @@ function Avatar({
   compact?: boolean;
 }) {
   const sizeClass = compact ? "h-7 w-7" : "h-10 w-10";
+  const size = compact ? 28 : 40;
 
   if (src) {
     return (
-      <img
+      <Image
         src={src}
         alt={name}
+        width={size}
+        height={size}
+        unoptimized
         className={`${sizeClass} rounded-full object-cover`}
       />
     );
@@ -84,7 +89,7 @@ function SkillCarouselCard({
   return (
     <article
       onClick={onClick}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-all duration-500 ease-out hover:border-black/10 hover:shadow-xl hover:shadow-black/5 sm:p-5 min-h-[340px]"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[16px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 text-[var(--color-text-primary)] transition-colors duration-300 ease-out hover:border-[var(--color-border-hover)] sm:p-6 min-h-[340px]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -93,7 +98,7 @@ function SkillCarouselCard({
           >
             {skill.category}
           </span>
-          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-primary">
+          <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface-strong)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
             Featured
           </span>
         </div>
@@ -108,15 +113,15 @@ function SkillCarouselCard({
         </div>
       </div>
 
-      <h3 className="mt-5 text-[1.8rem] font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--color-text-primary)]">
+      <h3 className="mt-5 text-[1.8rem] font-normal leading-[1.1] tracking-normal text-[var(--color-text-primary)]">
         {skill.title}
       </h3>
 
-      <p className="mt-4 line-clamp-2 text-[15px] leading-7 text-[var(--color-text-secondary)]">
+      <p className="mt-4 line-clamp-2 text-[15px] leading-7 text-[var(--color-text-secondary)] font-normal">
         {skill.description || "可复用的研究技能，帮助你提升工作效率。"}
       </p>
 
-      <div className="mt-auto flex items-end justify-between gap-4 border-t border-[var(--color-border)] pt-4">
+      <div className="mt-auto flex items-end justify-between gap-4 pt-6">
         <div className="flex flex-wrap gap-2">
           {metaTags.map((tag) => (
             <span
@@ -259,7 +264,7 @@ export default function SkillCarousel({ skills, labels }: SkillCarouselProps) {
               }}
               className={`h-2 w-2 rounded-full transition-all ${
                 i === index
-                  ? "bg-primary w-6"
+                  ? "bg-[var(--color-text-primary)] w-6"
                   : "bg-[var(--color-border)] hover:bg-[var(--color-text-muted)]"
               }`}
               aria-label={`Go to slide ${i + 1}`}

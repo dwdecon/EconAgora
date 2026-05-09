@@ -17,9 +17,9 @@ export default function CreateNewCard({
   return (
     <Link
       href={href}
-      className="group flex min-h-[300px] flex-col items-center justify-center rounded-[24px] border border-dashed border-[var(--color-border)] p-6 text-center transition-colors hover:border-primary/50 hover:bg-[var(--color-bg-surface)]"
+      className="group flex min-h-[300px] flex-col items-center justify-center rounded-[24px] border border-dashed border-[var(--color-border)] p-6 text-center transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-surface)]"
     >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-bg-surface-strong)] text-[var(--color-text-primary)] transition-colors group-hover:bg-[var(--color-text-primary)] group-hover:text-[var(--color-bg)] shadow-[var(--shadow-inset-button)]">
         <Plus className="h-6 w-6" />
       </div>
       <h3 className="text-lg font-medium text-[var(--color-text-primary)]">

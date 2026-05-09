@@ -21,16 +21,85 @@ interface NavUser {
   displayName: string;
 }
 
-function BrandMark({ forceInvert }: { forceInvert?: boolean }) {
+function UserDropdown({ user, isHome, locale }: { user: NavUser; isHome: boolean; locale: string }) {
+  const [open, setOpen] = useState(false);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClick);
+    }
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const baseLinkClass = `block px-4 py-2.5 text-sm text-left transition-colors rounded-lg ${
+    isHome
+      ? "text-white/80 hover:bg-white/10 hover:text-white"
+      : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)]"
+  }`;
+
+  const itemZh = { account: "账户", signOut: "退出登录" };
+  const itemEn = { account: "Account", signOut: "Sign Out" };
+  const items = locale === "en" ? itemEn : itemZh;
+
   return (
-    <img
-      src="/logo.png"
-      alt="EconAgora"
-      width="25"
-      height="25"
-      className="object-contain dark:invert"
-      style={forceInvert ? { filter: "brightness(0) invert(1)" } : undefined}
-    />
+    <div className="relative" ref={dropRef}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`rounded-full border px-4 py-2.5 text-[13px] font-semibold transition-all duration-300 ${
+          isHome
+            ? "border-white/10 text-white hover:border-white/30 hover:bg-white/5"
+            : "border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)]"
+        }`}
+      >
+        {user.displayName}
+      </button>
+
+      {open && (
+        <div className={`absolute right-0 mt-2 w-40 rounded-xl border py-1 shadow-xl ${
+          isHome
+            ? "border-white/10 bg-black/90 backdrop-blur-md"
+            : "border-[var(--color-border)] bg-[var(--color-bg-card)]"
+        }`}>
+          <Link
+            href="/account"
+            onClick={() => setOpen(false)}
+            className={baseLinkClass}
+          >
+            {items.account}
+          </Link>
+          <button
+            onClick={async () => {
+              setOpen(false);
+              await auth.signOut();
+              window.location.href = "/";
+            }}
+            className={`${baseLinkClass} w-full cursor-pointer`}
+          >
+            {items.signOut}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BrandMark() {
+  return (
+    <svg width="25" height="25" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="navbar-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{ stopColor: '#f97316', stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: '#ec4899', stopOpacity: 1 }} />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="40" stroke="url(#navbar-grad)" strokeWidth="14" fill="none" />
+    </svg>
   );
 }
 
@@ -88,7 +157,6 @@ export default function Navbar() {
 
     function animate(now: number) {
       const t = Math.min((now - start) / DURATION, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
       const fastT = Math.min(t * 2, 1);
       const fastEase = 1 - Math.pow(1 - fastT, 3);
       el.style.opacity = String(fastEase);
@@ -144,6 +212,18 @@ export default function Navbar() {
     };
   }, []);
 
+  function isActiveNavItem(href: string) {
+    if (href.startsWith("#")) {
+      return false;
+    }
+
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
     <nav
       ref={navRef}
@@ -158,8 +238,8 @@ export default function Navbar() {
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between">
         <Link href="/" className="relative z-20 flex items-center gap-2">
-          <BrandMark forceInvert={isHome} />
-          <span className={`mt-0.5 text-[22px] font-normal tracking-[-0.04em] ${isHome ? "text-white" : ""}`}>
+          <BrandMark />
+          <span className={`mt-0.5 text-[22px] font-normal tracking-[-0.04em] ${isHome ? "text-white" : "text-[var(--color-text-primary)]"}`}>
             EconAgora
           </span>
         </Link>
@@ -168,6 +248,8 @@ export default function Navbar() {
           {(content.nav.items as Array<{label: string; href: string; external?: boolean}>).map((item) => {
             const href = localizeHref(locale, item.href);
             const hoverClass = isHome ? "hover:text-white" : "hover:text-[var(--color-text-primary)]";
+            const isActive = isActiveNavItem(item.href);
+            const stateClass = isActive ? "text-[var(--color-text-primary)]" : hoverClass;
 
             if (item.external) {
               return (
@@ -176,7 +258,7 @@ export default function Navbar() {
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className={`transition-colors duration-300 ${hoverClass}`}
+                  className={`transition-colors duration-300 ${stateClass}`}
                 >
                   {item.label}
                 </a>
@@ -187,7 +269,8 @@ export default function Navbar() {
               <a
                 key={item.label}
                 href={href}
-                className={`transition-colors duration-300 ${hoverClass}`}
+                aria-current={isActive ? "page" : undefined}
+                className={`transition-colors duration-300 ${stateClass}`}
               >
                 {item.label}
               </a>
@@ -198,22 +281,13 @@ export default function Navbar() {
         <div className="relative z-20 flex items-center gap-3">
           <LocaleSwitcher isHome={isHome} />
           {user ? (
-            <Link
-              href={`/u/${user.id}`}
-              className={`rounded-full border px-4 py-2.5 text-[13px] font-semibold transition-all duration-300 ${
-                isHome
-                  ? "border-white/10 text-white hover:border-white/30 hover:bg-white/5"
-                  : "border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)]"
-              }`}
-            >
-              {user.displayName}
-            </Link>
+            <UserDropdown user={user} isHome={isHome} locale={locale} />
           ) : (
             <Link
               href="/auth/register"
-              className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-300 ${
+              className={`rounded-[6px] px-5 py-2 text-[14px] font-normal transition-opacity shadow-[var(--shadow-inset-button)] ${
                 isHome
-                  ? "bg-white text-black hover:bg-gray-200"
+                  ? "bg-white text-black hover:opacity-90"
                   : "bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-80"
               }`}
             >
