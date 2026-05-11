@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Eye, Heart } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import type { Skill } from "@/lib/skills";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 const AUTO_INTERVAL = 5000;
 const SLIDE_DURATION = 600;
@@ -22,15 +23,6 @@ interface SkillCarouselProps {
   labels: SkillCarouselLabels;
 }
 
-const CATEGORY_THEME: Record<string, string> = {
-  "Data Analysis": "border-sky-200/70 bg-sky-50/80 text-sky-700",
-  Visualization: "border-emerald-200/70 bg-emerald-50/80 text-emerald-700",
-  Writing: "border-violet-200/70 bg-violet-50/80 text-violet-700",
-  Automation: "border-amber-200/70 bg-amber-50/80 text-amber-700",
-  "API Integration": "border-rose-200/70 bg-rose-50/80 text-rose-700",
-  Default:
-    "border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]",
-};
 
 function formatCount(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -82,8 +74,7 @@ function SkillCarouselCard({
   labels: SkillCarouselLabels;
   onClick: () => void;
 }) {
-  const categoryTheme =
-    CATEGORY_THEME[skill.category] || CATEGORY_THEME.Default;
+  const categoryTheme = getCategoryTheme(skill.category);
   const metaTags = skill.tags.filter((tag) => tag !== skill.category).slice(0, 3);
 
   return (
