@@ -40,7 +40,7 @@
 | `logo.png` | 860 KB | < 100 KB | Convert to WebP or AVIF |
 
 **Code changes:**
-- `HeroHalo.tsx`: Replace `<img>` with Next.js `<Image>`:
+- `HeroHalo.tsx`: Replace `<img>` with Next.js `<Image>`. **Visual Lock compliance:** retain all existing `className`, CSS filters, gradient overlays, and animation timings. Only the element type changes (`img` → `Image`); visual output must remain pixel-identical.
   ```tsx
   <Image
     src="/hero-halo.webp"
@@ -49,7 +49,7 @@
     height={1800}
     priority
     sizes="100vw"
-    className="..."
+    className="..."   /* existing classes preserved */
     onLoad={() => window.dispatchEvent(new Event("hero-halo-ready"))}
   />
   ```
@@ -85,8 +85,10 @@ page.tsx (Server Component)
 
 **Fallback design:**
 - 4 card placeholders in a 2-column grid
+- Exact match to `ModulesShowcase` rendered dimensions (columns, gaps, card heights, padding)
 - `bg-white/5 rounded-xl animate-pulse`
-- No text, no complex layout—avoids CLS
+- No text, no complex layout
+- **CLS requirement:** measure the real `ModulesShowcase` height/width and replicate in skeleton; target CLS < 0.1
 
 ---
 
@@ -95,7 +97,7 @@ page.tsx (Server Component)
 **Goal:** Eliminate redundant database queries per request and across requests.
 
 **Code changes:**
-- Wrap each `fetchFeatured*` with React `cache()`:
+- **Per-request deduplication** with React `cache()`:
   ```ts
   import { cache } from "react";
 
@@ -103,15 +105,21 @@ page.tsx (Server Component)
     // existing implementation
   });
   ```
-- Add Next.js 16 `cacheLife` for cross-request caching:
+  This prevents duplicate queries when the same function is called multiple times during a single request.
+
+- **Cross-request caching** with `unstable_cache` (Next.js stable API, safer than `"use cache"` for existing functions):
   ```ts
-  "use cache";
-  export async function fetchFeaturedPrompts() {
-    cacheLife("minutes"); // 1-minute shared cache
-    // ...
-  }
+  import { unstable_cache } from "next/cache";
+
+  export const fetchFeaturedPrompts = unstable_cache(
+    async () => { /* existing implementation */ },
+    ["featured-prompts"],
+    { revalidate: 60 } // 60-second shared cache
+  );
   ```
-- Evaluate moving `warmupSkillRdb()` / `warmupToolRdb()` from per-request to application startup (systemd service `ExecStartPre` or a one-time init script).
+  `cache()` and `unstable_cache` can be composed: `unstable_cache` wraps the cached function for cross-request deduplication.
+
+- **Warmup evaluation:** Evaluate moving `warmupSkillRdb()` / `warmupToolRdb()` from per-request to application startup. If the deployment platform (systemd/PM2) supports startup hooks, run warmups there; otherwise keep per-request with `cache()` so they execute at most once per request.
 
 **Cache policy rationale:**
 - Featured data is low-churn (sorted by `like_count` or `created_at`).
@@ -141,7 +149,7 @@ page.tsx (Server Component)
 | File | Change |
 |------|--------|
 | `public/hero-halo.webp` | Re-compress to < 200 KB |
-| `public/logo.png` | Convert to `logo.webp` (< 100 KB) |
+| `public/logo.png` | Convert to `logo.webp` (< 100 KB); update all references (Navbar, manifest, metadata, etc.) |
 | `src/components/landing/HeroHalo.tsx` | Replace `<img>` with `<Image>` |
 | `src/app/[locale]/page.tsx` | Add Suspense boundaries; remove synchronous `Promise.all` |
 | `src/components/landing/ModulesSkeleton.tsx` | **New** skeleton placeholder |
@@ -156,7 +164,7 @@ page.tsx (Server Component)
 
 ## 4. Success Criteria
 
-- **LCP < 1.5 s** on 4G throttling (from current ~3–5 s)
+- **LCP < 2.5 s** on 4G throttling (from current ~3–5 s); target < 1.5 s in phase 2 after bundle optimization
 - **Total image payload on landing page < 400 KB**
 - **Database queries per landing-page request = 0** when cache hits
 - **No layout shift (CLS < 0.1)** after Suspense streaming
