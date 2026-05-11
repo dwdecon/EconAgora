@@ -36,42 +36,60 @@
 - Create: `public/logo.webp`
 - Modify: `src/app/[locale]/layout.tsx:17`
 
-- [ ] **Step 1: Install sharp CLI**
+- [ ] **Step 1: Install sharp**
 
 Run: `npm install -D sharp`
 Expected: sharp added to devDependencies
 
-- [ ] **Step 2: Compress hero-halo.webp**
+- [ ] **Step 2: Create image compression script**
 
-Run:
+Create `scripts/compress-images.mjs`:
+```mjs
+import sharp from "sharp";
+import { readFileSync, writeFileSync } from "fs";
+
+// Compress hero-halo.webp
+await sharp("public/hero-halo.webp")
+  .webp({ quality: 78 })
+  .toFile("public/hero-halo-tmp.webp");
+
+// Replace original
+const compressed = readFileSync("public/hero-halo-tmp.webp");
+writeFileSync("public/hero-halo.webp", compressed);
+
+// Convert logo.png to webp
+await sharp("public/logo.png")
+  .webp({ quality: 85 })
+  .toFile("public/logo.webp");
+
+console.log("Done. Check file sizes:");
+```
+
+- [ ] **Step 3: Run compression script**
+
+Run: `node scripts/compress-images.mjs`
+
+Verify:
 ```bash
-npx sharp public/hero-halo.webp \
-  -q 78 \
-  -o public/hero-halo.webp
+ls -lh public/hero-halo.webp public/logo.webp
 ```
+Expected: `hero-halo.webp` < 200 KB, `logo.webp` < 100 KB.
 
-Verify: `ls -lh public/hero-halo.webp` should show < 200 KB.
+- [ ] **Step 4: Search and update all logo references**
 
-- [ ] **Step 3: Convert logo.png to logo.webp**
-
-Run:
+Search for `logo.png` across the codebase:
 ```bash
-npx sharp public/logo.png \
-  -f webp \
-  -q 85 \
-  -o public/logo.webp
+grep -rn "logo\.png" src/ public/ app/ --include="*.ts" --include="*.tsx" --include="*.json"
 ```
 
-Verify: `ls -lh public/logo.webp` should show < 100 KB.
-
-- [ ] **Step 4: Update favicon reference in layout**
-
-Modify `src/app/[locale]/layout.tsx:17`:
-```tsx
-icons: {
-  icon: "/logo.webp",
-},
-```
+Update every match to `logo.webp`. Known locations:
+- `src/app/[locale]/layout.tsx:17`:
+  ```tsx
+  icons: {
+    icon: "/logo.webp",
+  },
+  ```
+- Check `Navbar.tsx`, `manifest.ts/json`, `metadata` exports, and any other hardcoded references.
 
 - [ ] **Step 5: Commit**
 
@@ -95,7 +113,8 @@ Run: `npm install -D @next/bundle-analyzer`
 
 - [ ] **Step 2: Update next.config.mjs**
 
-Replace the entire file:
+Read the current file first. Add the bundle analyzer import and wrapper while preserving existing config:
+
 ```mjs
 import createNextIntlPlugin from "next-intl/plugin";
 import withBundleAnalyzer from "@next/bundle-analyzer";
@@ -112,6 +131,8 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 export default bundleAnalyzer(withNextIntl(nextConfig));
 ```
+
+Note: If the current file already has other config (e.g., `images`), merge it into `nextConfig` instead of replacing.
 
 - [ ] **Step 3: Commit**
 
@@ -292,7 +313,11 @@ git commit -m "perf: stream ModulesShowcase with Suspense to unblock Hero LCP"
 **Files:**
 - Modify: `src/components/landing/HeroHalo.tsx`
 
-- [ ] **Step 1: Replace native img with Next.js Image**
+- [ ] **Step 1: Verify HeroHalo is a Client Component**
+
+Check `src/components/landing/HeroHalo.tsx` line 1. It must have `"use client";` for `onLoad` to work on `<Image>`. (Confirmed: it does.)
+
+- [ ] **Step 2: Replace native img with Next.js Image**
 
 Modify `src/components/landing/HeroHalo.tsx` around lines 144-152:
 
@@ -493,11 +518,12 @@ Open https://econagora.com in an incognito window:
 ## Rollback Plan
 
 If any issue occurs in production:
-1. `git revert HEAD~N` (N = number of commits in this plan)
-2. `git push origin main`
-3. Re-deploy via SSH
+1. Identify the problematic commit(s) with `git log --oneline`
+2. Revert individually:
+   - Hero visual regression → `git revert <Task-6-commit-hash>`
+   - Modules not loading → `git revert <Task-4-commit-hash> <Task-5-commit-hash>`
+   - Cache issues → edit `src/lib/*.ts` and reduce `revalidate: 60` to `revalidate: 10`, commit and push
+3. `git push origin main`
+4. Re-deploy via SSH
 
-Specific rollback triggers:
-- **Hero visual regression:** Revert Task 6 only
-- **Modules not loading:** Revert Task 4 + 5
-- **Cache stale data:** Reduce `revalidate` from 60 to 10 seconds, or remove `unstable_cache`
+If multiple commits conflict during revert, create a hotfix branch from the last known good commit and force-push (coordinate with team first).
