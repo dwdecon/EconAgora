@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "EconAgora - AI Toolkit For Scientist",
   description: "AI-powered research infrastructure for economists",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.webp",
   },
 };
 

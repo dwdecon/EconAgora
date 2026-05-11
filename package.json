@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/copy-standalone-assets.mjs",
     "start": "next start",
+    "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
     "migrate:categories": "tsx scripts/migrate-categories.ts"
   },
@@ -37,6 +39,7 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.0",
     "postcss": "^8.5.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5"
