@@ -291,7 +291,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/auth/register"
-              className={`rounded-[6px] px-5 py-2 text-[14px] font-normal transition-opacity shadow-[var(--shadow-inset-button)] ${
+              className={`ml-2 rounded-[6px] px-5 py-2 text-[14px] font-normal transition-opacity shadow-[var(--shadow-inset-button)] ${
                 isHome
                   ? "bg-white text-black hover:opacity-90"
                   : "bg-[var(--color-text-primary)] text-[var(--color-bg)] hover:opacity-80"
