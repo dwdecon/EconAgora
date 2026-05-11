@@ -7,6 +7,7 @@ import PageShell from "@/components/layout/PageShell";
 import AccountForm from "@/components/account/AccountForm";
 import SecuritySection from "@/components/account/SecuritySection";
 import MyContentSection from "@/components/account/MyContentSection";
+import LikesAndHistorySection from "@/components/account/LikesAndHistorySection";
 import { auth, getSessionAccessToken } from "@/lib/cloudbase";
 
 interface Profile {
@@ -164,7 +165,10 @@ export default function AccountPage() {
         <SecuritySection email={profile.email} />
       )}
       {activeTab === "content" && userId && (
-        <MyContentSection userId={userId} />
+        <div className="flex flex-col gap-8">
+          <MyContentSection userId={userId} />
+          <LikesAndHistorySection userId={userId} />
+        </div>
       )}
     </PageShell>
   );
