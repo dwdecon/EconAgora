@@ -6,7 +6,6 @@ import FeaturesGrid from "@/components/landing/FeaturesGrid";
 import Testimonials from "@/components/landing/Testimonials";
 import FAQAccordion from "@/components/landing/FAQAccordion";
 import CTASection from "@/components/landing/CTASection";
-import HaloReveal from "@/components/landing/HaloReveal";
 import { getLocale } from "next-intl/server";
 import { fetchFeaturedPrompts } from "@/lib/prompts";
 import { fetchFeaturedSkills } from "@/lib/skills";
@@ -31,7 +30,6 @@ export default async function Home() {
   ]);
 
   return (
-    <HaloReveal>
     <div className="relative overflow-x-clip bg-black text-white selection:bg-[#ff1453]/30">
       <Hero />
       <PartnerMarquee />
@@ -49,6 +47,5 @@ export default async function Home() {
       <FAQAccordion />
       <CTASection />
     </div>
-    </HaloReveal>
   );
 }
