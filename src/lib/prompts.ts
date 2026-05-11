@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { serverDb } from "@/lib/rdb-server";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
@@ -14,7 +16,7 @@ export interface Prompt {
   createdAt: string;
 }
 
-export async function fetchFeaturedPrompts(): Promise<Prompt[]> {
+async function _fetchFeaturedPrompts(): Promise<Prompt[]> {
   try {
     const { data, error } = await serverDb
       .from("prompt")
@@ -49,3 +51,9 @@ export async function fetchFeaturedPrompts(): Promise<Prompt[]> {
     return [];
   }
 }
+
+export const fetchFeaturedPrompts = cache(
+  unstable_cache(_fetchFeaturedPrompts, ["featured-prompts"], {
+    revalidate: 60,
+  })
+);

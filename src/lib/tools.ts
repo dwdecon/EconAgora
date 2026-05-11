@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { serverDb } from "@/lib/rdb-server";
 import { applyFullTextSearch } from "@/lib/fullTextSearch";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
@@ -199,7 +201,7 @@ export async function fetchTools(params: {
   }
 }
 
-export async function fetchFeaturedTools(): Promise<Tool[]> {
+async function _fetchFeaturedTools(): Promise<Tool[]> {
   try {
     await warmupToolRdb();
 
@@ -247,6 +249,12 @@ export async function fetchFeaturedTools(): Promise<Tool[]> {
     return [];
   }
 }
+
+export const fetchFeaturedTools = cache(
+  unstable_cache(_fetchFeaturedTools, ["featured-tools"], {
+    revalidate: 60,
+  })
+);
 
 export async function fetchToolById(id: string): Promise<Tool | null> {
   try {

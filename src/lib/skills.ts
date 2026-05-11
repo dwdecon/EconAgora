@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { serverDb } from "@/lib/rdb-server";
 import { applyFullTextSearch } from "@/lib/fullTextSearch";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
@@ -222,7 +224,7 @@ export async function fetchSkills(params: {
   }
 }
 
-export async function fetchFeaturedSkills(): Promise<Skill[]> {
+async function _fetchFeaturedSkills(): Promise<Skill[]> {
   try {
     await warmupSkillRdb();
 
@@ -281,6 +283,12 @@ export async function fetchFeaturedSkills(): Promise<Skill[]> {
     return [];
   }
 }
+
+export const fetchFeaturedSkills = cache(
+  unstable_cache(_fetchFeaturedSkills, ["featured-skills"], {
+    revalidate: 60,
+  })
+);
 
 export async function fetchSkillById(id: string): Promise<Skill | null> {
   try {

@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { serverDb } from "@/lib/rdb-server";
 import { extractRowId, normalizeTags } from "@/lib/rdb-utils";
 
@@ -11,7 +13,7 @@ export interface Post {
   createdAt: string;
 }
 
-export async function fetchFeaturedPosts(): Promise<Post[]> {
+async function _fetchFeaturedPosts(): Promise<Post[]> {
   try {
     const { data, error } = await serverDb
       .from("post")
@@ -44,7 +46,13 @@ export async function fetchFeaturedPosts(): Promise<Post[]> {
   }
 }
 
-export async function fetchFeaturedAgentPosts(): Promise<Post[]> {
+export const fetchFeaturedPosts = cache(
+  unstable_cache(_fetchFeaturedPosts, ["featured-posts"], {
+    revalidate: 60,
+  })
+);
+
+async function _fetchFeaturedAgentPosts(): Promise<Post[]> {
   try {
     const { data, error } = await serverDb
       .from("post")
@@ -76,3 +84,9 @@ export async function fetchFeaturedAgentPosts(): Promise<Post[]> {
     return [];
   }
 }
+
+export const fetchFeaturedAgentPosts = cache(
+  unstable_cache(_fetchFeaturedAgentPosts, ["featured-agent-posts"], {
+    revalidate: 60,
+  })
+);
