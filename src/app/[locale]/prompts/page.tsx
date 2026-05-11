@@ -329,7 +329,7 @@ export default async function PromptsPage({
 
           {prompts.length > 0 ? (
             <div className="flex flex-col gap-8">
-              <div className="columns-1 gap-5 xl:columns-2 [&>article]:mb-5">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {prompts.map((prompt) => (
                   <PromptShowcaseCard
                     key={prompt.id}
