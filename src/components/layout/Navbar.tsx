@@ -184,14 +184,20 @@ export default function Navbar() {
         .single();
 
       if (!mounted) return;
+
+      const profileName = (profile as any)?.name;
+      const metaName = currentUser.user_metadata?.nickname || currentUser.user_metadata?.nickName;
+      const emailPrefix = currentUser.email?.split("@")[0];
+
+      // No profile, no metadata name, no email → treat as unauthenticated
+      if (!profileName && !metaName && !emailPrefix && !currentUser.phone) {
+        setUser(null);
+        return;
+      }
+
       setUser({
         id: currentUser.id,
-        displayName:
-          (profile as any)?.name ||
-          currentUser.user_metadata?.nickname ||
-          currentUser.user_metadata?.nickName ||
-          currentUser.email?.split("@")[0] ||
-          "User",
+        displayName: profileName || metaName || emailPrefix || "User",
       });
     }
 
