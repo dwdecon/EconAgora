@@ -32,8 +32,11 @@ export default function HaloReveal({ children }: { children: React.ReactNode }) 
   return (
     <div
       style={{
+        visibility: ready ? "visible" : "hidden",
         opacity: ready ? 1 : 0,
-        transition: "opacity 800ms cubic-bezier(0.22, 1, 0.36, 1)",
+        transition: ready
+          ? "opacity 800ms cubic-bezier(0.22, 1, 0.36, 1)"
+          : undefined,
       }}
     >
       {children}
