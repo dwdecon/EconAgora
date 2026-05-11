@@ -9,6 +9,7 @@ import CopyPromptButton from "@/components/prompts/CopyPromptButton";
 import LikeButton from "@/components/shared/LikeButton";
 import CommentSection from "@/components/shared/CommentSection";
 import TagBadge from "@/components/shared/TagBadge";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 interface Prompt {
   id: string;
@@ -85,17 +86,7 @@ export default function PromptDetailLayout({
           {/* 标题区 */}
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span
-              className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${
-                prompt.category === "Research" || prompt.category === "文献"
-                  ? "border-sky-200/70 bg-sky-50/80 text-sky-700"
-                  : prompt.category === "Writing" || prompt.category === "写作"
-                    ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-700"
-                    : prompt.category === "Coding" || prompt.category === "编程"
-                      ? "border-violet-200/70 bg-violet-50/80 text-violet-700"
-                      : prompt.category === "Analysis" || prompt.category === "数据"
-                        ? "border-amber-200/70 bg-amber-50/80 text-amber-700"
-                        : "border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
-              }`}
+              className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${getCategoryTheme(prompt.category)}`}
             >
               {prompt.category}
             </span>

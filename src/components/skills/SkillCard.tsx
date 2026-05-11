@@ -7,16 +7,7 @@ import type {
 } from "react";
 import { useRouter } from "@/i18n/navigation";
 import type { Skill } from "@/lib/skills";
-
-const CATEGORY_THEME: Record<string, string> = {
-  "Data Analysis": "border-sky-200/70 bg-sky-50/80 text-sky-700",
-  Visualization: "border-emerald-200/70 bg-emerald-50/80 text-emerald-700",
-  Writing: "border-violet-200/70 bg-violet-50/80 text-violet-700",
-  Automation: "border-amber-200/70 bg-amber-50/80 text-amber-700",
-  "API Integration": "border-rose-200/70 bg-rose-50/80 text-rose-700",
-  Default:
-    "border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]",
-};
+import { getCategoryTheme } from "@/lib/category-theme";
 
 interface SkillCardProps {
   skill: Skill;
@@ -44,8 +35,7 @@ function shouldSkipNavigation(target: EventTarget | null) {
 
 export default function SkillCard({ skill, locale, labels }: SkillCardProps) {
   const router = useRouter();
-  const categoryTheme =
-    CATEGORY_THEME[skill.category] || CATEGORY_THEME.Default;
+  const categoryTheme = getCategoryTheme(skill.category);
   const metaTags = skill.tags.filter((tag) => tag !== skill.category).slice(0, 3);
 
   function navigateToDetail() {

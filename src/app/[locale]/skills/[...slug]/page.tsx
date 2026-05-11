@@ -7,6 +7,7 @@ import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import SkillCard from "@/components/skills/SkillCard";
 import SkillSidebar from "@/components/skills/SkillSidebar";
 import { fetchSkillById, fetchRelatedSkills } from "@/lib/skills";
+import { getCategoryTheme } from "@/lib/category-theme";
 
 const i18n = {
   zh: {
@@ -94,7 +95,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
           {/* Header */}
           <header className="mb-8">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface-strong)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+              <span className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${getCategoryTheme(skill.category)}`}>
                 {skill.category}
               </span>
             </div>

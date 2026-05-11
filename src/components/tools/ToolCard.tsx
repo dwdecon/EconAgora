@@ -7,16 +7,7 @@ import type {
 } from "react";
 import { useRouter } from "@/i18n/navigation";
 import type { Tool } from "@/lib/tools";
-
-const CATEGORY_THEME: Record<string, string> = {
-  "AI Assistant": "border-purple-200/70 bg-purple-50/80 text-purple-700",
-  "Reference Management": "border-blue-200/70 bg-blue-50/80 text-blue-700",
-  Writing: "border-emerald-200/70 bg-emerald-50/80 text-emerald-700",
-  Visualization: "border-amber-200/70 bg-amber-50/80 text-amber-700",
-  "Data Analysis": "border-sky-200/70 bg-sky-50/80 text-sky-700",
-  Default:
-    "border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]",
-};
+import { getCategoryTheme } from "@/lib/category-theme";
 
 interface ToolCardProps {
   tool: Tool;
@@ -43,7 +34,7 @@ function shouldSkipNavigation(target: EventTarget | null) {
 
 export default function ToolCard({ tool, labels }: ToolCardProps) {
   const router = useRouter();
-  const categoryTheme = CATEGORY_THEME[tool.category] || CATEGORY_THEME.Default;
+  const categoryTheme = getCategoryTheme(tool.category);
   const metaTags = tool.tags.filter((tag) => tag !== tool.category).slice(0, 3);
 
   function navigateToDetail() {
