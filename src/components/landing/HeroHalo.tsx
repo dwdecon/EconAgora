@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 /**
@@ -141,12 +142,13 @@ export default function HeroHalo() {
           willChange: "transform",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/hero-halo.webp"
           alt=""
           width={1800}
           height={1800}
+          priority
+          sizes="100vw"
           className="h-full w-full object-contain mix-blend-screen opacity-[0.95]"
           onLoad={() => window.dispatchEvent(new Event("hero-halo-ready"))}
         />
