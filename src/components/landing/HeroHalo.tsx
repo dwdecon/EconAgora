@@ -148,6 +148,7 @@ export default function HeroHalo() {
           width={1800}
           height={1800}
           className="h-full w-full object-contain mix-blend-screen opacity-[0.95]"
+          onLoad={() => window.dispatchEvent(new Event("hero-halo-ready"))}
         />
       </div>
     </>
