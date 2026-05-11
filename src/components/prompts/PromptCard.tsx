@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/navigation";
-import { getPromptCategoryTheme } from "@/components/prompts/categoryTheme";
+import { getCategoryTheme } from "@/lib/category-theme";
 import TagBadge from "@/components/shared/TagBadge";
 
 interface PromptCardProps {
@@ -23,7 +23,7 @@ export default function PromptCard({ prompt }: PromptCardProps) {
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span
-          className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${getPromptCategoryTheme(prompt.category)}`}
+          className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${getCategoryTheme(prompt.category)}`}
         >
           {prompt.category}
         </span>
