@@ -6,6 +6,7 @@ import { getSessionUser, db } from "@/lib/cloudbase";
 import LikeButton from "@/components/shared/LikeButton";
 import TagBadge from "@/components/shared/TagBadge";
 import type { Skill } from "@/lib/skills";
+import { recordBrowseHistory } from "@/components/account/LikesAndHistorySection";
 
 const AGENT_OPTIONS = [
   "Claude Code",
@@ -146,6 +147,15 @@ export default function SkillSidebar({ skill, locale }: SkillSidebarProps) {
       cancelled = true;
     };
   }, [skill.id]);
+
+  useEffect(() => {
+    recordBrowseHistory({
+      targetType: "SKILL",
+      targetId: skill.id,
+      title: skill.title,
+      category: skill.category,
+    });
+  }, [skill.id, skill.title, skill.category]);
 
   useEffect(() => {
     return () => {
@@ -331,6 +341,23 @@ export default function SkillSidebar({ skill, locale }: SkillSidebarProps) {
                 >
                   {skill.sourceRepo}
                 </a>
+              </dd>
+            </div>
+          )}
+          {skill.platform && (
+            <div>
+              <dt className="mb-1 text-xs text-[var(--color-text-secondary)]">
+                {t.platform}
+              </dt>
+              <dd className="flex flex-wrap gap-1">
+                {skill.platform.split(",").map((p) => (
+                  <span
+                    key={p.trim()}
+                    className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]"
+                  >
+                    {p.trim()}
+                  </span>
+                ))}
               </dd>
             </div>
           )}

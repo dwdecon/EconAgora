@@ -97,22 +97,6 @@ export default async function SkillDetailPage({ params }: PageProps) {
               <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface-strong)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
                 {skill.category}
               </span>
-              {skill.workflowStage && (
-                <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
-                  {skill.workflowStage}
-                </span>
-              )}
-              {skill.tags
-                .filter((tag) => tag !== skill.category)
-                .slice(0, 3)
-                .map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-secondary)]"
-                  >
-                    {tag}
-                  </span>
-                ))}
             </div>
 
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-[var(--color-text-primary)]">
@@ -130,7 +114,7 @@ export default async function SkillDetailPage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Author + Source attribution */}
+            {/* Author */}
             <div className="mt-4 flex flex-wrap items-center gap-4">
               <Link
                 href={`/u/${skill.author.id}`}
@@ -154,43 +138,6 @@ export default async function SkillDetailPage({ params }: PageProps) {
                   {skill.author.name}
                 </span>
               </Link>
-
-              {isImported && githubRepoUrl && (
-                <a
-                  href={githubRepoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[14px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  {t.source}: {skill.sourceRepo}
-                </a>
-              )}
-            </div>
-
-            {/* Stats row */}
-            <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-[var(--color-text-secondary)]">
-              <span className="inline-flex items-center gap-1.5">
-                <Eye className="h-4 w-4" />
-                {formatCount(skill.viewCount)} {t.views}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Heart className="h-4 w-4" />
-                {formatCount(skill.likeCount)} {t.likes}
-              </span>
-              {skill.platform && (
-                <span className="inline-flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs">{t.platform}:</span>
-                  {skill.platform.split(",").map((p) => (
-                    <span
-                      key={p.trim()}
-                      className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]"
-                    >
-                      {p.trim()}
-                    </span>
-                  ))}
-                </span>
-              )}
             </div>
           </header>
 
