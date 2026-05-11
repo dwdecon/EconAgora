@@ -7,7 +7,6 @@ import { ThemeProvider } from "next-themes";
 import { routing } from "@/i18n/routing";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import HaloOverlay from "@/components/landing/HaloOverlay";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -56,7 +55,6 @@ export default async function LocaleLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <NextIntlClientProvider messages={messages}>
-            <HaloOverlay />
             <Navbar />
             <main className="min-h-screen">{children}</main>
             <Footer />
