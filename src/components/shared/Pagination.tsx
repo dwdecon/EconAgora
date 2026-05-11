@@ -18,23 +18,15 @@ export default function Pagination({
 
   function buildHref(page: number) {
     const params = new URLSearchParams(queryString);
-
     if (page <= 1) {
       params.delete("page");
     } else {
       params.set("page", String(page));
     }
-
     const query = params.toString();
     return query ? `${basePath}?${query}` : basePath;
   }
 
-  const pageButtonClass =
-    "min-w-[40px] rounded-full px-3 py-1.5 text-center text-[14px] transition-colors shadow-[var(--shadow-inset-button)]";
-  const pageLinkClass =
-    "border border-[var(--color-border-hover)] bg-[var(--color-bg-surface-strong)] text-[var(--color-text-secondary)] hover:bg-[var(--color-text-primary)] hover:text-[var(--color-bg)]";
-  const activePageClass =
-    "border border-[var(--color-text-primary)] bg-[var(--color-text-primary)] text-[var(--color-bg)] font-medium";
   const navLinkClass =
     "rounded-full border border-[var(--color-border-hover)] bg-[var(--color-bg-surface-strong)] px-4 py-1.5 text-center text-[14px] text-[var(--color-text-secondary)] transition-colors shadow-[var(--shadow-inset-button)] hover:bg-[var(--color-text-primary)] hover:text-[var(--color-bg)]";
   const disabledNavClass =
@@ -42,7 +34,7 @@ export default function Pagination({
 
   return (
     <nav
-      className="mt-12 flex flex-wrap items-center justify-center gap-2"
+      className="mt-12 flex items-center justify-center gap-4"
       aria-label="Pagination"
     >
       {hasPreviousPage ? (
@@ -55,16 +47,9 @@ export default function Pagination({
         </span>
       )}
 
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-        <Link
-          key={page}
-          href={buildHref(page)}
-          aria-current={page === currentPage ? "page" : undefined}
-          className={`${pageButtonClass} ${page === currentPage ? activePageClass : pageLinkClass}`}
-        >
-          {page}
-        </Link>
-      ))}
+      <span className="text-sm text-[var(--color-text-secondary)]">
+        第 {currentPage} / {totalPages} 页
+      </span>
 
       {hasNextPage ? (
         <Link href={buildHref(currentPage + 1)} className={navLinkClass}>
