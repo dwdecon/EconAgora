@@ -1,36 +1,32 @@
 #!/usr/bin/env tsx
 /**
- * Unified Blog Post Creation Script
- * 
- * One command to create a complete blog post:
- *   - Generate or use provided content
- *   - Generate cover image
- *   - Publish with proper frontmatter
- *   - Update cover path automatically
- * 
+ * Unified Blog Post Creation Script with Web Research
+ *
+ * Complete workflow:
+ *   1. Research topic via web content fetching
+ *   2. Generate structured content based on research
+ *   3. Generate cover image
+ *   4. Publish with proper frontmatter
+ *
  * Usage:
- *   # AI-generated content
+ *   # Full workflow: research + generate + cover + publish
  *   tsx scripts/content-pipeline/create-blog-post.ts \
- *     --title "文章标题" \
- *     --slug "article-slug" \
+ *     --title "AI Agent 连接 Zotero 文献管理" \
+ *     --slug "agent-zotero-integration" \
  *     --category "AI 工具" \
- *     --tags "tag1,tag2" \
- *     --topic "详细主题描述" \
- *     --source "https://arxiv.org/abs/2405.xxxxx"
- * 
- *   # With existing content files
- *   tsx scripts/content-pipeline/create-blog-post.ts \
- *     --title "文章标题" \
- *     --slug "article-slug" \
- *     --category "AI 工具" \
- *     --tags "tag1,tag2" \
- *     --zh-content /path/to/zh.md \
- *     --en-content /path/to/en.md
- * 
- *   # Skip cover generation
- *   tsx scripts/content-pipeline/create-blog-post.ts ... --no-cover
- * 
- *   # Dry run (don't write files)
+ *     --tags "AI Agent,Zotero,文献管理" \
+ *     --topic "如何使用 AI Agent 连接 Zotero 进行经济学文献管理" \
+ *     --research
+ *
+ *   # Skip research, use AI generation only
+ *   tsx scripts/content-pipeline/create-blog-post.ts ... --topic "..."
+ *
+ *   # Use pre-written content files
+ *   tsx scripts/content-pipeline/create-blog-post.ts ... \
+ *     --zh-content ./draft.zh.md \
+ *     --en-content ./draft.en.md
+ *
+ *   # Dry run (preview without writing files)
  *   tsx scripts/content-pipeline/create-blog-post.ts ... --dry-run
  */
 
@@ -54,6 +50,7 @@ interface CreateOptions {
   noCover?: boolean;
   dryRun?: boolean;
   author?: string;
+  research?: boolean;
 }
 
 function getApiKey(): string {
@@ -99,48 +96,134 @@ async function callAI(prompt: string, systemPrompt?: string): Promise<string> {
   return data.choices[0].message.content;
 }
 
-async function generateContent(topic: string, source?: string): Promise<{ zh: string; en: string; outline: string }> {
-  console.log("📝 Generating content with AI...");
+async function fetchWebContent(url: string): Promise<string> {
+  return new Promise((resolve) => {
+    const tryFetch = (method: string) => {
+      const serviceUrl = method === "jina"
+        ? `https://r.jina.ai/${url}`
+        : `https://markdown.new/${url}`;
 
-  // Step 1: Outline
-  const outlinePrompt = `请为以下主题生成一篇工具型博客文章的详细大纲：
+      const curl = spawn("curl", ["-s", "-L", "--max-time", "30", serviceUrl], {
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+
+      let output = "";
+      let error = "";
+
+      curl.stdout.on("data", (chunk) => {
+        output += chunk.toString();
+      });
+
+      curl.stderr.on("data", (chunk) => {
+        error += chunk.toString();
+      });
+
+      curl.on("close", (code) => {
+        if (code === 0 && output.length > 500) {
+          resolve(output);
+        } else if (method === "jina") {
+          tryFetch("markdown");
+        } else {
+          resolve(`[Failed to fetch ${url}]`);
+        }
+      });
+    };
+
+    tryFetch("jina");
+  });
+}
+
+async function researchTopic(topic: string): Promise<string> {
+  console.log("🔍 Step 1/4: Researching topic via web content fetching...");
+  console.log(`   Topic: ${topic}`);
+  console.log("");
+
+  // Generate search queries and URLs via AI
+  const searchPrompt = `作为经济学研究助手，我需要为以下主题搜集全网资料：
 
 主题：${topic}
-${source ? `灵感来源：${source}` : ""}
 
-要求：
-1. 文章结构清晰，包含引言、方法、案例、总结
-2. 每个部分有具体的要点说明
-3. 强调可操作性和复现性
-4. 适合经济学研究者阅读
+请提供 5-8 个可能包含高质量信息的网页 URL（优先：arXiv、GitHub、官方文档、知名博客、学术论文）。
+只输出 URL 列表，每行一个。`;
 
-请输出 Markdown 格式的大纲。`;
+  const searchResult = await callAI(searchPrompt, `你是一位经济学研究方法专家。`);
+  const urls = searchResult
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("http"));
 
-  const outline = await callAI(outlinePrompt, `你是一位经济学研究方法专家，专注于 AI 工具在经济学研究中的应用。`);
-  console.log("  ✓ Outline generated");
+  if (urls.length === 0) {
+    console.log("⚠️  No URLs found, proceeding without web research...");
+    return "";
+  }
 
-  // Step 2: Chinese draft
-  const zhPrompt = `基于以下大纲，生成一篇完整的中文博客文章。
+  console.log(`📚 Fetching ${urls.length} sources:`);
+  const sources: { url: string; content: string }[] = [];
+
+  for (let i = 0; i < Math.min(urls.length, 5); i++) {
+    const url = urls[i];
+    console.log(`   [${i + 1}/5] ${url}`);
+    const content = await fetchWebContent(url);
+    if (!content.startsWith("[Failed")) {
+      sources.push({ url, content: content.slice(0, 4000) });
+      console.log(`      ✓ Fetched (${content.length} chars)`);
+    } else {
+      console.log(`      ✗ Failed`);
+    }
+  }
+
+  if (sources.length === 0) {
+    return "";
+  }
+
+  // Synthesize research findings
+  console.log("\n🧠 Synthesizing research findings...");
+  const synthesisPrompt = `基于以下搜集到的网页资料，为"${topic}"撰写一份简要的研究摘要：
+
+${sources.map((s, i) => `=== Source ${i + 1}: ${s.url} ===\n${s.content.slice(0, 2000)}\n`).join("\n")}
+
+请输出：
+1. 核心概念和关键术语
+2. 主流工具和方法
+3. 在经济学研究中的具体应用场景
+4. 操作步骤概述
+5. 推荐的代码/工具
+
+用中文输出，简洁实用。`;
+
+  const researchSummary = await callAI(synthesisPrompt, `你是一位经济学技术写作专家。`);
+  console.log("  ✓ Research complete\n");
+
+  return researchSummary;
+}
+
+async function generateContent(topic: string, researchSummary: string): Promise<{ zh: string; en: string }> {
+  console.log("📝 Step 2/4: Generating blog content...");
+
+  const systemPrompt = researchSummary
+    ? `你是一位经济学技术写作专家。以下是通过全网资料搜集得到的研究背景，请基于这些资料撰写文章：\n\n${researchSummary}`
+    : `你是一位经济学技术写作专家，擅长将复杂的 AI 工具应用转化为清晰的中文教程。`;
+
+  // Generate Chinese draft
+  const zhPrompt = `请为以下主题撰写一篇完整的工具型博客文章：
 
 主题：${topic}
 
-大纲：
-${outline}
-
 要求：
-1. 文章长度约 2000-3000 字
-2. 包含具体的工具名称和使用场景
-3. 提供代码片段或命令示例
-4. 解释该方法在经济学研究中的价值
-5. 使用 Markdown 格式
-6. 不要包含标题（标题会在 frontmatter 中）`;
+1. 文章长度 2000-3000 字
+2. 结构：引言 → 核心概念 → 工具/方法介绍 → 操作步骤 → 实际案例 → 总结
+3. 包含具体的工具名称、版本、配置方法
+4. 提供可复现的命令和代码示例
+5. 解释该工具/方法在经济学研究中的具体价值
+6. 使用 Markdown 格式
+7. 不要包含标题（标题会在 frontmatter 中）
+8. 面向有经济学背景但技术能力中等的读者`;
 
-  const zhDraft = await callAI(zhPrompt, `你是一位经济学技术写作专家，擅长将复杂的 AI 工具应用转化为清晰的中文教程。`);
+  const zhDraft = await callAI(zhPrompt, systemPrompt);
   console.log("  ✓ Chinese draft generated");
 
-  // Step 3: English draft
-  const enPrompt = `Translate the following Chinese blog post into English.
-Adapt for an international audience while maintaining technical accuracy.
+  // Generate English draft
+  const enPrompt = `Translate the following Chinese blog post into natural, professional English.
 
 Original topic: ${topic}
 
@@ -148,16 +231,16 @@ Chinese draft:
 ${zhDraft}
 
 Requirements:
-1. Natural, professional English
+1. Natural, professional English suitable for academic researchers
 2. Maintain all technical details and code examples
-3. Adapt cultural references for international readers
+3. Adapt for international readers
 4. Output in Markdown format
-5. Do not include the title (it will be in frontmatter)`;
+5. Do not include the title`;
 
   const enDraft = await callAI(enPrompt, `You are an expert in economics research methods and AI tools.`);
-  console.log("  ✓ English draft generated");
+  console.log("  ✓ English draft generated\n");
 
-  return { zh: zhDraft, en: enDraft, outline };
+  return { zh: zhDraft, en: enDraft };
 }
 
 function generateFrontmatter(options: CreateOptions, locale: string, coverPath?: string): string {
@@ -188,7 +271,6 @@ function generateFrontmatter(options: CreateOptions, locale: string, coverPath?:
     frontmatter.source = options.source;
   }
 
-  // Convert to YAML
   const lines = ["---"];
   for (const [key, value] of Object.entries(frontmatter)) {
     if (Array.isArray(value)) {
@@ -234,9 +316,9 @@ function extractExcerpt(content: string, maxLength: number = 200): string {
 }
 
 async function generateCover(title: string, outputPath: string): Promise<boolean> {
-  console.log("🎨 Generating cover image...");
+  console.log("🎨 Step 3/4: Generating cover image...");
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const scriptPath = path.join(__dirname, "generate-cover-simple.ts");
     const child = spawn("npx", ["tsx", scriptPath, title, outputPath], {
       stdio: "inherit",
@@ -245,10 +327,10 @@ async function generateCover(title: string, outputPath: string): Promise<boolean
 
     child.on("close", (code) => {
       if (code === 0) {
-        console.log("  ✓ Cover generated");
+        console.log("  ✓ Cover generated\n");
         resolve(true);
       } else {
-        console.error(`  ✗ Cover generation failed (exit ${code})`);
+        console.error(`  ✗ Cover generation failed (exit ${code})\n`);
         resolve(false);
       }
     });
@@ -266,7 +348,7 @@ async function createBlogPost(options: CreateOptions): Promise<void> {
   console.log(`   Slug: ${options.slug}`);
   console.log(`   Category: ${options.category}`);
   console.log(`   Tags: ${options.tags.join(", ")}`);
-  if (options.source) console.log(`   Source: ${options.source}`);
+  if (options.research) console.log(`   Mode: Web research enabled`);
   console.log("");
 
   // Step 1: Get or generate content
@@ -279,10 +361,16 @@ async function createBlogPost(options: CreateOptions): Promise<void> {
     enContent = fs.readFileSync(options.enContent, "utf-8");
     console.log("  ✓ Content loaded\n");
   } else if (options.topic) {
-    const generated = await generateContent(options.topic, options.source);
+    // Research phase
+    let researchSummary = "";
+    if (options.research) {
+      researchSummary = await researchTopic(options.topic);
+    }
+
+    // Content generation phase
+    const generated = await generateContent(options.topic, researchSummary);
     zhContent = generated.zh;
     enContent = generated.en;
-    console.log("");
   } else {
     throw new Error("Either --topic or both --zh-content and --en-content must be provided");
   }
@@ -309,6 +397,7 @@ async function createBlogPost(options: CreateOptions): Promise<void> {
   }
 
   // Step 3: Create blog directory and write files
+  console.log("📦 Step 4/4: Publishing blog post...");
   const entryDir = path.join(CONTENT_DIR, options.slug);
 
   if (!options.dryRun) {
@@ -328,7 +417,8 @@ async function createBlogPost(options: CreateOptions): Promise<void> {
     fs.writeFileSync(zhPath, zhFrontmatter + zhContent, "utf-8");
     fs.writeFileSync(enPath, enFrontmatter + enContent, "utf-8");
 
-    console.log("\n✅ Blog post created!");
+    console.log("  ✓ Files written");
+    console.log("\n✅ Blog post created successfully!");
     console.log(`   ${zhPath}`);
     console.log(`   ${enPath}`);
     if (coverPath) {
@@ -401,6 +491,9 @@ function parseArgs(): CreateOptions {
         options.author = nextArg;
         i++;
         break;
+      case "--research":
+        options.research = true;
+        break;
       case "--no-cover":
         options.noCover = true;
         break;
@@ -441,11 +534,12 @@ Required:
   --tags "tag1,tag2"       Comma-separated tags
 
 Content (one of):
-  --topic "Description"    Generate content with AI
+  --topic "Description"    Generate content (with optional --research)
   --zh-content path        Use existing Chinese content file
   --en-content path        Use existing English content file
 
 Optional:
+  --research               Enable web content fetching for research
   --source "URL"           Source URL (arXiv, etc.)
   --author "Name"          Author name (default: 戴伟德)
   --no-cover               Skip cover image generation
@@ -453,7 +547,16 @@ Optional:
   --help, -h               Show this help
 
 Examples:
-  # AI-generated content
+  # Full workflow with web research
+  tsx create-blog-post.ts \\
+    --title "AI Agent 连接 Zotero" \\
+    --slug "agent-zotero" \\
+    --category "AI 工具" \\
+    --tags "AI Agent,Zotero" \\
+    --topic "如何使用 AI Agent 连接 Zotero 文献管理工具" \\
+    --research
+
+  # AI generation without research
   tsx create-blog-post.ts \\
     --title "AI Agent 连接 Zotero" \\
     --slug "agent-zotero" \\
@@ -481,4 +584,4 @@ if (require.main === module) {
   });
 }
 
-export { createBlogPost, generateContent };
+export { createBlogPost, researchTopic, generateContent };
