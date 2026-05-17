@@ -102,6 +102,7 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
 
   const qsParts: string[] = [];
   if (category) qsParts.push(`category=${encodeURIComponent(category)}`);
+  if (subcategory) qsParts.push(`subcategory=${encodeURIComponent(subcategory)}`);
   if (tag) qsParts.push(`tag=${encodeURIComponent(tag)}`);
   if (search) qsParts.push(`search=${encodeURIComponent(search)}`);
   const queryString = qsParts.join("&");

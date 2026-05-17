@@ -133,10 +133,11 @@ async function warmupPromptRdb() {
 async function fetchPrompts(params: {
   page: number;
   category: string;
+  subcategory: string;
   tag: string;
   search: string;
 }): Promise<{ prompts: Prompt[]; totalPages: number; loadError: string | null }> {
-  const { page, category, tag, search } = params;
+  const { page, category, subcategory, tag, search } = params;
 
   try {
     await warmupPromptRdb();
@@ -150,6 +151,10 @@ async function fetchPrompts(params: {
     if (category) {
       countQuery = countQuery.eq("category", category);
       dataQuery = dataQuery.eq("category", category);
+    }
+    if (subcategory) {
+      countQuery = countQuery.eq("subcategory", subcategory);
+      dataQuery = dataQuery.eq("subcategory", subcategory);
     }
     if (tag) {
       countQuery = countQuery.contains("tags", [tag]);
@@ -285,17 +290,19 @@ export default async function PromptsPage({
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
   const category = (typeof sp.category === "string" ? sp.category : "") || "";
+  const subcategory = (typeof sp.subcategory === "string" ? sp.subcategory : "") || "";
   const tag = (typeof sp.tag === "string" ? sp.tag : "") || "";
   const search = (typeof sp.search === "string" ? sp.search : "") || "";
 
   const [{ prompts, totalPages, loadError }, categories] = await Promise.all([
-    fetchPrompts({ page, category, tag, search }),
+    fetchPrompts({ page, category, subcategory, tag, search }),
     fetchPromptCategories(locale),
   ]);
 
   // Build queryString for pagination
   const qsParts: string[] = [];
   if (category) qsParts.push(`category=${encodeURIComponent(category)}`);
+  if (subcategory) qsParts.push(`subcategory=${encodeURIComponent(subcategory)}`);
   if (tag) qsParts.push(`tag=${encodeURIComponent(tag)}`);
   if (search) qsParts.push(`search=${encodeURIComponent(search)}`);
   const queryString = qsParts.join("&");
