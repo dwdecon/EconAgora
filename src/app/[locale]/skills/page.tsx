@@ -88,9 +88,13 @@ export default async function SkillsPage({ params, searchParams }: PageProps) {
     (typeof resolvedSearchParams.search === "string"
       ? resolvedSearchParams.search
       : "") || "";
+  const subcategory =
+    (typeof resolvedSearchParams.subcategory === "string"
+      ? resolvedSearchParams.subcategory
+      : "") || "";
 
   const [{ skills, totalPages, total, loadError }, categories] = await Promise.all([
-    fetchSkills({ page, category, tag, search }),
+    fetchSkills({ page, category, subcategory, tag, search }),
     fetchSkillCategories(locale),
   ]);
 

@@ -20,8 +20,8 @@ interface Prompt {
   updated_at: string;
 }
 
-export function usePrompts(params: { page?: number; pageSize?: number; category?: string; status?: string } = {}) {
-  const { page = 1, pageSize = 10, category, status } = params;
+export function usePrompts(params: { page?: number; pageSize?: number; category?: string; subcategory?: string; status?: string } = {}) {
+  const { page = 1, pageSize = 10, category, subcategory, status } = params;
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -32,6 +32,7 @@ export function usePrompts(params: { page?: number; pageSize?: number; category?
       let query = db.from("prompt").select("*");
       if (status) query = query.eq("status", status);
       if (category) query = query.eq("category", category);
+      if (subcategory) query = query.eq("subcategory", subcategory);
       query = query.order("created_at", { ascending: false });
       query = query.range((page - 1) * pageSize, page * pageSize - 1);
 
@@ -49,7 +50,7 @@ export function usePrompts(params: { page?: number; pageSize?: number; category?
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, category, status]);
+  }, [page, pageSize, category, subcategory, status]);
 
   useEffect(() => {
     fetchPrompts();

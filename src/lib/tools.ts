@@ -105,10 +105,11 @@ async function fetchAuthorMap(authorIds: string[]) {
 export async function fetchTools(params: {
   page: number;
   category: string;
+  subcategory: string;
   tag: string;
   search: string;
 }): Promise<{ tools: Tool[]; totalPages: number; loadError: string | null }> {
-  const { page, category, tag, search } = params;
+  const { page, category, subcategory, tag, search } = params;
 
   try {
     await warmupToolRdb();
@@ -122,6 +123,10 @@ export async function fetchTools(params: {
     if (category) {
       countQuery = countQuery.eq("category", category);
       dataQuery = dataQuery.eq("category", category);
+    }
+    if (subcategory) {
+      countQuery = countQuery.eq("subcategory", subcategory);
+      dataQuery = dataQuery.eq("subcategory", subcategory);
     }
     if (tag) {
       countQuery = countQuery.contains("tags", [tag]);

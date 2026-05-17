@@ -90,9 +90,13 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
     (typeof resolvedSearchParams.search === "string"
       ? resolvedSearchParams.search
       : "") || "";
+  const subcategory =
+    (typeof resolvedSearchParams.subcategory === "string"
+      ? resolvedSearchParams.subcategory
+      : "") || "";
 
   const [{ tools, totalPages, loadError }, categories] = await Promise.all([
-    fetchTools({ page, category, tag, search }),
+    fetchTools({ page, category, subcategory, tag, search }),
     fetchToolCategories(locale),
   ]);
 
