@@ -8,12 +8,7 @@ import { routing } from "@/i18n/routing";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import "../globals.css";
-import dynamic from "next/dynamic";
-
-const AiAssistant = dynamic(
-  () => import("@/components/ai-assistant/AiAssistant"),
-  { ssr: false },
-);
+import AiAssistant from "@/components/ai-assistant/AiAssistant";
 
 export const metadata: Metadata = {
   title: "EconAgora - AI Toolkit For Scientist",

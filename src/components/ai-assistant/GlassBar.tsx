@@ -28,7 +28,7 @@ export default function GlassBar({
   const [input, setInput] = useState("");
   const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const autoDismissRef = useRef<ReturnType<typeof setTimeout>>();
+  const autoDismissRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const isDark = resolvedTheme === "dark";
 
