@@ -39,3 +39,43 @@ tsconfig.tsbuildinfo
 .agents/
 .claude/
 .playwright-mcp/
+
+# Build outputs
+.next/standalone/
+dist/
+build/
+
+# Package managers
+.pnpm-store/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Lock files (use pnpm)
+package-lock.json
+yarn.lock
+
+# Project specific
+BLOG_SETUP_COMPLETE.md
+galaxy_banner.png
+
+# Test posts (generated)
+public/blog-covers/2026/05/test-post-*.png
+public/blog-covers/2026/05/ai-agent-economics-research-test.png
+public/blog-covers/ai-agent-stata.png
+public/blog-covers/ai-agent-zotero.png
+public/blog-covers/skill-literature-review.png
+public/blog-covers/skill-paper-writing.png
+public/blog-covers/what-is-ai-agent.png
+
+# More generated/test files
+public/blog-covers/2026/05/ai-agent-stata.png
+public/blog-covers/2026/05/ai-agent-research-setup.png
