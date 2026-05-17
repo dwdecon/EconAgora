@@ -99,11 +99,13 @@ export function SkillActiveFilters() {
   const currentSearch = searchParams.get("search") || "";
   const currentTag = searchParams.get("tag") || "";
   const currentCategory = searchParams.get("category") || "";
-  const hasActiveFilters = Boolean(currentSearch || currentTag || currentCategory);
+  const currentSubcategory = searchParams.get("subcategory") || "";
+  const hasActiveFilters = Boolean(currentSearch || currentTag || currentCategory || currentSubcategory);
 
-  function clearField(field: "category" | "search" | "tag") {
+  function clearField(field: "category" | "search" | "tag" | "subcategory") {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(field);
+    if (field === "category") params.delete("subcategory");
     params.delete("page");
     navigate(params);
   }
@@ -111,6 +113,7 @@ export function SkillActiveFilters() {
   function clearAll() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("category");
+    params.delete("subcategory");
     params.delete("search");
     params.delete("tag");
     params.delete("page");
@@ -128,6 +131,16 @@ export function SkillActiveFilters() {
           className={FILTER_PILL_CLASSES}
         >
           {currentCategory}
+          <X className="h-3 w-3" strokeWidth={1.8} />
+        </button>
+      )}
+      {currentSubcategory && (
+        <button
+          type="button"
+          onClick={() => clearField("subcategory")}
+          className={FILTER_PILL_CLASSES}
+        >
+          {currentCategory} / {currentSubcategory}
           <X className="h-3 w-3" strokeWidth={1.8} />
         </button>
       )}
