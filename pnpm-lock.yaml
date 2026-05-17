@@ -23,6 +23,15 @@ importers:
       '@cloudbase/signature-nodejs':
         specifier: ^2.0.0
         version: 2.0.0
+      '@page-agent/core':
+        specifier: ^1.8.2
+        version: 1.8.2(zod@4.4.3)
+      '@page-agent/page-controller':
+        specifier: ^1.8.2
+        version: 1.8.2
+      ai-motion:
+        specifier: ^0.4.8
+        version: 0.4.8
       dotenv:
         specifier: ^17.3.1
         version: 17.4.2
@@ -44,6 +53,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      openai:
+        specifier: ^6.38.0
+        version: 6.38.0(ws@8.20.0)(zod@4.4.3)
       react:
         specifier: ^19.0.0
         version: 19.2.6
@@ -65,6 +77,9 @@ importers:
       ws:
         specifier: ^8.20.0
         version: 8.20.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@cloudbase/cloudbase-mcp':
         specifier: ^2.19.4
@@ -819,6 +834,19 @@ packages:
   '@oxc-project/types@0.126.0':
     resolution: {integrity: sha512-oGfVtjAgwQVVpfBrbtk4e1XDyWHRFta6BS3GWVzrF8xYBT2VGQAk39yJS/wFSMrZqoiCU4oghT3Ch0HaHGIHcQ==}
 
+  '@page-agent/core@1.8.2':
+    resolution: {integrity: sha512-Yf2IJShdwP0tP5ejw3MImo2nBEqTLQuxgB/RtYREwQvDBya8aZuOLciTgC1ZFex8jeuViAXgnWQ54CfZ3Rbneg==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+
+  '@page-agent/llms@1.8.2':
+    resolution: {integrity: sha512-KQUdo0GS9E+w8mw7K+wE+IMnkKqP0ZEOROM1z5G3UQUQrpdO5cCRwN0/BQdr0AIorJbLCCbkAcsWi67PFIcdKA==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+
+  '@page-agent/page-controller@1.8.2':
+    resolution: {integrity: sha512-Fms9UJl9YHga+0Xcp2MEl4FPXTa1HRwUKo+q4ruS1HfJqRH4UuaVtL0NvH7GMiXAw3eO2BMOTAz1+e+WOIxyig==}
+
   '@parcel/watcher-android-arm64@2.5.6':
     resolution: {integrity: sha512-YQxSS34tPF/6ZG7r/Ih9xy+kP/WwediEUsqmtf0cuCV5TPPKw/PQHRhueUo6JdeFJaqV3pyjm0GdYjZotbRt/A==}
     engines: {node: '>= 10.0.0'}
@@ -1448,6 +1476,9 @@ packages:
   agentkeepalive@4.6.0:
     resolution: {integrity: sha512-kja8j7PjmncONqaTsB8fQ+wE2mSU2DJ9D4XKoJ5PFWIdRMa6SLSN1ff4mOr4jCbfRSsxR4keIiySJU0N9T5hIQ==}
     engines: {node: '>= 8.0.0'}
+
+  ai-motion@0.4.8:
+    resolution: {integrity: sha512-9nQVjf8lrYQWSW0sZdb9bES4x8Ei1w9C0S62po2KvRbMjslmjm0WMeszyW771SEauDnu4YGWqurLZ/gCkCTosQ==}
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
@@ -2996,6 +3027,18 @@ packages:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
 
+  openai@6.38.0:
+    resolution: {integrity: sha512-AoMplt2UalrpgUDMh3L09QWjNRlgJPipclQvA6sYAaeF6nHNBMgmikAZGmcYLn8on4d9sQY9Q8bOLfrBS7Lc8g==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
@@ -4347,6 +4390,22 @@ snapshots:
 
   '@oxc-project/types@0.126.0': {}
 
+  '@page-agent/core@1.8.2(zod@4.4.3)':
+    dependencies:
+      '@page-agent/llms': 1.8.2(zod@4.4.3)
+      '@page-agent/page-controller': 1.8.2
+      chalk: 5.6.2
+      zod: 4.4.3
+
+  '@page-agent/llms@1.8.2(zod@4.4.3)':
+    dependencies:
+      chalk: 5.6.2
+      zod: 4.4.3
+
+  '@page-agent/page-controller@1.8.2':
+    dependencies:
+      ai-motion: 0.4.8
+
   '@parcel/watcher-android-arm64@2.5.6':
     optional: true
 
@@ -4827,6 +4886,8 @@ snapshots:
   agentkeepalive@4.6.0:
     dependencies:
       humanize-ms: 1.2.1
+
+  ai-motion@0.4.8: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -6761,6 +6822,11 @@ snapshots:
   onetime@7.0.0:
     dependencies:
       mimic-function: 5.0.1
+
+  openai@6.38.0(ws@8.20.0)(zod@4.4.3):
+    optionalDependencies:
+      ws: 8.20.0
+      zod: 4.4.3
 
   opener@1.5.2: {}
 
