@@ -110,5 +110,12 @@
       "goToPrompt": "View Prompt",
       "goToPost": "View Post"
     }
+  },
+  "aiAssistant": {
+    "placeholder": "Type a command...",
+    "thinking": "Thinking",
+    "acting": "Operating page",
+    "error": "Request failed, please retry",
+    "retry": "Retry"
   }
 }

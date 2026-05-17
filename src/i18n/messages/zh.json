@@ -110,5 +110,12 @@
       "goToPrompt": "查看 Prompt",
       "goToPost": "查看帖子"
     }
+  },
+  "aiAssistant": {
+    "placeholder": "输入指令，我来操作页面...",
+    "thinking": "正在思考",
+    "acting": "正在操作页面",
+    "error": "请求失败，请重试",
+    "retry": "重试"
   }
 }
