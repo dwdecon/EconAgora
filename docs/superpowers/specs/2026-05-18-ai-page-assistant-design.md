@@ -138,47 +138,69 @@ Content-Type: application/json
 **Flow:**
 1. Validate CloudBase auth token from Authorization header
 2. If invalid/missing → return 401
-3. Forward request to `https://api.deepseek.com/v1/chat/completions`
-4. Inject `DEEPSEEK_API_KEY` from server environment variable
+3. Forward request to `https://api.deepseek.com/v1/chat/completions` with `Authorization: Bearer sk-91908ab54bf4465f8b32049aecdb7822`
+4. Inject DeepSeek-specific params: `thinking: { type: "enabled" }`, `reasoning_effort: "high"`
 5. Stream response back as SSE — transparent passthrough of DeepSeek's OpenAI-compatible SSE format
 6. Return tool calls for Core to execute via PageController
 
 **Streaming implementation:**
 ```ts
-// route.ts — transparent SSE proxy
+// route.ts — SSE proxy using OpenAI SDK
+import OpenAI from 'openai';
+
+const deepseek = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY || 'sk-91908ab54bf4465f8b32049aecdb7822',
+});
+
 export async function POST(req: Request) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   // validate CloudBase token → 401 if invalid
+
   const body = await req.json();
-  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-    },
-    body: JSON.stringify({ ...body, stream: true }),
+  const stream = await deepseek.chat.completions.create({
+    model: 'deepseek-v4-flash',
+    messages: body.messages,
+    tools: body.tools,
+    stream: true,
+    thinking: { type: 'enabled' },
+    reasoning_effort: 'high',
   });
-  // Pipe DeepSeek's SSE response directly to client
-  return new Response(response.body, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+
+  // Pipe SSE stream to client
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+        }
+        controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    }),
+    {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     },
-  });
+  );
 }
 ```
 
 The Core expects standard OpenAI SSE wire format (`data: {"choices":[{"delta":...}]}\n\n`), which DeepSeek provides natively. The proxy is a transparent pipe — no transformation needed.
 
-**Environment variable:** `DEEPSEEK_API_KEY` set in Vercel/CloudBase
+**Environment variable:** `DEEPSEEK_API_KEY` set in Vercel/CloudBase (fallback for the hardcoded key, allows rotation without redeploy)
 
 ### LLM Configuration
 
 - **Provider:** DeepSeek
-- **Model:** `deepseek-chat` (DeepSeek-V3)
-- **Endpoint:** `https://api.deepseek.com/v1/chat/completions` (OpenAI-compatible)
-- **API Key:** server-side only, never exposed to browser
+- **Model:** `deepseek-v4-flash`
+- **Endpoint:** `https://api.deepseek.com` (OpenAI-compatible)
+- **API Key:** `sk-91908ab54bf4465f8b32049aecdb7822` (server-side only, never exposed to browser)
+- **Extra params:** `thinking: { type: "enabled" }`, `reasoning_effort: "high"`
+- **SDK:** `openai` npm package (server-side only, for type safety)
 
 ## File Structure
 
@@ -206,6 +228,7 @@ All components use React built-in hooks (`useState`, `useEffect`, `useRef`, `use
 | `@page-agent/page-controller` | ^1.7 | DOM parsing, element actions, visual mask. Same source |
 | `ai-motion` | ^0.4 | Cursor/click animations on page elements. Peer dependency of page-controller, provides visual feedback (animated cursor, click ripple, highlight overlay). Initialized automatically when PageController is created — zero-config |
 | `zod` | already in project | Schema validation (Page Agent peer dependency) |
+| `openai` | latest | DeepSeek API client (server-side only, for type-safe streaming) |
 
 ## Technical Notes
 
@@ -229,7 +252,7 @@ const AiAssistant = dynamic(
 const controller = new PageController();
 const core = new PageAgentCore({
   url: '/api/chat',  // our proxy endpoint
-  model: 'deepseek-chat',
+  model: 'deepseek-v4-flash',
   apiKey: 'unused',  // real key is server-side; Core requires a non-empty string
   pageController: controller,
   // Inject CloudBase auth token via custom fetch wrapper
