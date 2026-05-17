@@ -9,12 +9,17 @@
     "start": "next start",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint .",
-    "migrate:categories": "tsx scripts/migrate-categories.ts"
+    "migrate:categories": "tsx scripts/migrate-categories.ts",
+    "generate:covers": "tsx scripts/content-pipeline/generate-all-covers.ts",
+    "regenerate:covers": "tsx scripts/content-pipeline/regenerate-covers.ts --force",
+    "verify:covers": "tsx scripts/content-pipeline/verify-covers.ts",
+    "build:full": "npm run generate:covers && npm run build"
   },
   "dependencies": {
     "@cloudbase/app": "2.26.3",
     "@cloudbase/auth": "2.26.3",
     "@cloudbase/js-sdk": "2.26.3",
+    "@cloudbase/node-sdk": "^3.18.1",
     "@cloudbase/signature-nodejs": "^2.0.0",
     "dotenv": "^17.3.1",
     "gray-matter": "^4.0.3",
@@ -27,10 +32,12 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
+    "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "ws": "^8.20.0"
   },
   "devDependencies": {
+    "@cloudbase/cloudbase-mcp": "^2.19.4",
     "@next/bundle-analyzer": "^16.2.6",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.19",
@@ -39,6 +46,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.0",
+    "mcporter": "^0.9.0",
     "postcss": "^8.5.3",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.0.0",

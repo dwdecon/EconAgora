@@ -13,6 +13,7 @@ author: "EconAgora Methods Desk"
 authorRole: "Replication Methods Editor"
 issue: "Volume 02"
 illustration: "replicationStack"
+cover: "/blog-covers/2026/05/replication-breaks-before-regression.svg"
 ---
 
 Researchers focus on whether the regression table reproduces, yet the most common failure points appear much earlier in the file system and dataset preparation layers.

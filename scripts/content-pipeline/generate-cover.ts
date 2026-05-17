@@ -26,8 +26,7 @@ function getApiKey(): string {
   const envPath = path.join(process.cwd(), ".env.local");
   if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, "utf-8");
-    const match = content.match(/OPENAI_API_KEY=([^
-]+)/);
+    const match = content.match(/OPENAI_API_KEY=([^\r\n]+)/);
     if (match) return match[1].trim();
   }
 

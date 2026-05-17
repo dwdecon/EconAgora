@@ -28,7 +28,7 @@ cover: "/blog-covers/2026/05/agent-zotero-integration.png"
 3. **智能笔记**：自动生成文献摘要、批判性评价、关联分析
 4. **综述框架**：基于多篇文献构建文献综述的结构化框架
 
-**前置要求**：已完成第一篇的环境配置（VSCode + Cline + Claude API）
+**前置要求**：已完成第一篇的环境配置（VSCode + CC Switch + Claude Code + API）
 
 ## 第一部分：理解 MCP 协议
 
@@ -48,7 +48,7 @@ MCP（Model Context Protocol）是 Anthropic 于 2024 年推出的开放协议�
 │              MCP 架构                   │
 ├─────────────────────────────────────────┤
 │  Host（宿主应用）                        │
-│  - VSCode / Cline / Claude Desktop      │
+│  - VSCode / Claude Code / Claude Desktop│
 ├─────────────────────────────────────────┤
 │  Client（客户端）                        │
 │  - 管理连接、路由请求                    │
@@ -68,7 +68,7 @@ MCP（Model Context Protocol）是 Anthropic 于 2024 年推出的开放协议�
 
 **工作流程**：
 1. Agent 需要获取文献信息
-2. Cline（Client）通过 MCP 连接到 Zotero Server
+2. Claude Code（Client）通过 MCP 连接到 Zotero Server
 3. Zotero Server 查询本地 Zotero 数据库
 4. 返回结果给 Agent，Agent 继续处理
 
@@ -79,7 +79,7 @@ MCP（Model Context Protocol）是 Anthropic 于 2024 年推出的开放协议�
 | **直接调用 Zotero API** | 简单直接 | 需要处理认证、格式转换、错误处理 |
 | **MCP 协议** | 标准化、可复用、多工具协同 | 需要额外配置 Server |
 
-**MCP 的优势在于**：一旦配置好 Zotero MCP Server，任何支持 MCP 的 Agent（Claude、Cline、Cursor 等）都可以无缝使用，无需重复开发。
+**MCP 的优势在于**：一旦配置好 Zotero MCP Server，任何支持 MCP 的 Agent（Claude Code、Claude Desktop 等）都可以无缝使用，无需重复开发。
 
 ## 第二部分：配置 Zotero MCP Server
 
@@ -149,16 +149,19 @@ dir $env:ZOTERO_DB_PATH  # Windows
 
 如果文件存在，说明路径正确。
 
-### 2.3 配置 Cline 使用 MCP
+### 2.3 配置 Claude Code 使用 MCP
 
 **步骤 1：创建 MCP 配置文件**
 
-在 VSCode 中，Cline 使用 `cline_mcp_settings.json` 配置 MCP Servers。
+Claude Code 使用 `claude_desktop_config.json` 或项目级的 `.mcp.json` 配置 MCP Servers。
 
-文件位置：
-- Windows: `%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json`
-- macOS: `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
-- Linux: `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+**全局配置**（影响所有项目）：
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+**项目级配置**（仅当前项目）：
+在项目根目录创建 `.mcp.json` 文件。
 
 **步骤 2：编辑配置文件**
 
@@ -185,16 +188,25 @@ dir $env:ZOTERO_DB_PATH  # Windows
 - 将 `ZOTERO_DB_PATH` 修改为你的实际路径
 - `autoApprove` 为空数组表示每次调用都需要手动批准（安全推荐）
 
-**步骤 3：重启 Cline**
+**步骤 3：重启 Claude Code**
 
-1. 关闭 VSCode
-2. 重新打开 VSCode
-3. 打开 Cline 面板
+1. 退出 Claude Code（输入 `/exit`）
+2. 重新启动 `claude`
+3. 输入 `/mcp` 查看已连接的 MCP Servers
 4. 应该能看到 Zotero MCP Server 已连接
+
+**通过 CC Switch 管理 MCP**（推荐）：
+
+CC Switch 提供统一的 MCP 管理面板，支持双向同步：
+1. 打开 CC Switch
+2. 点击「MCP」按钮
+3. 通过模板或自定义配置添加 Zotero MCP Server
+4. 切换各应用同步开关（Claude Code、OpenClaw 等）
+5. CC Switch 会自动将配置同步到对应工具的配置文件
 
 ### 2.4 验证 MCP 连接
 
-在 Cline 聊天框中输入：
+在 Claude Code 中输入：
 
 ```
 请使用 Zotero 工具查看我的文献库中有多少篇文献。
@@ -209,10 +221,11 @@ dir $env:ZOTERO_DB_PATH  # Windows
 
 | 问题 | 解决方法 |
 |-----|---------|
-| "MCP Server not found" | 检查 `cline_mcp_settings.json` 路径是否正确 |
+| "MCP Server not found" | 检查配置文件路径是否正确 |
 | "ZOTERO_DB_PATH not set" | 确认环境变量已设置，或直接在 JSON 中指定 |
 | "Permission denied" | 检查 Zotero 数据库文件的读取权限 |
 | "Database is locked" | 关闭 Zotero 桌面应用后再试 |
+| Claude Code 未识别 MCP | 重启 Claude Code，输入 `/mcp` 检查连接状态 |
 
 ## 第三部分：实战任务——文献检索与总结
 
@@ -227,7 +240,7 @@ dir $env:ZOTERO_DB_PATH  # Windows
 
 ### 3.2 编写任务提示词
 
-在 Cline 中输入：
+在 Claude Code 中输入：
 
 ```
 请帮我完成以下文献调研任务：
@@ -383,7 +396,7 @@ if __name__ == "__main__":
 
 ### 4.3 更新 MCP 配置
 
-在 `cline_mcp_settings.json` 中添加 PDF Parser：
+在 `.mcp.json` 或 `claude_desktop_config.json` 中添加 PDF Parser：
 
 ```json
 {
@@ -433,7 +446,10 @@ if __name__ == "__main__":
 
 ### 5.1 创建自定义指令
 
-在 Cline 设置中添加文献调研专用指令：
+在 Claude Code 设置中添加文献调研专用指令：
+
+1. 在项目根目录创建或编辑 `CLAUDE.md` 文件
+2. 添加：
 
 ```
 你是一位经济学文献调研专家。在使用 Zotero 工具时：
@@ -521,7 +537,7 @@ import subprocess
 from datetime import datetime
 
 def main():
-    # Run Cline/Agent to check for new papers
+    # Run Claude Code to check for new papers
     prompt = """
     请检查 Zotero 库中最近一周新增的文献，
     重点关注以下主题：causal inference, DID, IV
@@ -531,7 +547,7 @@ def main():
     # This would need to be adapted to your specific setup
     # For now, manual execution is recommended
     print(f"Literature tracker updated at {datetime.now()}")
-    print("Please run the review task manually in Cline")
+    print("Please run the review task manually in Claude Code")
 
 if __name__ == "__main__":
     main()

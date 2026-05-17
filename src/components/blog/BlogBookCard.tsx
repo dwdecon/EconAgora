@@ -31,11 +31,19 @@ export default function BlogBookCard({
           >
             <div className="absolute inset-[12px] rounded-[22px] border border-black/8" />
 
-            <BlogCoverIllustration
-              variant={article.illustration}
-              accentColor={article.theme.accent}
-              compact
-            />
+            {article.coverImage ? (
+              <img
+                src={article.coverImage}
+                alt={article.title}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <BlogCoverIllustration
+                variant={article.illustration}
+                accentColor={article.theme.accent}
+                compact
+              />
+            )}
           </div>
 
           <div className="flex flex-1 flex-col items-start gap-3 p-5 text-left sm:p-6">
@@ -76,10 +84,18 @@ export default function BlogBookCard({
         >
           <div className="absolute inset-[14px] rounded-[24px] border border-black/8" />
 
-          <BlogCoverIllustration
-            variant={article.illustration}
-            accentColor={article.theme.accent}
-          />
+          {article.coverImage ? (
+            <img
+              src={article.coverImage}
+              alt={article.title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <BlogCoverIllustration
+              variant={article.illustration}
+              accentColor={article.theme.accent}
+            />
+          )}
         </div>
 
         <div className="flex flex-1 flex-col items-start gap-4 p-6 text-left sm:p-8">

@@ -13,6 +13,7 @@ author: "EconAgora Editorial Desk"
 authorRole: "Research Workflow Editor"
 issue: "Volume 01"
 illustration: "reviewFlow"
+cover: "/blog-covers/2026/05/from-pdf-to-panel.svg"
 ---
 
 Most literature-review workflows fail because they ask an LLM for a polished survey too early, before papers are decomposed into searchable, comparable, and challengeable units of work.

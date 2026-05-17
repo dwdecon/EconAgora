@@ -13,6 +13,7 @@ author: "EconAgora Methods Desk"
 authorRole: "复现方法编辑"
 issue: "Volume 02"
 illustration: "replicationStack"
+cover: "/blog-covers/2026/05/replication-breaks-before-regression.png"
 ---
 
 研究者通常会把注意力集中在回归表能不能跑出来，但复现项目最常见的失败点，发生在估计量出现之前的文件组织阶段。

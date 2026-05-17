@@ -13,6 +13,7 @@ author: "EconAgora Product Studio"
 authorRole: "Agent Product Editor"
 issue: "Volume 04"
 illustration: "copilotLayers"
+cover: "/blog-covers/2026/05/prompt-skill-tool-copilot.svg"
 ---
 
 A copilot that actually works in economics research should not delegate every responsibility to the foundation model. It should behave more like an editorial machine with its own rules, divisions of labor, and interfaces.

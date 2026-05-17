@@ -191,4 +191,5 @@ if (require.main === module) {
     .catch(console.error);
 }
 
-export { fetchAllPapers, ArxivPaper };
+export { fetchAllPapers };
+export type { ArxivPaper };

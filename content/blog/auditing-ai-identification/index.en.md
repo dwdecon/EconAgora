@@ -13,6 +13,7 @@ author: "EconAgora Causal Lab"
 authorRole: "Causal Inference Editor"
 issue: "Volume 03"
 illustration: "auditCompass"
+cover: "/blog-covers/2026/05/auditing-ai-identification.svg"
 ---
 
 Generating DID, RDD, or IV ideas is easy. Turning those ideas into an auditable checklist is the hard part.

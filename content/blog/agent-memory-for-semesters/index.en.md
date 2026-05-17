@@ -13,6 +13,7 @@ author: "EconAgora Knowledge Desk"
 authorRole: "Knowledge Systems Editor"
 issue: "Volume 05"
 illustration: "memoryArchive"
+cover: "/blog-covers/2026/05/agent-memory-for-semesters.svg"
 ---
 
 Many teams reduce agent memory to vector retrieval. In research settings, the harder and more valuable task is preserving decisions, failed attempts, and reasons for abandoning a path.

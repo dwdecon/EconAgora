@@ -13,6 +13,7 @@ author: "EconAgora Knowledge Desk"
 authorRole: "知识系统编辑"
 issue: "Volume 05"
 illustration: "memoryArchive"
+cover: "/blog-covers/2026/05/agent-memory-for-semesters.png"
 ---
 
 很多团队把 Agent 记忆等同于向量检索，但在研究场景里，更难也更重要的是保存选择过程、失败尝试和放弃原因。

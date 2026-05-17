@@ -45,6 +45,7 @@ type RawBlogEntry = {
     accent: string;
     shadow: string;
   };
+  coverImage?: string;
 };
 
 export type BlogSection = {
@@ -76,6 +77,7 @@ export type LocalizedBlogEntry = {
   lead: string;
   sections: BlogSection[];
   theme: RawBlogEntry["theme"];
+  coverImage?: string;
 };
 
 const BLOG_ENTRIES: RawBlogEntry[] = [
@@ -663,6 +665,200 @@ const BLOG_ENTRIES: RawBlogEntry[] = [
       shadow: "rgba(126, 96, 79, 0.22)",
     },
   },
+  {
+    slug: "ai-agent-research-setup",
+    issue: "Volume 05",
+    illustration: "copilotLayers",
+    publishedAt: "2026-05-21",
+    category: {
+      zh: "AI 工具",
+      en: "AI Tools",
+    },
+    title: {
+      zh: "什么是 AI Agent？使用 VSCode 配置自己的第一个科研 Agent",
+      en: "What is an AI Agent? Configure Your First Research Agent with VSCode",
+    },
+    excerpt: {
+      zh: "从零开始理解 AI Agent 的概念，使用 VSCode + Claude + CC Switch 配置一个能读文献、写代码、跑数据的科研助手。",
+      en: "Understand AI Agent from scratch and configure a research assistant that can read papers, write code, and run data analysis using VSCode + Claude + CC Switch.",
+    },
+    coverNote: {
+      zh: "Getting Started / AI Agent Research Setup",
+      en: "Getting Started / AI Agent Research Setup",
+    },
+    readTime: {
+      zh: "20 分钟",
+      en: "20 min",
+    },
+    tags: [
+      { zh: "AI Agent", en: "AI Agent" },
+      { zh: "VSCode", en: "VSCode" },
+      { zh: "Claude", en: "Claude" },
+      { zh: "CC Switch", en: "CC Switch" },
+      { zh: "科研工具", en: "Research Tools" },
+      { zh: "入门教程", en: "Tutorial" },
+    ],
+    author: {
+      name: "戴伟德",
+      role: {
+        zh: "经济学研究者",
+        en: "Economics Researcher",
+      },
+    },
+    stats: [
+      { value: "3", label: { zh: "核心工具", en: "Core tools" } },
+      { value: "50+", label: { zh: "模型供应商", en: "Model providers" } },
+      { value: "1", label: { zh: "实战任务", en: "Hands-on task" } },
+    ],
+    shelfIndex: [
+      {
+        zh: "AI Agent 不是聊天机器人，而是能持续执行任务、调用工具、读写文件的助理。",
+        en: "An AI Agent is not a chatbot but an assistant that can continuously execute tasks, call tools, and read/write files.",
+      },
+      {
+        zh: "CC Switch 让你一键切换 Claude、Kimi、DeepSeek 等 50+ 模型供应商。",
+        en: "CC Switch lets you switch between 50+ model providers including Claude, Kimi, and DeepSeek with one click.",
+      },
+      {
+        zh: "Claude Code 是 Anthropic 官方 CLI 工具，在 VSCode 终端中直接对话。",
+        en: "Claude Code is Anthropic's official CLI tool for direct conversation in the VSCode terminal.",
+      },
+    ],
+    lead: {
+      zh: "2024 年以来，AI Agent（智能体）从一个技术概念迅速演变为研究者手中的生产力工具。与单次对话的 ChatGPT 不同，Agent 能够持续执行任务、调用工具、读写文件，真正融入研究工作流。",
+      en: "Since 2024, AI Agent has evolved from a technical concept into a productivity tool for researchers. Unlike single-conversation ChatGPT, Agents can continuously execute tasks, call tools, and read/write files, truly integrating into research workflows.",
+    },
+    sections: [
+      {
+        heading: {
+          zh: "从 ChatGPT 到 Agent：关键区别",
+          en: "From ChatGPT to Agent: Key Differences",
+        },
+        paragraphs: [
+          {
+            zh: "ChatGPT 是\"顾问\"，Agent 是\"助理\"。顾问给你建议，助理直接动手做。Agent 的核心架构包含三个组件：大脑（LLM）、工具（Tools）和记忆（Memory）。",
+            en: "ChatGPT is an 'advisor', while an Agent is an 'assistant'. Advisors give suggestions; assistants get things done. The core Agent architecture has three components: Brain (LLM), Tools, and Memory.",
+          },
+        ],
+        bullets: [
+          {
+            zh: "交互方式：从单次对话到持续任务执行",
+            en: "Interaction: from single conversation to continuous task execution",
+          },
+          {
+            zh: "文件操作：从手动上传/下载到自动读写文件",
+            en: "File operations: from manual upload/download to automatic read/write",
+          },
+          {
+            zh: "工具使用：从无到可调用计算器、搜索引擎、代码解释器等",
+            en: "Tool usage: from none to calling calculators, search engines, code interpreters",
+          },
+          {
+            zh: "记忆：从对话窗口内到可读写外部文件，跨会话持久",
+            en: "Memory: from within conversation window to external file persistence across sessions",
+          },
+        ],
+      },
+      {
+        heading: {
+          zh: "安装 CC Switch 和 Claude Code",
+          en: "Install CC Switch and Claude Code",
+        },
+        paragraphs: [
+          {
+            zh: "CC Switch 是一个跨平台的桌面 All-in-One 助手，用于管理 Claude Code、Codex、Gemini CLI 等 AI CLI 工具的 API 供应商切换。通过 CC Switch，你可以轻松在 Claude 中使用国产模型（如 Kimi、DeepSeek 等），无需手动编辑配置文件。",
+            en: "CC Switch is a cross-platform desktop All-in-One assistant for managing API provider switching of AI CLI tools like Claude Code, Codex, and Gemini CLI. Through CC Switch, you can easily use domestic models (like Kimi, DeepSeek) in Claude without manually editing configuration files.",
+          },
+          {
+            zh: "Claude Code 是 Anthropic 推出的官方 CLI 工具，让你在终端中直接与 Claude 对话，执行文件操作、代码编写等任务。安装命令：npm install -g @anthropic-ai/claude-code",
+            en: "Claude Code is Anthropic's official CLI tool for direct conversation with Claude in the terminal, executing file operations, code writing, and more. Install with: npm install -g @anthropic-ai/claude-code",
+          },
+        ],
+        bullets: [
+          {
+            zh: "CC Switch 支持 50+ 供应商预设，包括官方 API 和第三方中转服务",
+            en: "CC Switch supports 50+ provider presets, including official APIs and third-party relay services",
+          },
+          {
+            zh: "常用国产模型：Kimi (Moonshot)、DeepSeek、通义千问、文心一言",
+            en: "Common domestic models: Kimi (Moonshot), DeepSeek, Tongyi Qianwen, Wenxin Yiyan",
+          },
+          {
+            zh: "切换供应商后 Claude Code 无需重启，立即生效",
+            en: "Switching providers takes effect immediately without restarting Claude Code",
+          },
+        ],
+      },
+      {
+        heading: {
+          zh: "第一个科研任务：自动下载并解析 NBER 论文",
+          en: "First Research Task: Auto-download and Parse NBER Paper",
+        },
+        paragraphs: [
+          {
+            zh: "让 Agent 自动完成：下载一篇 NBER Working Paper（PDF），提取标题、作者、摘要、关键词，生成中文摘要总结，并保存到本地文件。",
+            en: "Let the Agent automatically: download an NBER Working Paper (PDF), extract title, author, abstract, keywords, generate a Chinese summary, and save to a local file.",
+          },
+          {
+            zh: "在 Claude Code 中输入任务提示词后，Agent 会自主规划、执行、反思并调整策略。你会看到它将任务拆解为子步骤，调用浏览器工具访问网站，遇到问题（如需要登录）时调整策略，最终生成结构化的 Markdown 文件。",
+            en: "After entering the task prompt in Claude Code, the Agent will autonomously plan, execute, reflect, and adjust strategies. You'll see it break down tasks into sub-steps, call browser tools to access websites, adjust strategies when encountering issues (like login requirements), and finally generate a structured Markdown file.",
+          },
+        ],
+        bullets: [
+          {
+            zh: "配置工具权限：文件读写、网络访问、命令执行（需确认）",
+            en: "Configure tool permissions: file read/write, network access, command execution (requires confirmation)",
+          },
+          {
+            zh: "编写具体、可验证的任务提示词，包含明确的输出格式要求",
+            en: "Write specific, verifiable task prompts with clear output format requirements",
+          },
+          {
+            zh: "人工核查关键信息，复杂任务分步骤执行",
+            en: "Manually verify key information; execute complex tasks in steps",
+          },
+        ],
+      },
+      {
+        heading: {
+          zh: "进阶配置与模型切换",
+          en: "Advanced Configuration and Model Switching",
+        },
+        paragraphs: [
+          {
+            zh: "Claude Code 支持自定义系统指令，让 Agent 始终以特定方式工作。在项目根目录创建 CLAUDE.md 文件，Claude Code 会自动读取并遵循指令。",
+            en: "Claude Code supports custom system instructions to make the Agent work in a specific way. Create a CLAUDE.md file in the project root, and Claude Code will automatically read and follow the instructions.",
+          },
+          {
+            zh: "CC Switch 的核心价值在于一键切换不同模型供应商。使用 Kimi 处理中文文献，使用 DeepSeek 进行代码生成，切换回 Claude 进行复杂推理——根据任务特点选择最适合的模型。",
+            en: "CC Switch's core value is one-click switching between different model providers. Use Kimi for Chinese literature, DeepSeek for code generation, and switch back to Claude for complex reasoning—choose the most suitable model based on task characteristics.",
+          },
+        ],
+        bullets: [
+          {
+            zh: "场景 1：使用 Kimi 处理中文文献，中文理解能力更优",
+            en: "Scenario 1: Use Kimi for Chinese literature, better Chinese comprehension",
+          },
+          {
+            zh: "场景 2：使用 DeepSeek 进行代码生成，中文场景下表现优异",
+            en: "Scenario 2: Use DeepSeek for code generation, excellent in Chinese contexts",
+          },
+          {
+            zh: "场景 3：切换回 Claude 进行复杂推理，学术分析中表现最佳",
+            en: "Scenario 3: Switch back to Claude for complex reasoning, best in academic analysis",
+          },
+        ],
+      },
+    ],
+    theme: {
+      coverStart: "#e8ddd0",
+      coverEnd: "#c9a87c",
+      spine: "#7a5c3a",
+      accent: "#5a4028",
+      shadow: "rgba(122, 92, 58, 0.24)",
+    },
+    coverImage: "/blog-covers/2026/05/ai-agent-research-setup-final.png",
+  },
 ];
 
 function pick(locale: string, value: LocalizedText) {
@@ -697,6 +893,7 @@ function localizeEntry(entry: RawBlogEntry, locale: string): LocalizedBlogEntry 
       bullets: section.bullets?.map((bullet) => pick(locale, bullet)),
     })),
     theme: entry.theme,
+    coverImage: entry.coverImage,
   };
 }
 

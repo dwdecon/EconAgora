@@ -1,14 +1,15 @@
 ---
 slug: "ai-agent-research-setup"
 title: "什么是 AI Agent？使用 VSCode 配置自己的第一个科研 Agent"
-excerpt: "从零开始理解 AI Agent 的概念，使用 VSCode + Cline 配置一个能读文献、写代码、跑数据的科研助手。"
+excerpt: "从零开始理解 AI Agent 的概念，使用 VSCode + Claude + CC Switch 配置一个能读文献、写代码、跑数据的科研助手。"
 category: "AI 工具"
 date: "2026-05-21"
 readTime: "20 分钟"
 tags:
   - "AI Agent"
   - "VSCode"
-  - "Cline"
+  - "Claude"
+  - "CC Switch"
   - "科研工具"
   - "入门教程"
 author: "戴伟德"
@@ -24,8 +25,8 @@ cover: "/blog-covers/2026/05/ai-agent-research-setup-final.png"
 
 本文面向经济学研究者，从零开始：
 1. 理解什么是 AI Agent（以及什么不是）
-2. 在 VSCode 中配置 Cline 插件
-3. 连接 Claude/GPT 模型
+2. 安装和配置 CC Switch（API 切换工具）
+3. 在 VSCode 中使用 Claude Code
 4. 完成第一个科研任务：自动下载并解析一篇 NBER Working Paper
 
 无需编程基础，跟着步骤操作即可。
@@ -89,66 +90,142 @@ VSCode（Visual Studio Code）是微软开发的免费代码编辑器，也是�
 
 安装完成后，打开 VSCode，确保能正常启动即可。
 
-### 2.2 安装 Cline 插件
+### 2.2 安装 CC Switch
 
-Cline 是目前最成熟的 VSCode Agent 插件之一，支持 Claude、GPT-4、DeepSeek 等多种模型。
+CC Switch 是一个跨平台的桌面 All-in-One 助手，用于管理 Claude Code、Codex、Gemini CLI 等 AI CLI 工具的 API 供应商切换。通过 CC Switch，你可以轻松在 Claude 中使用国产模型（如 Kimi、DeepSeek 等），无需手动编辑配置文件。
 
-**安装步骤**：
+**系统要求**：
+- Windows 10 及以上
+- macOS 12 (Monterey) 及以上
+- Linux: Ubuntu 22.04+ / Debian 11+ / Fedora 34+
 
-1. 打开 VSCode
-2. 点击左侧活动栏的「扩展」图标（四个方块）
-3. 搜索 "Cline"
-4. 找到由 `saoudrizwan` 开发的 Cline 插件
-5. 点击「安装」
+**下载安装**：
+
+**Windows 用户**：
+1. 访问 [CC Switch GitHub Releases](https://github.com/farion1231/cc-switch/releases)
+2. 下载 `CC-Switch-v{版本号}-Windows.msi` 安装包
+3. 双击安装，按提示完成
+
+**macOS 用户（推荐 Homebrew）**：
+```bash
+brew tap farion1231/ccswitch
+brew install --cask cc-switch
+```
+
+或手动下载 `.dmg` 文件安装。
+
+**Linux 用户**：
+- Debian/Ubuntu: 下载 `.deb` 包
+- Fedora/RHEL: 下载 `.rpm` 包
+- 通用: 下载 `.AppImage`
 
 **验证安装**：
+安装完成后，打开 CC Switch，看到主界面即表示成功。主界面会显示当前配置的 CLI 工具（Claude Code、Codex 等）和供应商状态。
 
-安装完成后，左侧活动栏会出现 Cline 的机器人图标（🤖）。点击打开，看到聊天界面即表示成功。
+### 2.3 配置 Claude Code
 
-### 2.3 获取 API Key
+Claude Code 是 Anthropic 推出的官方 CLI 工具，让你在终端中直接与 Claude 对话，执行文件操作、代码编写等任务。
 
-Cline 需要调用大模型 API，以下是几种选择：
+**安装 Claude Code**：
+```bash
+npm install -g @anthropic-ai/claude-code
+```
 
-| 模型 | 提供商 | 特点 | 获取方式 |
-|-----|--------|------|---------|
-| Claude 3.5 Sonnet | Anthropic | 推理能力强，适合科研 | https://console.anthropic.com/ |
-| GPT-4o | OpenAI | 通用能力强，代码好 | https://platform.openai.com/ |
-| DeepSeek-V3 | DeepSeek | 中文优秀，性价比高 | https://platform.deepseek.com/ |
+**验证安装**：
+```bash
+claude --version
+```
 
-**推荐**：Claude 3.5 Sonnet（科研场景表现最佳）
+### 2.4 在 CC Switch 中添加供应商
 
-**操作步骤**（以 Anthropic 为例）：
+CC Switch 支持 50+ 供应商预设，包括官方 API 和第三方中转服务。你可以轻松切换 Claude、Kimi、DeepSeek 等模型。
 
+**添加官方 Anthropic 供应商**：
+1. 打开 CC Switch
+2. 点击「添加供应商」
+3. 选择预设："Anthropic"（官方）
+4. 输入你的 API Key
+5. 点击「保存」
+
+**添加国产模型供应商（以 Kimi 为例）**：
+1. 点击「添加供应商」
+2. 选择预设："Moonshot"（Kimi）或自定义 OpenAI 兼容接口
+3. 输入 API Key 和 Base URL
+4. 选择模型：`kimi-latest` 或具体版本
+5. 点击「保存」
+
+**常用国产模型配置**：
+
+| 模型 | 供应商 | Base URL 示例 | 模型 ID |
+|-----|--------|--------------|---------|
+| Kimi | Moonshot | `https://api.moonshot.cn/v1` | `kimi-latest` |
+| DeepSeek | DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| 通义千问 | Alibaba | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-max` |
+| 文心一言 | Baidu | `https://qianfan.baidubce.com/v2` | `ernie-bot-4` |
+
+**切换供应商**：
+- 主界面：选择供应商 → 点击「启用」
+- 系统托盘：直接点击供应商名称（立即生效，Claude Code 无需重启）
+
+### 2.5 获取 API Key
+
+**Anthropic 官方**：
 1. 访问 https://console.anthropic.com/
 2. 注册/登录账号
 3. 进入 "API Keys" 页面
 4. 点击 "Create Key"
 5. 复制生成的密钥（格式：`sk-ant-api03-...`）
 
+**Kimi（Moonshot）**：
+1. 访问 https://platform.moonshot.cn/
+2. 注册/登录账号
+3. 进入 "API Key 管理"
+4. 创建新 Key
+
+**DeepSeek**：
+1. 访问 https://platform.deepseek.com/
+2. 注册/登录账号
+3. 进入 "API Keys" 页面
+4. 创建新 Key
+
 **安全提示**：API Key 相当于密码，不要分享给他人，不要上传到公开仓库。
 
-### 2.4 配置 Cline
+### 2.6 在 VSCode 中使用 Claude Code
 
-**步骤 1：打开 Cline 设置**
+Claude Code 可以在 VSCode 的集成终端中使用，实现与编辑器的无缝协作。
 
-1. 点击 VSCode 左下角的「设置」图标（齿轮）
-2. 选择「设置」
-3. 搜索 "Cline"
-4. 找到 "Cline: Api Key" 选项
+**步骤 1：打开 VSCode 终端**
+1. 打开 VSCode
+2. 按 `` Ctrl+` `` 或点击菜单「终端」→「新建终端」
 
-**步骤 2：填入 API Key**
+**步骤 2：启动 Claude Code**
+```bash
+claude
+```
 
-在 "Cline: Api Key" 输入框中粘贴你的 Anthropic API Key。
+首次启动会要求登录，按提示完成 OAuth 认证。
 
-**步骤 3：选择模型**
+**步骤 3：验证连接**
+在 Claude Code 提示符下输入：
+```
+你好，请简单介绍一下自己
+```
 
-找到 "Cline: Model" 选项，选择 `claude-3-5-sonnet-20241022`。
+如果看到 Claude 的回复，说明配置成功。
 
-**步骤 4：验证连接**
+**常用命令**：
+| 命令 | 说明 |
+|-----|------|
+| `claude` | 启动交互式对话 |
+| `claude "任务描述"` | 直接执行单次任务 |
+| `claude --help` | 查看所有选项 |
+| `/exit` 或 `Ctrl+D` | 退出 Claude Code |
 
-1. 点击左侧 Cline 图标打开聊天面板
-2. 输入："你好，请简单介绍一下自己"
-3. 如果看到 Claude 的回复，说明配置成功
+**在 VSCode 中与文件协作**：
+1. 在 VSCode 中打开项目文件夹
+2. 在终端中启动 `claude`
+3. 可以直接引用文件："请帮我分析 `data.csv` 文件"
+4. Claude 会读取文件并执行分析
 
 **常见问题**：
 
@@ -156,7 +233,8 @@ Cline 需要调用大模型 API，以下是几种选择：
 |-----|---------|
 | "API Key invalid" | 检查 Key 是否完整复制，有无多余空格 |
 | "Rate limit exceeded" | 等待 1 分钟后重试，或升级账户 |
-| 无回复/超时 | 检查网络连接，尝试切换模型 |
+| 无回复/超时 | 检查网络连接，尝试切换供应商 |
+| Claude Code 无法启动 | 确保 Node.js 版本 >= 18，重新安装 |
 
 ## 第三部分：第一个科研任务
 
@@ -170,22 +248,20 @@ Cline 需要调用大模型 API，以下是几种选择：
 
 ### 3.2 配置工具权限
 
-Cline 默认只能读写工作区文件，需要授予网络访问权限：
+Claude Code 默认只能读写工作区文件，需要授予网络访问权限：
 
-1. 打开 Cline 聊天面板
-2. 点击右上角的「设置」图标
-3. 找到 "Auto-approve" 选项
-4. 勾选：
-   - ✅ Read files
-   - ✅ Edit files
-   - ✅ Execute approved commands
-   - ✅ Use browser
+1. 启动 Claude Code
+2. 输入 `/permissions` 查看当前权限
+3. 按提示启用需要的权限：
+   - ✅ 文件读写
+   - ✅ 网络访问
+   - ✅ 命令执行（需确认）
 
-**安全说明**：勾选 "Execute approved commands" 后，Cline 会询问是否执行每条命令，你可以审查后再批准。
+**安全说明**：启用命令执行后，Claude 会询问是否执行每条命令，你可以审查后再批准。
 
 ### 3.3 编写任务提示词
 
-在 Cline 聊天框中输入以下提示词：
+在 Claude Code 中输入以下提示词：
 
 ```
 请帮我完成以下科研任务：
@@ -210,7 +286,7 @@ Cline 默认只能读写工作区文件，需要授予网络访问权限：
 
 ### 3.4 观察 Agent 的工作过程
 
-输入提示词后，Cline 会开始自主工作。你会看到：
+输入提示词后，Claude Code 会开始自主工作。你会看到：
 
 **第一步：规划**
 
@@ -266,7 +342,7 @@ AI, Scientific Discovery, Innovation, Productivity
 
 1. 在 VSCode 左侧「资源管理器」中找到 `paper_summary.md`
 2. 点击打开，检查内容是否完整
-3. 如有遗漏，可以在 Cline 中继续对话："请补充论文的研究方法部分"
+3. 如有遗漏，可以在 Claude Code 中继续对话："请补充论文的研究方法部分"
 
 ## 第四部分：理解 Agent 的能力边界
 
@@ -317,11 +393,10 @@ AI, Scientific Discovery, Innovation, Productivity
 
 ### 5.1 配置自定义指令
 
-Cline 支持自定义系统指令，让 Agent 始终以特定方式工作：
+Claude Code 支持自定义系统指令，让 Agent 始终以特定方式工作：
 
-1. 打开 Cline 设置
-2. 找到 "Custom Instructions"
-3. 输入：
+1. 在项目根目录创建 `CLAUDE.md` 文件
+2. 写入：
 
 ```
 你是一位经济学研究助手。在完成任务时：
@@ -332,11 +407,13 @@ Cline 支持自定义系统指令，让 Agent 始终以特定方式工作：
 5. 不确定的信息明确标注"[待核实]"
 ```
 
+3. Claude Code 会自动读取该文件并遵循指令
+
 ### 5.2 配置常用工具
 
 **安装 Python 环境**（用于数据分析）：
 
-在 Cline 中输入：
+在 Claude Code 中输入：
 ```
 请帮我检查系统是否安装了 Python。如果没有，请指导我安装。
 安装完成后，请安装以下包：pandas、requests、beautifulsoup4、PyPDF2
@@ -356,15 +433,35 @@ Cline 支持自定义系统指令，让 Agent 始终以特定方式工作：
 
 下次打开时，双击该文件即可恢复完整环境。
 
+### 5.4 使用 CC Switch 切换模型
+
+CC Switch 的核心价值在于一键切换不同模型供应商：
+
+**场景 1：使用 Kimi 处理中文文献**
+1. 在 CC Switch 中启用 Kimi 供应商
+2. 在 Claude Code 中提问："请总结这篇中文论文的要点"
+3. Kimi 的中文理解能力会更适合
+
+**场景 2：使用 DeepSeek 进行代码生成**
+1. 切换到 DeepSeek 供应商
+2. 提问："请帮我写一个 Stata 的 DID 回归代码"
+3. DeepSeek 的代码能力在中文场景下表现优异
+
+**场景 3：切换回 Claude 进行复杂推理**
+1. 切换回 Anthropic 官方供应商
+2. 提问需要深度推理的问题
+3. Claude 的推理能力在学术分析中表现最佳
+
 ## 总结
 
 本文介绍了：
 
 1. **AI Agent 概念**：从 ChatGPT 到 Agent 的演进，三大核心组件
-2. **环境配置**：VSCode + Cline + Claude API 的完整安装流程
-3. **实战任务**：自动下载并总结 NBER Working Paper
-4. **能力边界**：Agent 能做什么、不能做什么
-5. **进阶配置**：自定义指令、工具安装、工作区保存
+2. **环境配置**：VSCode + CC Switch + Claude Code 的完整安装流程
+3. **供应商切换**：通过 CC Switch 使用 Claude、Kimi、DeepSeek 等模型
+4. **实战任务**：自动下载并总结 NBER Working Paper
+5. **能力边界**：Agent 能做什么、不能做什么
+6. **进阶配置**：自定义指令、工具安装、工作区保存、模型切换
 
 **下一步**：
 
@@ -377,15 +474,17 @@ Cline 支持自定义系统指令，让 Agent 始终以特定方式工作：
 
 **延伸阅读：**
 
-- Cline 官方文档：https://github.com/cline/cline
+- CC Switch 官方文档：https://github.com/farion1231/cc-switch
+- Claude Code 官方文档：https://docs.anthropic.com/en/docs/claude-code/overview
 - MCP（Model Context Protocol）：https://modelcontextprotocol.io/
 - Anthropic API 文档：https://docs.anthropic.com/
 
 **工具推荐：**
 
-- Cline：VSCode 最佳 Agent 插件
-- Claude 3.5 Sonnet：科研场景首选模型
+- CC Switch：API 供应商切换管理工具
+- Claude Code：Anthropic 官方 CLI Agent 工具
 - VSCode：轻量、免费、插件丰富
+- Kimi/DeepSeek：国产优秀大模型
 
 ---
 

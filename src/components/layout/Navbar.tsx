@@ -177,10 +177,17 @@ export default function Navbar() {
         return;
       }
 
+      // Defensive: ensure id is a string, not a function reference
+      const userId = currentUser.id;
+      if (!userId || typeof userId !== "string") {
+        setUser(null);
+        return;
+      }
+
       const { data: profile } = await db
         .from("user_profile")
         .select("name")
-        .eq("cloudbase_uid", currentUser.id)
+        .eq("cloudbase_uid", userId)
         .single();
 
       if (!mounted) return;
@@ -196,7 +203,7 @@ export default function Navbar() {
       }
 
       setUser({
-        id: currentUser.id,
+        id: userId,
         displayName: profileName || metaName || emailPrefix || "User",
       });
     }

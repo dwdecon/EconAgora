@@ -13,6 +13,7 @@ author: "EconAgora Product Studio"
 authorRole: "Agent 产品编辑"
 issue: "Volume 04"
 illustration: "copilotLayers"
+cover: "/blog-covers/2026/05/prompt-skill-tool-copilot.png"
 ---
 
 一个能在经济学场景里真正落地的 Copilot，不应该把所有责任都压给大模型本身。它更像一台编辑部机器，有自己的章法、分工和接口。

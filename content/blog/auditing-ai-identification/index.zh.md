@@ -13,6 +13,7 @@ author: "EconAgora Causal Lab"
 authorRole: "因果推断编辑"
 issue: "Volume 03"
 illustration: "auditCompass"
+cover: "/blog-covers/2026/05/auditing-ai-identification.png"
 ---
 
 让模型帮你生成 DID、RDD 或 IV 方案并不难，难的是把这些方案转化成一套可逐项检查的审计表。

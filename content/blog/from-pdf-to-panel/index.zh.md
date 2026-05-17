@@ -13,6 +13,7 @@ author: "EconAgora Editorial Desk"
 authorRole: "研究流程编辑"
 issue: "Volume 01"
 illustration: "reviewFlow"
+cover: "/blog-covers/2026/05/from-pdf-to-panel.png"
 ---
 
 很多研究者把 LLM 用在文献综述上时，第一步就错了：他们要求模型直接给出“综述成稿”，却没有先把论文拆成可检索、可比较、可质疑的工作单元。

@@ -15,7 +15,7 @@ author: "戴伟德"
 authorRole: "Economics Researcher"
 issue: "Volume 2605"
 illustration: "generated"
-cover: "/blog-covers/2026/05/llm-assisted-did-design.png"
+cover: "/blog-covers/2026/05/llm-assisted-did-design.svg"
 source: "arXiv:2605.xxxxx"
 ---
 
