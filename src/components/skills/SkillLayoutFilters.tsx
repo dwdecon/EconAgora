@@ -87,45 +87,10 @@ export function SkillSearchBar() {
   );
 }
 
+import { AccordionSidebar } from "@/components/shared/AccordionSidebar";
+
 export function SkillSidebar({ categories }: { categories: string[] }) {
-  const { currentCategory, setCategory } = useSkillFilters();
-  const locale = useLocale();
-
-  const sidebarItems = [
-    { value: "", label: locale === "en" ? "All Categories" : "全部" },
-    ...categories.map((category) => ({ value: category, label: category })),
-  ];
-
-  return (
-    <div className="sticky top-24 space-y-6">
-      <div>
-        <h3 className="mb-3 px-2 text-sm font-medium text-[var(--color-text-secondary)]">
-          {locale === "en" ? "Categories" : "分类"}
-        </h3>
-        <ul className="space-y-1.5">
-          {sidebarItems.map((category) => {
-            const isActive = currentCategory === category.value;
-
-            return (
-              <li key={category.value || "__all__"}>
-                <button
-                  type="button"
-                  onClick={() => setCategory(category.value)}
-                  className={`flex w-full items-center justify-between rounded-full border px-4 py-2.5 text-[14px] transition-colors ${
-                    isActive
-                      ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] font-medium text-[var(--color-bg)] shadow-[var(--shadow-inset-button)]"
-                      : "border-[var(--color-border)] bg-transparent text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]"
-                  }`}
-                >
-                  <span>{category.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
+  return <AccordionSidebar categories={categories} basePath="/skills" />;
 }
 
 export function SkillActiveFilters() {
