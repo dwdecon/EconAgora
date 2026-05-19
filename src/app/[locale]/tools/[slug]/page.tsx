@@ -12,6 +12,7 @@ const i18n = {
     backToTools: "返回工具库",
     quickStart: "快速开始",
     integration: "集成指南",
+    readme: "README",
     links: "相关链接",
     officialWebsite: "官方网站",
     documentation: "文档",
@@ -24,6 +25,7 @@ const i18n = {
     backToTools: "Back to Tools",
     quickStart: "Quick Start",
     integration: "Integration Guide",
+    readme: "README",
     links: "Links",
     officialWebsite: "Official Website",
     documentation: "Documentation",
@@ -120,6 +122,20 @@ export default async function ToolDetailPage({ params }: PageProps) {
             </h2>
             <div className="rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
               <MarkdownRenderer content={tool.integrationGuide} />
+            </div>
+          </section>
+        )}
+
+        {/* README */}
+        {tool.readmeContent && (
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
+              {t.readme}
+            </h2>
+            <div className="rounded-[24px] border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+              <div className="prose-article">
+                <MarkdownRenderer content={tool.readmeContent} />
+              </div>
             </div>
           </section>
         )}

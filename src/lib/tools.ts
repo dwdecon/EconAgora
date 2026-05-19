@@ -9,11 +9,13 @@ export interface Tool {
   title: string;
   description: string | null;
   category: string;
+  subcategory: string | null;
   tags: string[];
   officialUrl: string | null;
   docsUrl: string | null;
   quickStart: string | null;
   integrationGuide: string | null;
+  readmeContent: string | null;
   likeCount: number;
   viewCount: number;
   author: { id: string; name: string; avatar: string | null };
@@ -177,6 +179,7 @@ export async function fetchTools(params: {
           title: tool.title,
           description: tool.description,
           category: tool.category,
+          subcategory: tool.subcategory ?? null,
           tags: normalizeTags(tool.tags),
           officialUrl: tool.official_url,
           docsUrl: tool.docs_url,
@@ -282,11 +285,13 @@ export async function fetchToolById(id: string): Promise<Tool | null> {
       title: row.title,
       description: row.description,
       category: row.category,
+      subcategory: row.subcategory ?? null,
       tags: normalizeTags(row.tags),
       officialUrl: row.official_url,
       docsUrl: row.docs_url,
       quickStart: row.quick_start,
       integrationGuide: row.integration_guide,
+      readmeContent: row.readme_content ?? null,
       likeCount: row.like_count ?? 0,
       viewCount: row.view_count ?? 0,
       author:
@@ -395,6 +400,38 @@ export async function fetchRelatedTools(
   } catch (error) {
     console.error("Failed to fetch related tools:", error);
     return [];
+  }
+}
+
+export async function fetchToolSubcategories(): Promise<Record<string, string[]>> {
+  try {
+    await warmupToolRdb();
+
+    const { data, error } = await serverDb
+      .from("tool")
+      .select("category, subcategory")
+      .eq("status", "PUBLISHED")
+      .execute();
+
+    if (error || !data) return {};
+
+    const result: Record<string, Set<string>> = {};
+    for (const row of data as Array<{ category?: string | null; subcategory?: string | null }>) {
+      const cat = row.category?.trim();
+      const sub = row.subcategory?.trim();
+      if (!cat || !sub) continue;
+      if (!result[cat]) result[cat] = new Set();
+      result[cat].add(sub);
+    }
+
+    const record: Record<string, string[]> = {};
+    for (const [cat, subs] of Object.entries(result)) {
+      record[cat] = Array.from(subs).sort();
+    }
+    return record;
+  } catch (error) {
+    console.error("Failed to fetch tool subcategories:", error);
+    return {};
   }
 }
 
