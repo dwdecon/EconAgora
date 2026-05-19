@@ -116,6 +116,7 @@
     "thinking": "Thinking",
     "acting": "Operating page",
     "error": "Request failed, please retry",
-    "retry": "Retry"
+    "retry": "Retry",
+    "step": "Step"
   }
 }

@@ -1,34 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import FloatingStar from "./FloatingStar";
 import GlassBar from "./GlassBar";
 import { usePageAgent } from "./usePageAgent";
 import { getSessionAccessToken } from "@/lib/cloudbase";
 
-export default function AiAssistant() {
-  const { state, errorMsg, sendCommand, retry, open, close, dismissError } = usePageAgent();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [checked, setChecked] = useState(false);
+const AUTH_KEY = "econagora-agent-logged-in";
 
+export default function AiAssistant() {
+  const { state, errorMsg, activity, sendCommand, retry, open, close, stop, dismissError } = usePageAgent();
+  const [authState, setAuthState] = useState<"unknown" | "yes" | "no">("unknown");
+
+  const hasCheckedRef = useRef(false);
   useEffect(() => {
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
+
+    const cached = sessionStorage.getItem(AUTH_KEY);
+    if (cached === "1") {
+      setAuthState("yes");
+    }
+
     getSessionAccessToken().then((token) => {
-      setIsLoggedIn(!!token);
-      setChecked(true);
+      const loggedIn = !!token;
+      setAuthState(loggedIn ? "yes" : "no");
+      sessionStorage.setItem(AUTH_KEY, loggedIn ? "1" : "0");
     });
   }, []);
 
   const handleClick = useCallback(() => {
-    if (!checked) return;
-    if (!isLoggedIn) {
+    if (authState === "unknown") return;
+    if (authState === "no") {
       const currentPath = window.location.pathname;
       window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`;
       return;
     }
     open();
-  }, [checked, isLoggedIn, open]);
+  }, [authState, open]);
 
-  if (!checked) return null;
+  if (authState === "unknown") return null;
 
   if (state === "idle") {
     return <FloatingStar onClick={handleClick} />;
@@ -38,9 +49,11 @@ export default function AiAssistant() {
     <GlassBar
       state={state}
       errorMsg={errorMsg}
+      activity={activity}
       onSend={sendCommand}
       onRetry={retry}
       onClose={close}
+      onStop={stop}
       onDismissError={dismissError}
     />
   );

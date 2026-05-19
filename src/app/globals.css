@@ -165,6 +165,47 @@ section {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Tissue pull: bar appears in page center like pulling a tissue */
+@keyframes tissue-pull-out {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Tissue pull back: bar collapses back */
+@keyframes tissue-pull-back {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
 /* ── CTA Hero Section ── */
 .hero-section {
   position: relative;

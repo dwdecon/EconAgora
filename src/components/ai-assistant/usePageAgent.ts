@@ -9,13 +9,24 @@ import { getSessionAccessToken } from "@/lib/cloudbase";
 
 export type PageAgentState = "idle" | "input" | "thinking" | "acting" | "error";
 
+export interface ActivityInfo {
+  /** What the agent is currently doing, shown as subtitle text */
+  summary: string;
+  /** Tool being executed (if acting) */
+  tool: string | null;
+  /** Step count so far */
+  step: number;
+}
+
 export interface UsePageAgentReturn {
   state: PageAgentState;
   errorMsg: string | null;
+  activity: ActivityInfo;
   sendCommand: (command: string) => void;
   retry: () => void;
   open: () => void;
   close: () => void;
+  stop: () => void;
   dismissError: () => void;
 }
 
@@ -25,6 +36,7 @@ export interface UsePageAgentReturn {
 
 type PageAgentCoreType = import("@page-agent/core").PageAgentCore;
 type PageControllerType = import("@page-agent/page-controller").PageController;
+type AgentActivity = import("@page-agent/core").AgentActivity;
 
 interface AgentRefs {
   controller: PageControllerType;
@@ -35,28 +47,28 @@ interface AgentRefs {
 // Hook
 // ---------------------------------------------------------------------------
 
+const emptyActivity: ActivityInfo = { summary: "", tool: null, step: 0 };
+
 export function usePageAgent(): UsePageAgentReturn {
   const [state, setState] = useState<PageAgentState>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activity, setActivity] = useState<ActivityInfo>(emptyActivity);
 
-  // Persisted refs — survive re-renders without triggering them
   const agentRef = useRef<AgentRefs | null>(null);
   const lastCommandRef = useRef<string | null>(null);
   const initPromiseRef = useRef<Promise<AgentRefs> | null>(null);
+  const stepRef = useRef(0);
+  const stoppingRef = useRef(false);
 
   // ---------------------------------------------------------------------------
   // Init (lazy, idempotent)
   // ---------------------------------------------------------------------------
 
   const initAgent = useCallback(async (): Promise<AgentRefs> => {
-    // Return existing instance if already initialised
     if (agentRef.current) return agentRef.current;
-
-    // Deduplicate concurrent init calls
     if (initPromiseRef.current) return initPromiseRef.current;
 
     initPromiseRef.current = (async () => {
-      // Dynamic imports — these packages are browser-only
       const [{ PageController }, { PageAgentCore }] = await Promise.all([
         import("@page-agent/page-controller"),
         import("@page-agent/core"),
@@ -64,7 +76,6 @@ export function usePageAgent(): UsePageAgentReturn {
 
       const controller = new PageController({ enableMask: true });
 
-      // Custom fetch that injects the CloudBase auth token as a Bearer header
       const customFetch: typeof globalThis.fetch = async (input, init) => {
         const token = await getSessionAccessToken();
         const headers = new Headers((init?.headers as HeadersInit | undefined) ?? {});
@@ -75,53 +86,74 @@ export function usePageAgent(): UsePageAgentReturn {
       };
 
       const core = new PageAgentCore({
-        // LLMConfig fields — point at our proxy route
-        baseURL: "/api/chat",
+        baseURL: "/api",
         model: "deepseek-v4-flash",
-        // No apiKey needed — auth is handled by customFetch
         customFetch,
-        // PageAgentCoreConfig field
         pageController: controller,
-        // Language
         language: "zh-CN",
+        maxSteps: 30,
       });
 
       // ------------------------------------------------------------------
       // Subscribe to Core events
       // ------------------------------------------------------------------
 
-      // `activity` — transient real-time feedback
       core.addEventListener("activity", (e: Event) => {
-        const activity = (e as CustomEvent).detail as import("@page-agent/core").AgentActivity;
-        switch (activity.type) {
+        const act = (e as CustomEvent).detail as AgentActivity;
+        switch (act.type) {
           case "thinking":
             setState("thinking");
+            setActivity((prev) => ({
+              ...prev,
+              summary: "正在思考…",
+              tool: null,
+              step: stepRef.current,
+            }));
             break;
           case "executing":
+            setState("acting");
+            setActivity((prev) => ({
+              ...prev,
+              summary: describeTool(act.tool, act.input),
+              tool: act.tool,
+              step: stepRef.current,
+            }));
+            break;
           case "executed":
+            setState("acting");
+            setActivity((prev) => ({
+              ...prev,
+              summary: describeTool(act.tool, act.input) + " ✓",
+              tool: act.tool,
+              step: stepRef.current,
+            }));
+            break;
           case "retrying":
             setState("acting");
+            setActivity((prev) => ({
+              ...prev,
+              summary: `重试中 (${act.attempt}/${act.maxAttempts})…`,
+              tool: null,
+              step: stepRef.current,
+            }));
             break;
           case "error":
-            setErrorMsg(activity.message);
+            setErrorMsg(act.message);
             setState("error");
             break;
         }
       });
 
-      // `statuschange` — agent lifecycle transitions
-      core.addEventListener("statuschange", (e: Event) => {
-        const status = (e as CustomEvent).detail as import("@page-agent/core").AgentStatus;
+      core.addEventListener("statuschange", () => {
+        const status = core.status;
         switch (status) {
           case "running":
-            // Keep thinking/acting state driven by activity events
             break;
           case "completed":
             setState("input");
+            setActivity({ ...emptyActivity, step: stepRef.current });
             break;
           case "error":
-            // errorMsg should already be set by the activity 'error' event;
-            // fall back to a generic message if not
             setState((prev) => {
               if (prev !== "error") {
                 setErrorMsg("An unknown error occurred.");
@@ -130,12 +162,17 @@ export function usePageAgent(): UsePageAgentReturn {
             });
             break;
           case "idle":
-            // Only reset to input if we were previously active
             setState((prev) =>
               prev === "thinking" || prev === "acting" ? "input" : prev,
             );
             break;
         }
+      });
+
+      // Track step count from history changes
+      core.addEventListener("historychange", () => {
+        const steps = core.history.filter((h: any) => h.type === "step").length;
+        stepRef.current = steps;
       });
 
       const refs: AgentRefs = { controller, core };
@@ -154,13 +191,19 @@ export function usePageAgent(): UsePageAgentReturn {
   const sendCommand = useCallback(
     (command: string) => {
       lastCommandRef.current = command;
+      stepRef.current = 0;
+      stoppingRef.current = false;
       setState("thinking");
       setErrorMsg(null);
+      setActivity({ summary: "正在思考…", tool: null, step: 0 });
 
       initAgent()
         .then(({ core }) => {
-          // execute() is fire-and-forget here; state is driven by events
           core.execute(command).catch((err: unknown) => {
+            // If we initiated the stop, don't show error
+            if (stoppingRef.current) {
+              return;
+            }
             const msg = err instanceof Error ? err.message : String(err);
             setErrorMsg(msg);
             setState("error");
@@ -183,23 +226,55 @@ export function usePageAgent(): UsePageAgentReturn {
 
   const open = useCallback(() => {
     setState("input");
-    // Kick off lazy init in the background so the first command is faster
-    initAgent().catch(() => {
-      // Ignore init errors here — they'll surface on sendCommand
-    });
+    setActivity(emptyActivity);
+    initAgent().catch(() => {});
   }, [initAgent]);
 
   const close = useCallback(() => {
-    // Stop any running task but keep the agent instance alive for reuse
     agentRef.current?.core.stop();
     setState("idle");
     setErrorMsg(null);
+    setActivity(emptyActivity);
+  }, []);
+
+  const stop = useCallback(() => {
+    stoppingRef.current = true;
+    agentRef.current?.core.stop();
+    setState("input");
+    setActivity((prev) => ({ ...prev, summary: "" }));
+    stepRef.current = 0;
   }, []);
 
   const dismissError = useCallback(() => {
     setErrorMsg(null);
     setState("input");
+    setActivity(emptyActivity);
   }, []);
 
-  return { state, errorMsg, sendCommand, retry, open, close, dismissError };
+  return { state, errorMsg, activity, sendCommand, retry, open, close, stop, dismissError };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function describeTool(tool: string, input: unknown): string {
+  const inp = input as Record<string, any> | undefined;
+  switch (tool) {
+    case "click_element_by_index":
+      return `点击元素 #${inp?.index ?? "?"}`;
+    case "input_text":
+      return `输入文本 "${(inp?.text ?? "").slice(0, 20)}"`;
+    case "scroll":
+      return inp?.down ? "向下滚动" : "向上滚动";
+    case "wait":
+      return `等待 ${inp?.seconds ?? 1} 秒`;
+    case "done":
+      return "完成任务";
+    case "go_to_url":
+    case "navigate_to":
+      return `导航到 ${inp?.url ?? ""}`;
+    default:
+      return tool.replace(/_/g, " ");
+  }
 }
