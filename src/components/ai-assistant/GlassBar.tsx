@@ -11,6 +11,7 @@ interface GlassBarProps {
   state: AssistantState;
   errorMsg: string | null;
   activity: ActivityInfo;
+  activityHistory: ActivityInfo[];
   onSend: (command: string) => void;
   onRetry: () => void;
   onClose: () => void;
@@ -22,6 +23,7 @@ export default function GlassBar({
   state,
   errorMsg,
   activity,
+  activityHistory,
   onSend,
   onRetry,
   onClose,
@@ -36,6 +38,7 @@ export default function GlassBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const autoDismissRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollSentinelRef = useRef<HTMLDivElement>(null);
 
   const isDark = resolvedTheme === "dark";
 
@@ -82,6 +85,13 @@ export default function GlassBar({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [state, onClose]);
+
+  // Auto-scroll thinking panel to bottom on new activity
+  useEffect(() => {
+    if (expanded && scrollSentinelRef.current) {
+      scrollSentinelRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [expanded, activityHistory]);
 
   if (!mounted) return null;
 
@@ -139,31 +149,53 @@ export default function GlassBar({
             transformOrigin: "bottom center",
           }}
         >
-          <div className="flex items-center gap-2 mb-1.5">
-            <span
-              className="text-xs font-semibold"
-              style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}
+          {activityHistory.length === 0 ? (
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)" }}
             >
-              {t("step")} {activity.step || 1}
-            </span>
-            {activity.tool && (
-              <span
-                className="text-xs px-2 py-0.5 rounded-md font-medium"
-                style={{
-                  background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-                  color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
-                }}
-              >
-                {activity.tool.replace(/_/g, " ")}
-              </span>
-            )}
-          </div>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)" }}
-          >
-            {activity.summary || "…"}
-          </p>
+              {t("thinking")}…
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {activityHistory.map((item, idx) => {
+                const isLast = idx === activityHistory.length - 1;
+                return (
+                  <div
+                    key={idx}
+                    style={{ opacity: isLast ? 1 : 0.55 }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}
+                      >
+                        {t("step")} {item.step || idx + 1}
+                      </span>
+                      {item.tool && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-md font-medium"
+                          style={{
+                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+                            color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          {item.tool.replace(/_/g, " ")}
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)" }}
+                    >
+                      {item.summary}
+                    </p>
+                  </div>
+                );
+              })}
+              <div ref={scrollSentinelRef} />
+            </div>
+          )}
         </div>
       )}
 
