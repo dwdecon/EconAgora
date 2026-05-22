@@ -41,6 +41,7 @@ export default function GlassBar({
   const scrollSentinelRef = useRef<HTMLDivElement>(null);
 
   const isDark = resolvedTheme === "dark";
+  const theme = getThemeStyles(isDark);
 
   useEffect(() => {
     setMounted(true);
@@ -137,13 +138,9 @@ export default function GlassBar({
           style={{
             maxHeight: 180,
             overflowY: "auto",
-            background: isDark
-              ? "linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.8))"
-              : "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,255,255,0.62))",
-            border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
-            boxShadow: isDark
-              ? "0 4px 24px rgba(0,0,0,0.3)"
-              : "0 4px 24px rgba(0,0,0,0.06)",
+            background: theme.panelBg,
+            border: theme.panelBorder,
+            boxShadow: theme.panelShadow,
             backdropFilter: "blur(40px) saturate(180%)",
             animation: "tissue-pull-out 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
             transformOrigin: "bottom center",
@@ -152,7 +149,7 @@ export default function GlassBar({
           {activityHistory.length === 0 ? (
             <p
               className="text-sm leading-relaxed"
-              style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)" }}
+              style={{ color: theme.statusColor }}
             >
               {t("thinking")}…
             </p>
@@ -168,7 +165,7 @@ export default function GlassBar({
                     <div className="flex items-center gap-2 mb-1">
                       <span
                         className="text-xs font-semibold"
-                        style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}
+                        style={{ color: theme.labelColor }}
                       >
                         {t("step")} {item.step || idx + 1}
                       </span>
@@ -176,8 +173,8 @@ export default function GlassBar({
                         <span
                           className="text-xs px-2 py-0.5 rounded-md font-medium"
                           style={{
-                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-                            color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
+                            background: theme.toolBadgeBg,
+                            color: theme.toolBadgeColor,
                           }}
                         >
                           {item.tool.replace(/_/g, " ")}
@@ -186,7 +183,7 @@ export default function GlassBar({
                     </div>
                     <p
                       className="text-sm leading-relaxed"
-                      style={{ color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.7)" }}
+                      style={{ color: theme.statusColor }}
                     >
                       {item.summary}
                     </p>
@@ -203,22 +200,16 @@ export default function GlassBar({
       <div
         className="relative rounded-[20px] cursor-default"
         style={{
-          background: isDark
-            ? "linear-gradient(135deg, rgba(30,30,30,0.75), rgba(20,20,20,0.65), rgba(30,30,30,0.7))"
-            : "linear-gradient(135deg, rgba(255,255,255,0.68), rgba(255,255,255,0.48), rgba(255,255,255,0.58))",
-          border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.5)",
-          boxShadow: isDark
-            ? "0 4px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
-            : "0 4px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)",
+          background: theme.barBg,
+          border: theme.barBorder,
+          boxShadow: theme.barShadow,
           backdropFilter: "blur(40px) saturate(180%)",
         }}
       >
         <div
           className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none rounded-t-[20px]"
           style={{
-            background: isDark
-              ? "linear-gradient(180deg, rgba(255,255,255,0.04), transparent)"
-              : "linear-gradient(180deg, rgba(255,255,255,0.25), transparent)",
+            background: theme.barHighlight,
           }}
         />
 
@@ -228,7 +219,7 @@ export default function GlassBar({
             className="shrink-0 leading-none select-none cursor-pointer"
             style={{
               fontSize: state === "thinking" || state === "acting" ? 18 : 16,
-              color: isDark ? "#fff" : "#000",
+              color: theme.dotColor,
               opacity: state === "input" ? 0.4 : state === "error" ? 0.6 : 1,
               ...starStyle,
             }}
@@ -247,7 +238,7 @@ export default function GlassBar({
               onKeyDown={handleKeyDown}
               placeholder={t("placeholder")}
               className="flex-1 bg-transparent outline-none text-sm"
-              style={{ color: isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.9)" }}
+              style={{ color: theme.inputColor }}
             />
           )}
 
@@ -259,18 +250,18 @@ export default function GlassBar({
             >
               <div
                 className="flex-1 text-sm flex items-center gap-1 min-w-0 truncate"
-                style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)" }}
+                style={{ color: theme.statusColor }}
               >
                 <span className="truncate">
                   {statusText}
                 </span>
-                <AnimatedDots isDark={isDark} />
+                <AnimatedDots color={theme.dotColor} />
               </div>
 
               {activity.step > 0 && (
                 <span
                   className="shrink-0 text-xs tabular-nums font-medium"
-                  style={{ color: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.3)" }}
+                  style={{ color: theme.stepColor }}
                 >
                   #{activity.step}
                 </span>
@@ -286,9 +277,9 @@ export default function GlassBar({
                 onClick={onRetry}
                 className="text-xs px-2.5 py-1 rounded-lg"
                 style={{
-                  background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-                  color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)",
-                  border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.06)",
+                  background: theme.toolBadgeBg,
+                  color: theme.statusColor,
+                  border: theme.panelBorder,
                 }}
               >
                 {t("retry")}
@@ -302,11 +293,11 @@ export default function GlassBar({
               onClick={handleSubmit}
               className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
               style={{
-                background: isDark ? "#fff" : "rgba(0,0,0,0.8)",
-                boxShadow: isDark ? "0 2px 12px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.15)",
+                background: theme.sendBtnBg,
+                boxShadow: theme.sendBtnShadow,
               }}
             >
-              <span style={{ color: isDark ? "#1c1c1c" : "#fff", fontSize: 16 }}>↑</span>
+              <span style={{ color: theme.sendBtnIconColor, fontSize: 16 }}>↑</span>
             </button>
           )}
 
@@ -319,9 +310,9 @@ export default function GlassBar({
               }}
               className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
               style={{
-                background: isDark ? "rgba(255,80,80,0.15)" : "rgba(220,50,50,0.1)",
-                border: isDark ? "1px solid rgba(255,80,80,0.2)" : "1px solid rgba(220,50,50,0.15)",
-                color: isDark ? "rgba(255,100,100,0.8)" : "rgba(200,50,50,0.7)",
+                background: theme.stopBtnBg,
+                border: theme.stopBtnBorder,
+                color: theme.stopBtnColor,
                 fontSize: 14,
               }}
             >
@@ -335,9 +326,9 @@ export default function GlassBar({
               onClick={state === "error" ? onDismissError : onClose}
               className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
               style={{
-                background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)",
-                color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)",
+                background: theme.closeBtnBg,
+                border: theme.closeBtnBorder,
+                color: theme.closeBtnColor,
                 fontSize: 12,
               }}
             >
@@ -350,8 +341,7 @@ export default function GlassBar({
   );
 }
 
-function AnimatedDots({ isDark }: { isDark: boolean }) {
-  const color = isDark ? "#fff" : "#000";
+function AnimatedDots({ color }: { color: string }) {
   return (
     <span className="inline-flex gap-[2px] ml-0.5 shrink-0">
       {[0, 0.2, 0.4].map((delay) => (
@@ -368,4 +358,47 @@ function AnimatedDots({ isDark }: { isDark: boolean }) {
       ))}
     </span>
   );
+}
+
+function getThemeStyles(isDark: boolean) {
+  return {
+    barBg: isDark
+      ? "linear-gradient(135deg, rgba(30,30,30,0.75), rgba(20,20,20,0.65), rgba(30,30,30,0.7))"
+      : "linear-gradient(135deg, rgba(255,255,255,0.68), rgba(255,255,255,0.48), rgba(255,255,255,0.58))",
+    barBorder: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(255,255,255,0.5)",
+    barShadow: isDark
+      ? "0 4px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+      : "0 4px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6)",
+    barHighlight: isDark
+      ? "linear-gradient(180deg, rgba(255,255,255,0.04), transparent)"
+      : "linear-gradient(180deg, rgba(255,255,255,0.25), transparent)",
+    inputColor: isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.9)",
+    panelBg: isDark
+      ? "linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.8))"
+      : "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,255,255,0.62))",
+    panelBorder: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
+    panelShadow: isDark ? "0 4px 24px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.06)",
+    labelColor: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)",
+    toolBadgeBg: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+    toolBadgeColor: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)",
+    statusColor: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)",
+    stepColor: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.3)",
+    closeBtnBg: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+    closeBtnBorder: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)",
+    closeBtnColor: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)",
+    stopBtnBg: isDark ? "rgba(255,80,80,0.15)" : "rgba(220,50,50,0.1)",
+    stopBtnBorder: isDark ? "1px solid rgba(255,80,80,0.2)" : "1px solid rgba(220,50,50,0.15)",
+    stopBtnColor: isDark ? "rgba(255,100,100,0.8)" : "rgba(200,50,50,0.7)",
+    sendBtnBg: isDark ? "#fff" : "rgba(0,0,0,0.8)",
+    sendBtnShadow: isDark ? "0 2px 12px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.15)",
+    sendBtnIconColor: isDark ? "#1c1c1c" : "#fff",
+    dotColor: isDark ? "#fff" : "#000",
+    bubbleBg: isDark
+      ? "linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.85))"
+      : "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82))",
+    bubbleBorder: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.06)",
+    bubbleShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(0,0,0,0.08)",
+    bubbleColor: isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)",
+    bubbleArrowBg: isDark ? "rgba(25,25,25,0.9)" : "rgba(255,255,255,0.92)",
+  };
 }
