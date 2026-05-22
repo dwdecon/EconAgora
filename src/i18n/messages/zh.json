@@ -50,10 +50,22 @@
       "hint": "试试其他分类、清除筛选条件，或使用更宽泛的搜索词。"
     },
     "detail": {
+      "backToTools": "返回工具库",
       "quickStart": "快速开始",
       "integration": "集成指南",
       "links": "相关链接",
-      "related": "相关工具"
+      "related": "相关工具",
+      "about": "关于",
+      "author": "作者",
+      "published": "发布时间",
+      "category": "分类",
+      "officialWebsite": "官方网站",
+      "documentation": "文档",
+      "toc": "目录",
+      "readmeLabel": "README",
+      "expand": "展开全文",
+      "collapse": "收起",
+      "noGuide": "暂无使用指南。"
     }
   },
   "account": {
@@ -112,11 +124,12 @@
     }
   },
   "aiAssistant": {
-    "placeholder": "输入指令，我来操作页面...",
+    "placeholder": "输入指令���我来操作页面...",
     "thinking": "正在思考",
     "acting": "正在操作页面",
     "error": "请求失败，请重试",
     "retry": "重试",
-    "step": "步骤"
+    "step": "步骤",
+    "bubbleHint": "找不到想要的？试试我吧~"
   }
 }

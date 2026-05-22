@@ -50,10 +50,22 @@
       "hint": "Try a different category, clear your filters, or search with broader terms."
     },
     "detail": {
+      "backToTools": "Back to Tools",
       "quickStart": "Quick Start",
       "integration": "Integration Guide",
       "links": "Links",
-      "related": "Related Tools"
+      "related": "Related Tools",
+      "about": "About",
+      "author": "Author",
+      "published": "Published",
+      "category": "Category",
+      "officialWebsite": "Official Website",
+      "documentation": "Documentation",
+      "toc": "Table of Contents",
+      "readmeLabel": "README",
+      "expand": "Show More",
+      "collapse": "Show Less",
+      "noGuide": "No guide available yet."
     }
   },
   "account": {
@@ -117,6 +129,7 @@
     "acting": "Operating page",
     "error": "Request failed, please retry",
     "retry": "Retry",
-    "step": "Step"
+    "step": "Step",
+    "bubbleHint": "Can't find what you want? Try me~"
   }
 }
