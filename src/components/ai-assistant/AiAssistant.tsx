@@ -9,8 +9,16 @@ import { getSessionAccessToken } from "@/lib/cloudbase";
 const AUTH_KEY = "econagora-agent-logged-in";
 
 export default function AiAssistant() {
-  const { state, errorMsg, activity, sendCommand, retry, open, close, stop, dismissError } = usePageAgent();
   const [authState, setAuthState] = useState<"unknown" | "yes" | "no">("unknown");
+
+  const { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError } = usePageAgent({
+    onAuthExpired: useCallback(() => {
+      sessionStorage.setItem(AUTH_KEY, "0");
+      setAuthState("no");
+      const currentPath = window.location.pathname;
+      window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`;
+    }, []),
+  });
 
   const hasCheckedRef = useRef(false);
   useEffect(() => {
@@ -50,6 +58,7 @@ export default function AiAssistant() {
       state={state}
       errorMsg={errorMsg}
       activity={activity}
+      activityHistory={activityHistory}
       onSend={sendCommand}
       onRetry={retry}
       onClose={close}
