@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import type { ActivityInfo } from "./usePageAgent";
+import { useMounted } from "@/hooks/useMounted";
 
 type AssistantState = "idle" | "input" | "thinking" | "acting" | "error";
 
@@ -33,7 +34,7 @@ export default function GlassBar({
   const t = useTranslations("aiAssistant");
   const { resolvedTheme } = useTheme();
   const [input, setInput] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoDismissRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -42,10 +43,6 @@ export default function GlassBar({
 
   const isDark = resolvedTheme === "dark";
   const theme = getThemeStyles(isDark);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (state === "input") {
