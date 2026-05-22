@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/useMounted";
 
 interface FloatingStarProps {
   onClick: () => void;
@@ -10,14 +12,11 @@ interface FloatingStarProps {
 export default function FloatingStar({ onClick }: FloatingStarProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
-  const [mounted, setMounted] = useState(false);
+  const t = useTranslations("aiAssistant");
+  const mounted = useMounted();
   const [showBubble, setShowBubble] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Show bubble every 10 seconds
   useEffect(() => {
@@ -63,7 +62,7 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
             animation: "bubble-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         >
-          找不到想要的？试试我吧~
+          {t("bubbleHint")}
           {/* Arrow pointing right */}
           <span
             className="absolute -right-1.5 bottom-3 w-3 h-3 rotate-45"
