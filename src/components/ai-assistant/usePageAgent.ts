@@ -50,7 +50,9 @@ interface AgentRefs {
 
 const emptyActivity: ActivityInfo = { summary: "", tool: null, step: 0 };
 
-export function usePageAgent(): UsePageAgentReturn {
+export function usePageAgent(options?: {
+  onAuthExpired?: () => void;
+}): UsePageAgentReturn {
   const [state, setState] = useState<PageAgentState>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activity, setActivity] = useState<ActivityInfo>(emptyActivity);
@@ -61,6 +63,19 @@ export function usePageAgent(): UsePageAgentReturn {
   const initPromiseRef = useRef<Promise<AgentRefs> | null>(null);
   const stepRef = useRef(0);
   const stoppingRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const stateRef = useRef<PageAgentState>("idle");
+
+  const setStateAndRef = useCallback(
+    (newState: PageAgentState | ((prev: PageAgentState) => PageAgentState)) => {
+      setState((prev) => {
+        const next = typeof newState === "function" ? newState(prev) : newState;
+        stateRef.current = next;
+        return next;
+      });
+    },
+    [],
+  );
 
   // ---------------------------------------------------------------------------
   // Init (lazy, idempotent)
@@ -84,7 +99,31 @@ export function usePageAgent(): UsePageAgentReturn {
         if (token) {
           headers.set("Authorization", `Bearer ${token}`);
         }
-        return globalThis.fetch(input, { ...init, headers });
+
+        const combinedSignal = AbortSignal.any(
+          [init?.signal, abortRef.current?.signal].filter(Boolean) as AbortSignal[],
+        );
+
+        try {
+          const response = await globalThis.fetch(input, {
+            ...init,
+            headers,
+            signal: combinedSignal,
+          });
+
+          if (response.status === 401) {
+            options?.onAuthExpired?.();
+            stoppingRef.current = true;
+            throw new Error("Authentication expired");
+          }
+
+          return response;
+        } catch (error: any) {
+          if (error.name === "AbortError") {
+            return new Response(null, { status: 499 });
+          }
+          throw error;
+        }
       };
 
       const core = new PageAgentCore({
@@ -104,44 +143,76 @@ export function usePageAgent(): UsePageAgentReturn {
         const act = (e as CustomEvent).detail as AgentActivity;
         switch (act.type) {
           case "thinking":
-            setState("thinking");
+            setStateAndRef("thinking");
             setActivity((prev) => ({
               ...prev,
               summary: "正在思考…",
               tool: null,
               step: stepRef.current,
             }));
+            setActivityHistory((prev) => [
+              ...prev,
+              { summary: "正在思考…", tool: null, step: stepRef.current },
+            ]);
             break;
           case "executing":
-            setState("acting");
+            setStateAndRef("acting");
             setActivity((prev) => ({
               ...prev,
               summary: describeTool(act.tool, act.input),
               tool: act.tool,
               step: stepRef.current,
             }));
+            setActivityHistory((prev) => [
+              ...prev,
+              {
+                summary: describeTool(act.tool, act.input),
+                tool: act.tool,
+                step: stepRef.current,
+              },
+            ]);
             break;
           case "executed":
-            setState("acting");
+            setStateAndRef("acting");
             setActivity((prev) => ({
               ...prev,
               summary: describeTool(act.tool, act.input) + " ✓",
               tool: act.tool,
               step: stepRef.current,
             }));
+            setActivityHistory((prev) => [
+              ...prev,
+              {
+                summary: describeTool(act.tool, act.input) + " ✓",
+                tool: act.tool,
+                step: stepRef.current,
+              },
+            ]);
             break;
           case "retrying":
-            setState("acting");
+            setStateAndRef("acting");
             setActivity((prev) => ({
               ...prev,
               summary: `重试中 (${act.attempt}/${act.maxAttempts})…`,
               tool: null,
               step: stepRef.current,
             }));
+            setActivityHistory((prev) => [
+              ...prev,
+              {
+                summary: `重试中 (${act.attempt}/${act.maxAttempts})…`,
+                tool: null,
+                step: stepRef.current,
+              },
+            ]);
             break;
           case "error":
             setErrorMsg(act.message);
-            setState("error");
+            setStateAndRef("error");
+            setActivityHistory((prev) => [
+              ...prev,
+              { summary: act.message, tool: null, step: stepRef.current },
+            ]);
             break;
         }
       });
@@ -152,19 +223,17 @@ export function usePageAgent(): UsePageAgentReturn {
           case "running":
             break;
           case "completed":
-            setState("input");
+            setStateAndRef("input");
             setActivity({ ...emptyActivity, step: stepRef.current });
             break;
           case "error":
-            setState((prev) => {
-              if (prev !== "error") {
-                setErrorMsg("An unknown error occurred.");
-              }
-              return "error";
-            });
+            if (stateRef.current !== "error") {
+              setErrorMsg("An unknown error occurred.");
+            }
+            setStateAndRef("error");
             break;
           case "idle":
-            setState((prev) =>
+            setStateAndRef((prev) =>
               prev === "thinking" || prev === "acting" ? "input" : prev,
             );
             break;
@@ -184,7 +253,7 @@ export function usePageAgent(): UsePageAgentReturn {
     })();
 
     return initPromiseRef.current;
-  }, []);
+  }, [options]);
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -195,7 +264,11 @@ export function usePageAgent(): UsePageAgentReturn {
       lastCommandRef.current = command;
       stepRef.current = 0;
       stoppingRef.current = false;
-      setState("thinking");
+      setActivityHistory([]);
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+
+      setStateAndRef("thinking");
       setErrorMsg(null);
       setActivity({ summary: "正在思考…", tool: null, step: 0 });
 
@@ -208,13 +281,13 @@ export function usePageAgent(): UsePageAgentReturn {
             }
             const msg = err instanceof Error ? err.message : String(err);
             setErrorMsg(msg);
-            setState("error");
+            setStateAndRef("error");
           });
         })
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           setErrorMsg(msg);
-          setState("error");
+          setStateAndRef("error");
         });
     },
     [initAgent],
@@ -227,29 +300,31 @@ export function usePageAgent(): UsePageAgentReturn {
   }, [sendCommand]);
 
   const open = useCallback(() => {
-    setState("input");
+    setStateAndRef("input");
     setActivity(emptyActivity);
     initAgent().catch(() => {});
   }, [initAgent]);
 
   const close = useCallback(() => {
     agentRef.current?.core.stop();
-    setState("idle");
+    setStateAndRef("idle");
     setErrorMsg(null);
     setActivity(emptyActivity);
   }, []);
 
   const stop = useCallback(() => {
     stoppingRef.current = true;
+    abortRef.current?.abort();
+    abortRef.current = null;
     agentRef.current?.core.stop();
-    setState("input");
+    setStateAndRef("input");
     setActivity((prev) => ({ ...prev, summary: "" }));
     stepRef.current = 0;
   }, []);
 
   const dismissError = useCallback(() => {
     setErrorMsg(null);
-    setState("input");
+    setStateAndRef("input");
     setActivity(emptyActivity);
   }, []);
 
