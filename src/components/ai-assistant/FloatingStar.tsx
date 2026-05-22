@@ -15,29 +15,67 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
   const t = useTranslations("aiAssistant");
   const mounted = useMounted();
   const [showBubble, setShowBubble] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shownCountRef = useRef(0);
 
-  // Show bubble every 10 seconds
   useEffect(() => {
     if (!mounted) return;
 
-    // First appearance after 5s
+    if (sessionStorage.getItem('econagora-bubble-maxed')) {
+      shownCountRef.current = 3;
+      return;
+    }
+
+    let quietTimer: ReturnType<typeof setTimeout> | null = null;
+    let isQuietPeriodActive = false;
+
+    const resetQuiet = () => {
+      if (quietTimer) clearTimeout(quietTimer);
+      quietTimer = setTimeout(() => {
+        if (shownCountRef.current < 3) {
+          setShowBubble(true);
+          shownCountRef.current += 1;
+          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          hideTimerRef.current = setTimeout(() => {
+            setShowBubble(false);
+            if (shownCountRef.current < 3) {
+              isQuietPeriodActive = true;
+              window.addEventListener('scroll', resetQuiet);
+              window.addEventListener('mousemove', resetQuiet);
+              resetQuiet();
+            } else {
+              sessionStorage.setItem('econagora-bubble-maxed', '1');
+            }
+          }, 4000);
+        }
+      }, 30000);
+    };
+
     const initialTimer = setTimeout(() => {
       setShowBubble(true);
-      hideTimerRef.current = setTimeout(() => setShowBubble(false), 4000);
-    }, 5000);
-
-    intervalRef.current = setInterval(() => {
-      setShowBubble(true);
+      shownCountRef.current += 1;
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = setTimeout(() => setShowBubble(false), 4000);
-    }, 10000);
+      hideTimerRef.current = setTimeout(() => {
+        setShowBubble(false);
+        if (shownCountRef.current < 3) {
+          isQuietPeriodActive = true;
+          window.addEventListener('scroll', resetQuiet);
+          window.addEventListener('mousemove', resetQuiet);
+          resetQuiet();
+        } else {
+          sessionStorage.setItem('econagora-bubble-maxed', '1');
+        }
+      }, 4000);
+    }, 5000);
 
     return () => {
       clearTimeout(initialTimer);
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (quietTimer) clearTimeout(quietTimer);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (isQuietPeriodActive) {
+        window.removeEventListener('scroll', resetQuiet);
+        window.removeEventListener('mousemove', resetQuiet);
+      }
     };
   }, [mounted]);
 
