@@ -22,6 +22,7 @@ export interface UsePageAgentReturn {
   state: PageAgentState;
   errorMsg: string | null;
   activity: ActivityInfo;
+  activityHistory: ActivityInfo[];
   sendCommand: (command: string) => void;
   retry: () => void;
   open: () => void;
@@ -53,6 +54,7 @@ export function usePageAgent(): UsePageAgentReturn {
   const [state, setState] = useState<PageAgentState>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activity, setActivity] = useState<ActivityInfo>(emptyActivity);
+  const [activityHistory, setActivityHistory] = useState<ActivityInfo[]>([]);
 
   const agentRef = useRef<AgentRefs | null>(null);
   const lastCommandRef = useRef<string | null>(null);
@@ -251,7 +253,7 @@ export function usePageAgent(): UsePageAgentReturn {
     setActivity(emptyActivity);
   }, []);
 
-  return { state, errorMsg, activity, sendCommand, retry, open, close, stop, dismissError };
+  return { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError };
 }
 
 // ---------------------------------------------------------------------------
