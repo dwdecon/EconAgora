@@ -18,13 +18,13 @@ Improve the AI assistant's UX and code quality across all four component files (
 
 **Design:**
 
+- **On mount:** Check `sessionStorage.getItem('econagora-bubble-maxed')`. If set, skip all scheduling (set `shownCount = 3` and return early).
 - First bubble appears 5s after mount (unchanged).
 - After the bubble hides, enter a 30s quiet period.
 - During quiet period, listen for `scroll` and `mousemove` on `window`.
   - Any interaction resets the 30s timer.
   - 30s of silence → show bubble again.
-- Maintain a `shownCount` ref. Once `shownCount >= 3`, stop scheduling entirely for this session.
-- Persist the "maxed out" flag in `sessionStorage` key `econagora-bubble-maxed` so reloads within the same session don't restart the cycle.
+- Maintain a `shownCount` ref. Once `shownCount >= 3`, stop scheduling entirely and set `sessionStorage.setItem('econagora-bubble-maxed', '1')`.
 - Remove the existing `setInterval(10000)` loop entirely.
 
 **Bubble text i18n:**
@@ -57,25 +57,32 @@ Improve the AI assistant's UX and code quality across all four component files (
 
 ## 3. Activity History Panel (Full Scrollable)
 
-**Files:** `src/components/ai-assistant/usePageAgent.ts`, `src/components/ai-assistant/GlassBar.tsx`
+**Files:** `src/components/ai-assistant/usePageAgent.ts`, `src/components/ai-assistant/GlassBar.tsx`, `src/components/ai-assistant/AiAssistant.tsx`
 
 **Problem:** The expanded thinking panel only shows the current step's summary. Users cannot review what the agent did previously.
 
 **Design — Data:**
 
 - `usePageAgent` adds a new state: `activityHistory: ActivityInfo[]`.
-- Every `activity` event (thinking/executing/executed) appends to `activityHistory`. Retrying/error events also append.
+- Every `activity` event appends to `activityHistory`:
+  - `thinking` → `{ summary: "正在思考…", tool: null, step: stepRef.current }`
+  - `executing` → `{ summary: describeTool(…), tool: act.tool, step: stepRef.current }`
+  - `executed` → `{ summary: describeTool(…) + " ✓", tool: act.tool, step: stepRef.current }`
+  - `retrying` → `{ summary: "重试中 (${act.attempt}/${act.maxAttempts})…", tool: null, step: stepRef.current }`
+  - `error` → `{ summary: act.message, tool: null, step: stepRef.current }`
 - `sendCommand` resets `activityHistory` to `[]`.
-- Expose `activityHistory` in the return type.
+- Expose `activityHistory` in the `UsePageAgentReturn` type.
+- Add `activityHistory: ActivityInfo[]` to `GlassBarProps` interface.
+- `AiAssistant.tsx` passes `activityHistory={activityHistory}` to `<GlassBar />`.
 
 **Design — UI (`GlassBar`):**
 
 - The expanded panel renders `activityHistory` as a vertical list, newest at bottom.
-- Fixed max-height: `240px`, `overflow-y: auto`.
+- Fixed max-height: `180px` (unchanged from current), `overflow-y: auto`.
 - Auto-scroll to bottom on new entries (via `scrollIntoView` on a sentinel div).
 - Each entry shows: step number badge + tool tag (if present) + summary text.
 - Current (last) entry: full opacity. Previous entries: `opacity: 0.55`.
-- When there are 0 history entries and agent is working, show a single "正在思考…" placeholder.
+- When `activityHistory.length === 0` and agent is working, show `t("thinking")` (i18n) with trailing ellipsis as placeholder.
 
 ---
 
@@ -88,11 +95,10 @@ Improve the AI assistant's UX and code quality across all four component files (
 **Design:**
 
 - Add `abortRef = useRef<AbortController | null>(null)`.
-- `sendCommand`: create a new `AbortController`, store in `abortRef`.
-- `customFetch`: pass `signal: abortRef.current?.signal` into `globalThis.fetch(input, { ...init, headers, signal })`.
+- `sendCommand`: abort any previous controller, then create a new `AbortController` and store in `abortRef`.
+- `customFetch`: combine signals using `AbortSignal.any([init?.signal, abortRef.current?.signal].filter(Boolean))` so both the core's signal and the hook's signal can cancel the request.
 - `stop()`: call `abortRef.current?.abort()` before `core.stop()`. Reset ref to null.
-- In `customFetch`, catch errors: if `error.name === "AbortError"`, silently return (do not set error state).
-- `sendCommand` also aborts any previous controller before creating a new one (prevents overlapping requests from prior command).
+- In `customFetch`, catch errors: if `error.name === "AbortError"`, silently return an empty Response (do not set error state).
 
 ---
 
@@ -126,7 +132,7 @@ Not included in this round. The Chinese hardcoded strings in `describeTool` stay
 **Design:**
 
 - Extract a pure function `getThemeStyles(isDark: boolean)` at the bottom of `GlassBar.tsx` (not exported).
-- Returns a flat object with named keys: `barBg`, `barBorder`, `barShadow`, `barHighlight`, `inputColor`, `panelBg`, `panelBorder`, `panelShadow`, `labelColor`, `toolBadgeBg`, `toolBadgeColor`, `statusColor`, `stepColor`, `closeBtnBg`, `closeBtnBorder`, `closeBtnColor`.
+- Returns a flat object with all color/style values used in the component. The implementer should identify all `isDark ?` ternaries and extract them into named keys. Minimum set includes: `barBg`, `barBorder`, `barShadow`, `barHighlight`, `inputColor`, `panelBg`, `panelBorder`, `panelShadow`, `labelColor`, `toolBadgeBg`, `toolBadgeColor`, `statusColor`, `stepColor`, `closeBtnBg`, `closeBtnBorder`, `closeBtnColor`, `stopBtnBg`, `stopBtnBorder`, `stopBtnColor`, `sendBtnBg`, `sendBtnShadow`, `sendBtnIconColor`, `dotColor`. Add additional keys as needed to cover all ternaries.
 - Each JSX element references `theme.barBg` etc. instead of inline ternaries.
 - The function is called once per render: `const theme = getThemeStyles(isDark)`.
 - No visual change. Pure refactor.
@@ -162,15 +168,15 @@ export function useMounted() {
 |---|---|
 | `src/hooks/useMounted.ts` | **NEW** — shared hook |
 | `src/components/ai-assistant/FloatingStar.tsx` | Bubble convergence strategy, i18n text, useMounted |
-| `src/components/ai-assistant/GlassBar.tsx` | History panel, theme styles extraction, useMounted |
-| `src/components/ai-assistant/AiAssistant.tsx` | onAuthExpired callback, 401 redirect |
-| `src/components/ai-assistant/usePageAgent.ts` | activityHistory, AbortController, statuschange fix, onAuthExpired |
+| `src/components/ai-assistant/GlassBar.tsx` | History panel UI, theme styles extraction, useMounted |
+| `src/components/ai-assistant/AiAssistant.tsx` | onAuthExpired callback, 401 redirect, pass activityHistory prop |
+| `src/components/ai-assistant/usePageAgent.ts` | activityHistory state, AbortController, statuschange fix, onAuthExpired |
 | `src/i18n/messages/zh.json` | Add `aiAssistant.bubbleHint` |
 | `src/i18n/messages/en.json` | Add `aiAssistant.bubbleHint` |
 
 ## Constraints
 
-- No visual appearance changes to existing elements.
+- No visual appearance changes to existing elements (exception: expanded panel max-height stays at 180px, not increased to 240px).
 - No new dependencies.
 - All existing functionality preserved.
 - `describeTool` Chinese hardcoding stays (deferred).
