@@ -275,7 +275,7 @@ export default function GlassBar({
                 className="text-xs px-2.5 py-1 rounded-lg"
                 style={{
                   background: theme.toolBadgeBg,
-                  color: theme.statusColor,
+                  color: theme.retryBtnColor,
                   border: theme.panelBorder,
                 }}
               >
@@ -390,12 +390,6 @@ function getThemeStyles(isDark: boolean) {
     sendBtnShadow: isDark ? "0 2px 12px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.15)",
     sendBtnIconColor: isDark ? "#1c1c1c" : "#fff",
     dotColor: isDark ? "#fff" : "#000",
-    bubbleBg: isDark
-      ? "linear-gradient(135deg, rgba(30,30,30,0.9), rgba(20,20,20,0.85))"
-      : "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82))",
-    bubbleBorder: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.06)",
-    bubbleShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(0,0,0,0.08)",
-    bubbleColor: isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)",
-    bubbleArrowBg: isDark ? "rgba(25,25,25,0.9)" : "rgba(255,255,255,0.92)",
+    retryBtnColor: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)",
   };
 }
