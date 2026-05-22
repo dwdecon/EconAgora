@@ -333,6 +333,8 @@ const customFetch: typeof globalThis.fetch = async (input, init) => {
 };
 ```
 
+**Note:** `AbortSignal.any()` requires Chrome 116+, Firefox 124+, Safari 17.4+. If targeting older browsers, use a manual combination pattern or polyfill.
+
 - [ ] **Step 3: Abort previous controller in sendCommand**
 
 In `sendCommand`, before creating new controller (line ~193):
@@ -381,9 +383,9 @@ After other refs (line ~61):
 const stateRef = useRef<PageAgentState>("idle");
 ```
 
-- [ ] **Step 2: Update stateRef in all setState calls**
+- [ ] **Step 2: Create setStateAndRef wrapper**
 
-Create a helper wrapper at the top of the hook:
+After `stateRef` declaration and before `initAgent` call (line ~62):
 
 ```typescript
 const setStateAndRef = useCallback((newState: PageAgentState | ((prev: PageAgentState) => PageAgentState)) => {
@@ -394,6 +396,8 @@ const setStateAndRef = useCallback((newState: PageAgentState | ((prev: PageAgent
   });
 }, []);
 ```
+
+**Note:** This wrapper is defined at hook body level (not inside `initAgent`) so it's accessible in all setState calls including those in event listeners.
 
 - [ ] **Step 3: Replace all setState calls with setStateAndRef**
 
@@ -464,6 +468,8 @@ const customFetch: typeof globalThis.fetch = async (input, init) => {
     
     if (response.status === 401) {
       options?.onAuthExpired?.();
+      // Set stopping flag to suppress error state in sendCommand
+      stoppingRef.current = true;
       throw new Error("Authentication expired");
     }
     
@@ -476,6 +482,8 @@ const customFetch: typeof globalThis.fetch = async (input, init) => {
   }
 };
 ```
+
+**Note:** Setting `stoppingRef.current = true` prevents the error from showing in UI before redirect fires.
 
 - [ ] **Step 3: Verify TypeScript compiles**
 
@@ -499,11 +507,14 @@ git commit -m "feat(usePageAgent): add onAuthExpired callback for 401 handling"
 - Modify: `src/components/ai-assistant/AiAssistant.tsx:32-40` (handleClick)
 - Modify: `src/components/ai-assistant/AiAssistant.tsx:48-58` (GlassBar props)
 
-- [ ] **Step 1: Add onAuthExpired callback**
+- [ ] **Step 1: Add onAuthExpired callback to usePageAgent**
 
-Update `usePageAgent` call (line ~12):
+**IMPORTANT:** Ensure `useState` for `authState`/`setAuthState` is declared BEFORE the `usePageAgent` call.
 
+Current order (line ~13-16):
 ```typescript
+const [authState, setAuthState] = useState<"unknown" | "yes" | "no">("unknown");
+
 const { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError } = usePageAgent({
   onAuthExpired: useCallback(() => {
     sessionStorage.setItem(AUTH_KEY, "0");
@@ -513,6 +524,8 @@ const { state, errorMsg, activity, activityHistory, sendCommand, retry, open, cl
   }, []),
 });
 ```
+
+This order is correct — `useState` on line 13, `usePageAgent` on line 15. Do not reorder.
 
 - [ ] **Step 2: Pass activityHistory to GlassBar**
 
@@ -763,9 +776,11 @@ After `isDark` declaration (line ~40):
 const theme = getThemeStyles(isDark);
 ```
 
-- [ ] **Step 3: Replace inline ternaries with theme references**
+- [ ] **Step 3: Replace all inline ternaries with theme references**
 
-Search for all `isDark ?` ternaries in style props and replace with `theme.*` references.
+Search for all `isDark ?` ternaries in style props and replace with `theme.*` references. This includes:
+- Original bar and button styles
+- The new history panel JSX added in Task 9 (lines ~124-167)
 
 Examples:
 - `background: isDark ? "..." : "..."` → `background: theme.barBg`
@@ -982,18 +997,26 @@ useEffect(() => {
 }, [mounted]);
 ```
 
-- [ ] **Step 3: Add quiet period logic**
+- [ ] **Step 3: Add quiet period logic with proper cleanup**
 
-Add helper function inside component (after refs):
+Replace the bubble scheduling useEffect (lines ~22-43) with:
 
 ```typescript
-const startQuietPeriod = useCallback(() => {
+useEffect(() => {
+  if (!mounted) return;
+
+  // Check if maxed out
+  if (sessionStorage.getItem('econagora-bubble-maxed')) {
+    shownCountRef.current = 3;
+    return;
+  }
+
   let quietTimer: ReturnType<typeof setTimeout> | null = null;
+  let isQuietPeriodActive = false;
   
   const resetQuiet = () => {
     if (quietTimer) clearTimeout(quietTimer);
     quietTimer = setTimeout(() => {
-      // 30s of silence → show bubble again
       if (shownCountRef.current < 3) {
         setShowBubble(true);
         shownCountRef.current += 1;
@@ -1001,23 +1024,46 @@ const startQuietPeriod = useCallback(() => {
         hideTimerRef.current = setTimeout(() => {
           setShowBubble(false);
           if (shownCountRef.current < 3) {
-            startQuietPeriod();
+            isQuietPeriodActive = true;
+            window.addEventListener('scroll', resetQuiet);
+            window.addEventListener('mousemove', resetQuiet);
+            resetQuiet();
           } else {
             sessionStorage.setItem('econagora-bubble-maxed', '1');
           }
         }, 4000);
       }
-      window.removeEventListener('scroll', resetQuiet);
-      window.removeEventListener('mousemove', resetQuiet);
     }, 30000);
   };
-  
-  window.addEventListener('scroll', resetQuiet);
-  window.addEventListener('mousemove', resetQuiet);
-  resetQuiet(); // Start initial 30s timer
-  
-  quietTimerRef.current = quietTimer;
-}, []);
+
+  // First bubble after 5s
+  const initialTimer = setTimeout(() => {
+    setShowBubble(true);
+    shownCountRef.current += 1;
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      setShowBubble(false);
+      if (shownCountRef.current < 3) {
+        isQuietPeriodActive = true;
+        window.addEventListener('scroll', resetQuiet);
+        window.addEventListener('mousemove', resetQuiet);
+        resetQuiet();
+      } else {
+        sessionStorage.setItem('econagora-bubble-maxed', '1');
+      }
+    }, 4000);
+  }, 5000);
+
+  return () => {
+    clearTimeout(initialTimer);
+    if (quietTimer) clearTimeout(quietTimer);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (isQuietPeriodActive) {
+      window.removeEventListener('scroll', resetQuiet);
+      window.removeEventListener('mousemove', resetQuiet);
+    }
+  };
+}, [mounted]);
 ```
 
 - [ ] **Step 4: Test bubble convergence**
