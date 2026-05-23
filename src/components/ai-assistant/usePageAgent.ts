@@ -120,7 +120,7 @@ export function usePageAgent(options?: {
           return response;
         } catch (error: any) {
           if (error.name === "AbortError") {
-            return new Response(null, { status: 499 });
+            stoppingRef.current = true;
           }
           throw error;
         }
@@ -275,8 +275,7 @@ export function usePageAgent(options?: {
       initAgent()
         .then(({ core }) => {
           core.execute(command).catch((err: unknown) => {
-            // If we initiated the stop, don't show error
-            if (stoppingRef.current) {
+            if (stoppingRef.current || (err instanceof Error && err.name === "AbortError")) {
               return;
             }
             const msg = err instanceof Error ? err.message : String(err);
@@ -285,6 +284,9 @@ export function usePageAgent(options?: {
           });
         })
         .catch((err: unknown) => {
+          if (stoppingRef.current || (err instanceof Error && err.name === "AbortError")) {
+            return;
+          }
           const msg = err instanceof Error ? err.message : String(err);
           setErrorMsg(msg);
           setStateAndRef("error");
