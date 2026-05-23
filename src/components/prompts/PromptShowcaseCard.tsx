@@ -6,7 +6,6 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import CopyPromptButton from "./CopyPromptButton";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { useRouter } from "@/i18n/navigation";
 import TagBadge from "@/components/shared/TagBadge";

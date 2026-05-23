@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { ChevronLeft, Eye, Heart, ExternalLink } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 import SkillCard from "@/components/skills/SkillCard";
@@ -46,13 +46,6 @@ const i18n = {
   },
 } as const;
 
-function formatCount(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 1,
-    notation: value >= 1000 ? "compact" : "standard",
-  }).format(value);
-}
-
 interface PageProps {
   params: Promise<{ locale: string; slug: string[] }>;
 }
@@ -69,11 +62,6 @@ export default async function SkillDetailPage({ params }: PageProps) {
   }
 
   const relatedSkills = await fetchRelatedSkills(slug, skill.category);
-
-  const isImported = skill.sourceRepo === "meleantonio/awesome-econ-ai-stuff";
-  const githubRepoUrl = isImported
-    ? `https://github.com/meleantonio/awesome-econ-ai-stuff`
-    : null;
 
   const initials = skill.author.name.charAt(0).toUpperCase();
 

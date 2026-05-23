@@ -35,8 +35,6 @@ export interface ParsedBlogPost {
   locale: string;
 }
 
-const CONTENT_DIR = path.join(process.cwd(), "content/blog");
-
 /**
  * Get the content directory path
  * Works in both development and standalone production mode
@@ -217,30 +215,11 @@ export async function syncAllPostsToDatabase(): Promise<{
   const result = { success: 0, failed: 0, errors: [] as string[] };
 
   try {
-    // Import here to avoid circular dependency
-    const { getBlogPostsFromDB } = await import("@/lib/blog-db");
-
     const posts = await getBlogPostsFromFiles("zh");
 
     for (const post of posts) {
-      const fm = post.frontmatter;
+      void post.frontmatter;
 
-      // Try to get English version
-      let titleEn = fm.title;
-      let excerptEn = fm.excerpt;
-
-      try {
-        const enPost = await getBlogPostBySlugFromFiles(fm.slug, "en");
-        if (enPost) {
-          titleEn = enPost.frontmatter.title;
-          excerptEn = enPost.frontmatter.excerpt;
-        }
-      } catch {
-        // No English version
-      }
-
-      // Note: sync functionality moved to migration scripts
-      // This function is kept for backward compatibility
       result.success++;
     }
   } catch (error) {

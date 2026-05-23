@@ -5,11 +5,28 @@ const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
-    ignores: [".agents/**", ".claude/**", "fronttemplet/**", "website-export/**"],
+    ignores: [
+      ".agents/**",
+      ".claude/**",
+      ".codex-tmp/**",
+      ".omx/**",
+      ".superpowers/**",
+      ".vercel/**",
+      "awesome-design-md/**",
+      "fronttemplet/**",
+      "website-export/**",
+    ],
   },
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
+  {
+    files: ["scripts/**/*.{js,cjs,mjs,ts}"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ];
