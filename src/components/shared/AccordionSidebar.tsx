@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import { getSubcategories } from "@/lib/subcategory-data";
 
 interface AccordionSidebarProps {
   categories: string[];
   basePath: string;
+  availableSubcategories?: Record<string, string[]>;
 }
 
-export function AccordionSidebar({ categories, basePath }: AccordionSidebarProps) {
+export function AccordionSidebar({ categories, basePath, availableSubcategories }: AccordionSidebarProps) {
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,7 +76,7 @@ export function AccordionSidebar({ categories, basePath }: AccordionSidebarProps
             <button
               type="button"
               onClick={() => selectCategory("")}
-              className={`flex w-full items-center rounded-full border px-4 py-2.5 text-[14px] transition-colors ${
+              className={`flex w-full items-center rounded-full border px-4 py-2.5 text-[14px] transition-colors cursor-pointer ${
                 !currentCategory
                   ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] font-medium text-[var(--color-bg)]"
                   : "border-[var(--color-border)] bg-transparent text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]"
@@ -89,58 +89,68 @@ export function AccordionSidebar({ categories, basePath }: AccordionSidebarProps
           {categories.map((category) => {
             const isExpanded = expanded.has(category);
             const isActive = currentCategory === category && !currentSubcategory;
-            const subcategories = getSubcategories(category);
+            const subcategories = availableSubcategories?.[category] ?? [];
+            const hasVisibleSubcategories = subcategories.length > 0;
 
             return (
-              <li key={category} className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => toggleCategory(category)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => selectCategory(category)}
-                    className={`flex flex-1 items-center rounded-full border px-4 py-2 text-[14px] transition-colors ${
-                      isActive
-                        ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] font-medium text-[var(--color-bg)]"
-                        : currentCategory === category
-                        ? "border-[var(--color-border-hover)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]"
-                        : "border-transparent bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-                    }`}
-                  >
-                    <span>{category}</span>
-                  </button>
-                </div>
+              <li key={category}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasVisibleSubcategories) {
+                      toggleCategory(category);
+                    }
+                    selectCategory(category);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-full border px-4 py-2 text-[14px] transition-colors cursor-pointer ${
+                    isActive
+                      ? "border-[var(--color-text-primary)] bg-[var(--color-text-primary)] font-medium text-[var(--color-bg)]"
+                      : currentCategory === category
+                      ? "border-[var(--color-border-hover)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]"
+                      : "border-transparent bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  }`}
+                >
+                  <span>{category}</span>
+                  {hasVisibleSubcategories && (
+                    <ChevronDown
+                      className={`ml-2 h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${
+                        isExpanded ? "rotate-0" : "-rotate-90"
+                      }`}
+                    />
+                  )}
+                </button>
 
-                {isExpanded && subcategories.length > 0 && (
-                  <ul className="ml-5 space-y-0.5 border-l border-[var(--color-border)] pl-3">
-                    {subcategories.map((sub) => {
-                      const isSubActive = currentCategory === category && currentSubcategory === sub;
-                      return (
-                        <li key={sub}>
-                          <button
-                            type="button"
-                            onClick={() => selectSubcategory(category, sub)}
-                            className={`flex w-full items-center rounded-full px-4 py-1.5 text-[13px] transition-colors ${
-                              isSubActive
-                                ? "bg-[var(--color-bg-surface-strong)] font-medium text-[var(--color-text-primary)]"
-                                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
-                            }`}
-                          >
-                            <span>{sub}</span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                {hasVisibleSubcategories && (
+                  <div
+                    className="grid transition-all duration-300 ease-out"
+                    style={{
+                      gridTemplateRows: isExpanded ? "1fr" : "0fr",
+                      opacity: isExpanded ? 1 : 0,
+                    }}
+                  >
+                    <div className="overflow-hidden">
+                      <ul className="ml-5 space-y-0.5 border-l border-[var(--color-border)] pl-3 pt-1">
+                        {subcategories.map((sub) => {
+                          const isSubActive = currentCategory === category && currentSubcategory === sub;
+                          return (
+                            <li key={sub}>
+                              <button
+                                type="button"
+                                onClick={() => selectSubcategory(category, sub)}
+                                className={`flex w-full items-center rounded-full px-4 py-1.5 text-[13px] transition-colors cursor-pointer ${
+                                  isSubActive
+                                    ? "bg-[var(--color-bg-surface-strong)] font-medium text-[var(--color-text-primary)]"
+                                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                                }`}
+                              >
+                                <span>{sub}</span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
                 )}
               </li>
             );
