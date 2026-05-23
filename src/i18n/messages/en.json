@@ -131,6 +131,7 @@
     "retry": "Retry",
     "step": "Step",
     "done": "Task complete",
-    "bubbleHint": "Can't find what you want? Try me~"
+    "bubbleHint": "Can't find what you want? Try me~",
+    "hoverHint": "How can I help you?"
   }
 }

@@ -15,6 +15,7 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
   const t = useTranslations("aiAssistant");
   const mounted = useMounted();
   const [showBubble, setShowBubble] = useState(false);
+  const [hoverBubble, setHoverBubble] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shownCountRef = useRef(0);
 
@@ -83,8 +84,8 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
 
   return (
     <div className="fixed bottom-8 right-12 flex items-end gap-3" style={{ zIndex: 2147483647 }}>
-      {/* Speech bubble */}
-      {showBubble && (
+      {/* Speech bubble (auto or hover) */}
+      {(showBubble || hoverBubble) && (
         <div
           className="relative mb-1.5 px-3.5 py-2 rounded-2xl text-sm whitespace-nowrap"
           style={{
@@ -100,7 +101,7 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
             animation: "bubble-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         >
-          {t("bubbleHint")}
+          {hoverBubble ? t("hoverHint") : t("bubbleHint")}
           {/* Arrow pointing right */}
           <span
             className="absolute -right-1.5 bottom-3 w-3 h-3 rotate-45"
@@ -121,6 +122,8 @@ export default function FloatingStar({ onClick }: FloatingStarProps) {
       {/* Star button */}
       <button
         onClick={onClick}
+        onMouseEnter={() => setHoverBubble(true)}
+        onMouseLeave={() => setHoverBubble(false)}
         className="leading-none cursor-pointer select-none transition-transform hover:scale-110 active:scale-95"
         style={{
           fontSize: 40,
