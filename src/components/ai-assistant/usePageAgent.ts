@@ -7,7 +7,7 @@ import { getSessionAccessToken } from "@/lib/cloudbase";
 // Types
 // ---------------------------------------------------------------------------
 
-export type PageAgentState = "idle" | "input" | "thinking" | "acting" | "error";
+export type PageAgentState = "idle" | "input" | "thinking" | "acting" | "done" | "error";
 
 export interface ActivityInfo {
   /** What the agent is currently doing, shown as subtitle text */
@@ -29,6 +29,7 @@ export interface UsePageAgentReturn {
   close: () => void;
   stop: () => void;
   dismissError: () => void;
+  newConversation: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -223,7 +224,7 @@ export function usePageAgent(options?: {
           case "running":
             break;
           case "completed":
-            setStateAndRef("input");
+            setStateAndRef("done");
             setActivity({ ...emptyActivity, step: stepRef.current });
             break;
           case "error":
@@ -242,8 +243,23 @@ export function usePageAgent(options?: {
 
       // Track step count from history changes
       core.addEventListener("historychange", () => {
-        const steps = core.history.filter((h: any) => h.type === "step").length;
-        stepRef.current = steps;
+        const steps = core.history.filter((h: any) => h.type === "step");
+        stepRef.current = steps.length;
+
+        const latest = steps[steps.length - 1] as any;
+        if (latest?.reflection?.next_goal) {
+          const goal = latest.reflection.next_goal as string;
+          setActivityHistory((prev) => {
+            const updated = [...prev];
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].summary === "正在思考…") {
+                updated[i] = { ...updated[i], summary: goal };
+                break;
+              }
+            }
+            return updated;
+          });
+        }
       });
 
       const refs: AgentRefs = { controller, core };
@@ -330,7 +346,14 @@ export function usePageAgent(options?: {
     setActivity(emptyActivity);
   }, []);
 
-  return { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError };
+  const newConversation = useCallback(() => {
+    setActivityHistory([]);
+    setStateAndRef("input");
+    setActivity(emptyActivity);
+    stepRef.current = 0;
+  }, []);
+
+  return { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError, newConversation };
 }
 
 // ---------------------------------------------------------------------------

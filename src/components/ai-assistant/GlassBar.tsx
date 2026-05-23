@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import type { ActivityInfo } from "./usePageAgent";
 import { useMounted } from "@/hooks/useMounted";
 
-type AssistantState = "idle" | "input" | "thinking" | "acting" | "error";
+type AssistantState = "idle" | "input" | "thinking" | "acting" | "done" | "error";
 
 interface GlassBarProps {
   state: AssistantState;
@@ -18,6 +18,7 @@ interface GlassBarProps {
   onClose: () => void;
   onStop: () => void;
   onDismissError: () => void;
+  onNewConversation: () => void;
 }
 
 export default function GlassBar({
@@ -30,6 +31,7 @@ export default function GlassBar({
   onClose,
   onStop,
   onDismissError,
+  onNewConversation,
 }: GlassBarProps) {
   const t = useTranslations("aiAssistant");
   const { resolvedTheme } = useTheme();
@@ -61,6 +63,9 @@ export default function GlassBar({
   useEffect(() => {
     if (state === "input" || state === "idle") {
       setExpanded(false);
+    }
+    if (state === "done") {
+      setExpanded(true);
     }
   }, [state]);
 
@@ -118,6 +123,7 @@ export default function GlassBar({
         : {};
 
   const isWorking = state === "thinking" || state === "acting";
+  const showPanel = isWorking || state === "done";
   const statusText = isWorking
     ? activity.summary || t(state === "thinking" ? "thinking" : "acting")
     : null;
@@ -129,7 +135,7 @@ export default function GlassBar({
       style={{ zIndex: 2147483647, animation: "glass-slide-up 400ms cubic-bezier(0.34, 1.56, 0.64, 1)" }}
     >
       {/* Expanded thinking panel */}
-      {expanded && isWorking && (
+      {expanded && showPanel && (
         <div
           className="mb-2 overflow-hidden rounded-[16px] px-4 py-3"
           style={{
@@ -266,6 +272,21 @@ export default function GlassBar({
             </div>
           )}
 
+          {/* Done state — show completion and "+" for new conversation */}
+          {state === "done" && (
+            <div
+              className="flex-1 flex items-center gap-2 cursor-pointer rounded-lg px-1"
+              onClick={() => setExpanded((e) => !e)}
+            >
+              <span
+                className="text-sm"
+                style={{ color: theme.statusColor }}
+              >
+                ✓ {t("done")}
+              </span>
+            </div>
+          )}
+
           {/* Error state */}
           {state === "error" && (
             <div className="flex-1 flex items-center gap-3">
@@ -298,6 +319,20 @@ export default function GlassBar({
             </button>
           )}
 
+          {/* New conversation button (done state) */}
+          {state === "done" && (
+            <button
+              onClick={onNewConversation}
+              className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{
+                background: theme.sendBtnBg,
+                boxShadow: theme.sendBtnShadow,
+              }}
+            >
+              <span style={{ color: theme.sendBtnIconColor, fontSize: 18, fontWeight: 300 }}>+</span>
+            </button>
+          )}
+
           {/* Stop button (thinking/acting state) */}
           {isWorking && (
             <button
@@ -317,8 +352,8 @@ export default function GlassBar({
             </button>
           )}
 
-          {/* Close/dismiss button (non-input, non-working) */}
-          {!isWorking && state !== "input" && (
+          {/* Close/dismiss button (non-input, non-working, non-done) */}
+          {!isWorking && state !== "input" && state !== "done" && (
             <button
               onClick={state === "error" ? onDismissError : onClose}
               className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"

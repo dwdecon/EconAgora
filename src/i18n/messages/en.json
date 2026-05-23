@@ -130,6 +130,7 @@
     "error": "Request failed, please retry",
     "retry": "Retry",
     "step": "Step",
+    "done": "Task complete",
     "bubbleHint": "Can't find what you want? Try me~"
   }
 }

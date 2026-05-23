@@ -11,7 +11,7 @@ const AUTH_KEY = "econagora-agent-logged-in";
 export default function AiAssistant() {
   const [authState, setAuthState] = useState<"unknown" | "yes" | "no">("unknown");
 
-  const { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError } = usePageAgent({
+  const { state, errorMsg, activity, activityHistory, sendCommand, retry, open, close, stop, dismissError, newConversation } = usePageAgent({
     onAuthExpired: useCallback(() => {
       sessionStorage.setItem(AUTH_KEY, "0");
       setAuthState("no");
@@ -64,6 +64,7 @@ export default function AiAssistant() {
       onClose={close}
       onStop={stop}
       onDismissError={dismissError}
+      onNewConversation={newConversation}
     />
   );
 }
