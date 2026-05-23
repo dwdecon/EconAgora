@@ -2,7 +2,11 @@ import PageShell from "@/components/layout/PageShell";
 import SkillCard from "@/components/skills/SkillCard";
 import Pagination from "@/components/shared/Pagination";
 import Reveal from "@/components/shared/Reveal";
-import { fetchSkillCategories, fetchSkills } from "@/lib/skills";
+import {
+  fetchSkillCategories,
+  fetchSkills,
+  fetchSkillSubcategories,
+} from "@/lib/skills";
 import {
   SkillActiveFilters,
   SkillDropdownFilters,
@@ -93,9 +97,14 @@ export default async function SkillsPage({ params, searchParams }: PageProps) {
       ? resolvedSearchParams.subcategory
       : "") || "";
 
-  const [{ skills, totalPages, total, loadError }, categories] = await Promise.all([
+  const [
+    { skills, totalPages, total, loadError },
+    categories,
+    subcategoryMap,
+  ] = await Promise.all([
     fetchSkills({ page, category, subcategory, tag, search }),
     fetchSkillCategories(locale),
+    fetchSkillSubcategories(),
   ]);
 
   const qsParts: string[] = [];
@@ -119,7 +128,10 @@ export default async function SkillsPage({ params, searchParams }: PageProps) {
 
       <div className="flex flex-col lg:flex-row gap-8">
         <Reveal delay={200} className="w-full lg:w-64 shrink-0">
-          <SkillSidebar categories={categories} />
+          <SkillSidebar
+            categories={categories}
+            availableSubcategories={subcategoryMap}
+          />
         </Reveal>
 
         <div className="flex-1 min-w-0">

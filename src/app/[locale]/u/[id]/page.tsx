@@ -144,6 +144,7 @@ export default function UserProfilePage() {
     title: prompt.title,
     description: prompt.description,
     category: prompt.category,
+    subcategory: (prompt as any).subcategory ?? null,
     tags: normalizeTags(prompt.tags),
     likeCount: prompt.like_count ?? 0,
     downloadCount: prompt.download_count ?? 0,

@@ -6,7 +6,11 @@ import ToolActiveFilters, {
 import ToolCard from "@/components/tools/ToolCard";
 import Pagination from "@/components/shared/Pagination";
 import Reveal from "@/components/shared/Reveal";
-import { fetchToolCategories, fetchTools } from "@/lib/tools";
+import {
+  fetchToolCategories,
+  fetchTools,
+  fetchToolSubcategories,
+} from "@/lib/tools";
 
 const i18n = {
   zh: {
@@ -95,9 +99,14 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
       ? resolvedSearchParams.subcategory
       : "") || "";
 
-  const [{ tools, totalPages, loadError }, categories] = await Promise.all([
+  const [
+    { tools, totalPages, loadError },
+    categories,
+    subcategoryMap,
+  ] = await Promise.all([
     fetchTools({ page, category, subcategory, tag, search }),
     fetchToolCategories(locale),
+    fetchToolSubcategories(),
   ]);
 
   const qsParts: string[] = [];
@@ -122,7 +131,10 @@ export default async function ToolsPage({ params, searchParams }: PageProps) {
 
       <div className="flex flex-col lg:flex-row gap-8 mt-12">
         <Reveal delay={100} className="w-full lg:w-64 shrink-0">
-          <ToolSidebarFilters categories={categories} />
+          <ToolSidebarFilters
+            categories={categories}
+            availableSubcategories={subcategoryMap}
+          />
         </Reveal>
 
         <div className="flex-1 min-w-0">

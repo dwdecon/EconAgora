@@ -1,10 +1,14 @@
+"use client";
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "@/components/shared/CodeBlock";
+import { slugify, TocItem } from "@/lib/readme";
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  tocItems?: TocItem[];
 }
 
 const OUTER_MARKDOWN_FENCE = /^\s*```(?:markdown|md)\s*\n([\s\S]*?)\n?```\s*$/i;
@@ -79,32 +83,64 @@ function sanitiseCodeChildren(children: unknown, language?: string): unknown {
   return children;
 }
 
+function extractText(children: unknown): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(extractText).join("");
+  if (children && typeof children === "object" && "props" in (children as any)) {
+    return extractText((children as any).props.children);
+  }
+  return "";
+}
+
 export default function MarkdownRenderer({
   content,
   className = "",
+  tocItems = [],
 }: MarkdownRendererProps) {
   const normalised = normaliseMarkdownContent(content);
+
+  // Build a lookup from heading text → slug using tocItems (which come from extractToc)
+  // This guarantees heading IDs match what ReadmeToc uses for navigation.
+  const slugLookup = new Map<string, string>();
+  for (const item of tocItems) {
+    slugLookup.set(item.text, item.slug);
+  }
+
+  const getHeadingId = (children: unknown): string | undefined => {
+    const text = extractText(children);
+    return slugLookup.get(text) || slugify(text) || undefined;
+  };
 
   return (
     <div className={`markdown-content prose dark:prose-invert max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => (
-            <h1 className="text-2xl font-bold mt-8 mb-4 text-[var(--color-text-primary)]">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-xl font-semibold mt-6 mb-3 text-[var(--color-text-primary)]">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-lg font-medium mt-4 mb-2 text-[var(--color-text-primary)]">
-              {children}
-            </h3>
-          ),
+          h1: ({ children }) => {
+            const id = getHeadingId(children);
+            return (
+              <h1 id={id} className="text-2xl font-bold mt-8 mb-4 text-[var(--color-text-primary)] scroll-mt-24">
+                {children}
+              </h1>
+            );
+          },
+          h2: ({ children }) => {
+            const id = getHeadingId(children);
+            return (
+              <h2 id={id} className="text-xl font-semibold mt-6 mb-3 text-[var(--color-text-primary)] scroll-mt-24">
+                {children}
+              </h2>
+            );
+          },
+          h3: ({ children }) => {
+            const id = getHeadingId(children);
+            return (
+              <h3 id={id} className="text-lg font-medium mt-4 mb-2 text-[var(--color-text-primary)] scroll-mt-24">
+                {children}
+              </h3>
+            );
+          },
           p: ({ children }) => (
             <p className="my-3 leading-7 text-[var(--color-text-secondary)]">
               {children}

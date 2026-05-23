@@ -35,7 +35,7 @@ function shouldSkipNavigation(target: EventTarget | null) {
 export default function ToolCard({ tool, labels }: ToolCardProps) {
   const router = useRouter();
   const categoryTheme = getCategoryTheme(tool.category);
-  const metaTags = tool.tags.filter((tag) => tag !== tool.category).slice(0, 3);
+  const displayTag = tool.subcategory || tool.category;
 
   function navigateToDetail() {
     router.push(`/tools/${tool.id}`);
@@ -69,7 +69,7 @@ export default function ToolCard({ tool, labels }: ToolCardProps) {
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${categoryTheme}`}
           >
-            {tool.category}
+            {displayTag}
           </span>
         </div>
 
@@ -102,7 +102,7 @@ export default function ToolCard({ tool, labels }: ToolCardProps) {
 
       <div className="mt-auto flex items-end justify-between gap-4 pt-6">
         <div className="flex flex-wrap gap-2">
-          {metaTags.map((tag) => (
+          {tool.tags.filter((tag: string) => tag !== tool.category).slice(0, 3).map((tag: string) => (
             <span
               key={tag}
               className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-secondary)]"

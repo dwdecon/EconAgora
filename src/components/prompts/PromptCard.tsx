@@ -8,6 +8,7 @@ interface PromptCardProps {
     title: string;
     description: string | null;
     category: string;
+    subcategory: string | null;
     tags: string[];
     likeCount: number;
     downloadCount: number;
@@ -16,6 +17,7 @@ interface PromptCardProps {
 }
 
 export default function PromptCard({ prompt }: PromptCardProps) {
+  const displayTag = prompt.subcategory || prompt.category;
   return (
     <Link
       href={`/prompts/${prompt.id}`}
@@ -25,7 +27,7 @@ export default function PromptCard({ prompt }: PromptCardProps) {
         <span
           className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${getCategoryTheme(prompt.category)}`}
         >
-          {prompt.category}
+          {displayTag}
         </span>
       </div>
       <h3 className="mt-2 line-clamp-2 font-normal leading-[1.25] text-[var(--color-text-primary)] transition">

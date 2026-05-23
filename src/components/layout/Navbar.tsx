@@ -279,14 +279,14 @@ export default function Navbar() {
             }
 
             return (
-              <a
+              <Link
                 key={item.label}
-                href={href}
+                href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={`transition-colors duration-300 ${stateClass}`}
               >
                 {item.label}
-              </a>
+              </Link>
             );
           })}
         </div>

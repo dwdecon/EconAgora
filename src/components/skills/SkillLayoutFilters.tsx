@@ -89,8 +89,20 @@ export function SkillSearchBar() {
 
 import { AccordionSidebar } from "@/components/shared/AccordionSidebar";
 
-export function SkillSidebar({ categories }: { categories: string[] }) {
-  return <AccordionSidebar categories={categories} basePath="/skills" />;
+export function SkillSidebar({
+  categories,
+  availableSubcategories,
+}: {
+  categories: string[];
+  availableSubcategories?: Record<string, string[]>;
+}) {
+  return (
+    <AccordionSidebar
+      categories={categories}
+      basePath="/skills"
+      availableSubcategories={availableSubcategories}
+    />
+  );
 }
 
 export function SkillActiveFilters() {

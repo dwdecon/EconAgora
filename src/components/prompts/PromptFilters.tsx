@@ -8,8 +8,20 @@ import { AccordionSidebar } from "@/components/shared/AccordionSidebar";
 const FILTER_PILL_CLASSES =
   "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 py-1 text-xs text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]";
 
-export function PromptSidebarFilters({ categories }: { categories: string[] }) {
-  return <AccordionSidebar categories={categories} basePath="/prompts" />;
+export function PromptSidebarFilters({
+  categories,
+  availableSubcategories,
+}: {
+  categories: string[];
+  availableSubcategories?: Record<string, string[]>;
+}) {
+  return (
+    <AccordionSidebar
+      categories={categories}
+      basePath="/prompts"
+      availableSubcategories={availableSubcategories}
+    />
+  );
 }
 
 export default function PromptActiveFilters() {

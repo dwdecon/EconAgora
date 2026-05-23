@@ -75,6 +75,7 @@ interface Prompt {
   description: string | null;
   content: string | null;
   category: string;
+  subcategory: string | null;
   tags: string[];
   likeCount: number;
   viewCount: number;
@@ -221,6 +222,7 @@ async function fetchPrompts(params: {
           description: prompt.description,
           content: prompt.content,
           category: prompt.category,
+          subcategory: prompt.subcategory ?? null,
           tags: normalizeTags(prompt.tags),
           likeCount: prompt.like_count ?? 0,
           viewCount: prompt.view_count ?? 0,
@@ -245,6 +247,38 @@ async function fetchPrompts(params: {
       totalPages: 1,
       loadError: error instanceof Error ? error.message : "CloudBase request failed.",
     };
+  }
+}
+
+async function fetchPromptSubcategories(): Promise<Record<string, string[]>> {
+  try {
+    await warmupPromptRdb();
+
+    const { data, error } = await serverDb
+      .from("prompt")
+      .select("category, subcategory")
+      .eq("status", "PUBLISHED")
+      .execute();
+
+    if (error || !data) return {};
+
+    const result: Record<string, Set<string>> = {};
+    for (const row of data as Array<{ category?: string | null; subcategory?: string | null }>) {
+      const cat = row.category?.trim();
+      const sub = row.subcategory?.trim();
+      if (!cat || !sub) continue;
+      if (!result[cat]) result[cat] = new Set();
+      result[cat].add(sub);
+    }
+
+    const record: Record<string, string[]> = {};
+    for (const [cat, subs] of Object.entries(result)) {
+      record[cat] = Array.from(subs).sort();
+    }
+    return record;
+  } catch (error) {
+    console.error("Failed to fetch prompt subcategories:", error);
+    return {};
   }
 }
 
@@ -294,9 +328,14 @@ export default async function PromptsPage({
   const tag = (typeof sp.tag === "string" ? sp.tag : "") || "";
   const search = (typeof sp.search === "string" ? sp.search : "") || "";
 
-  const [{ prompts, totalPages, loadError }, categories] = await Promise.all([
+  const [
+    { prompts, totalPages, loadError },
+    categories,
+    subcategoryMap,
+  ] = await Promise.all([
     fetchPrompts({ page, category, subcategory, tag, search }),
     fetchPromptCategories(locale),
+    fetchPromptSubcategories(),
   ]);
 
   // Build queryString for pagination
@@ -325,7 +364,10 @@ export default async function PromptsPage({
       <div className="flex flex-col lg:flex-row gap-8 mt-12">
         <div className="w-full lg:w-64 shrink-0">
           <Suspense>
-            <PromptSidebarFilters categories={categories} />
+            <PromptSidebarFilters
+              categories={categories}
+              availableSubcategories={subcategoryMap}
+            />
           </Suspense>
         </div>
 

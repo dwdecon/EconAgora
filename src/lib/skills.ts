@@ -11,6 +11,7 @@ export interface Skill {
   description: string | null;
   descriptionZh: string | null;
   category: string;
+  subcategory: string | null;
   tags: string[];
   tutorial: string | null;
   codeExamples: string | null;
@@ -190,6 +191,7 @@ export async function fetchSkills(params: {
           description: skill.description,
           descriptionZh: skill.description_zh ?? null,
           category: skill.category,
+          subcategory: skill.subcategory ?? null,
           tags: normalizeTags(skill.tags),
           tutorial: skill.tutorial,
           codeExamples: skill.code_examples,
@@ -257,6 +259,7 @@ async function _fetchFeaturedSkills(): Promise<Skill[]> {
           description: row.description,
           descriptionZh: row.description_zh ?? null,
           category: row.category,
+          subcategory: row.subcategory ?? null,
           tags: normalizeTags(row.tags),
           tutorial: row.tutorial,
           codeExamples: row.code_examples,
@@ -328,6 +331,7 @@ export async function fetchSkillById(id: string): Promise<Skill | null> {
       description: row.description,
       descriptionZh: row.description_zh ?? null,
       category: row.category,
+      subcategory: row.subcategory ?? null,
       tags: normalizeTags(row.tags),
       tutorial: row.tutorial,
       codeExamples: row.code_examples,
@@ -438,6 +442,7 @@ export async function fetchRelatedSkills(
           description: row.description,
           descriptionZh: row.description_zh ?? null,
           category: row.category,
+          subcategory: row.subcategory ?? null,
           tags: normalizeTags(row.tags),
           tutorial: row.tutorial,
           codeExamples: row.code_examples,
@@ -495,6 +500,38 @@ export async function fetchSkillCategories(locale = "en"): Promise<string[]> {
   } catch (error) {
     console.error("Failed to fetch skill categories:", error);
     return [];
+  }
+}
+
+export async function fetchSkillSubcategories(): Promise<Record<string, string[]>> {
+  try {
+    await warmupSkillRdb();
+
+    const { data, error } = await serverDb
+      .from("skill")
+      .select("category, subcategory")
+      .eq("status", "PUBLISHED")
+      .execute();
+
+    if (error || !data) return {};
+
+    const result: Record<string, Set<string>> = {};
+    for (const row of data as Array<{ category?: string | null; subcategory?: string | null }>) {
+      const cat = row.category?.trim();
+      const sub = row.subcategory?.trim();
+      if (!cat || !sub) continue;
+      if (!result[cat]) result[cat] = new Set();
+      result[cat].add(sub);
+    }
+
+    const record: Record<string, string[]> = {};
+    for (const [cat, subs] of Object.entries(result)) {
+      record[cat] = Array.from(subs).sort();
+    }
+    return record;
+  } catch (error) {
+    console.error("Failed to fetch skill subcategories:", error);
+    return {};
   }
 }
 

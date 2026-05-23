@@ -92,8 +92,20 @@ export function ToolSearchBar() {
 
 import { AccordionSidebar } from "@/components/shared/AccordionSidebar";
 
-export function ToolSidebarFilters({ categories }: { categories: string[] }) {
-  return <AccordionSidebar categories={categories} basePath="/tools" />;
+export function ToolSidebarFilters({
+  categories,
+  availableSubcategories,
+}: {
+  categories: string[];
+  availableSubcategories?: Record<string, string[]>;
+}) {
+  return (
+    <AccordionSidebar
+      categories={categories}
+      basePath="/tools"
+      availableSubcategories={availableSubcategories}
+    />
+  );
 }
 
 export default function ToolActiveFilters() {

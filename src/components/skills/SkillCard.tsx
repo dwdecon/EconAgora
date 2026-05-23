@@ -36,7 +36,7 @@ function shouldSkipNavigation(target: EventTarget | null) {
 export default function SkillCard({ skill, locale, labels }: SkillCardProps) {
   const router = useRouter();
   const categoryTheme = getCategoryTheme(skill.category);
-  const metaTags = skill.tags.filter((tag) => tag !== skill.category).slice(0, 3);
+  const displayTag = skill.subcategory || skill.category;
 
   function navigateToDetail() {
     router.push(`/skills/${skill.id}`);
@@ -70,7 +70,7 @@ export default function SkillCard({ skill, locale, labels }: SkillCardProps) {
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${categoryTheme}`}
           >
-            {skill.category}
+            {displayTag}
           </span>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function SkillCard({ skill, locale, labels }: SkillCardProps) {
 
       <div className="mt-auto flex items-end justify-between gap-4 pt-6">
         <div className="flex flex-wrap gap-2">
-          {metaTags.map((tag) => (
+          {skill.tags.filter((tag: string) => tag !== skill.category).slice(0, 3).map((tag: string) => (
             <span
               key={tag}
               className="rounded-[10px] border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-secondary)]"

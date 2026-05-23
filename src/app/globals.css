@@ -176,6 +176,14 @@ section {
   }
 }
 
+.toc-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.toc-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Tissue pull: bar appears in page center like pulling a tissue */
 @keyframes tissue-pull-out {
   0% {

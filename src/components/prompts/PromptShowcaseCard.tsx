@@ -20,6 +20,7 @@ interface PromptShowcaseCardProps {
     description: string | null;
     content: string | null;
     category: string;
+    subcategory?: string | null;
     tags: string[];
     likeCount: number;
     viewCount: number;
@@ -90,6 +91,7 @@ export default function PromptShowcaseCard({
 }: PromptShowcaseCardProps) {
   const router = useRouter();
   const categoryTheme = getCategoryTheme(prompt.category);
+  const displayTag = prompt.subcategory || prompt.category;
   const metaTags = prompt.tags.filter((tag) => tag !== prompt.category).slice(0, isFeatured ? 3 : 2);
 
   function navigateToDetail() {
@@ -124,7 +126,7 @@ export default function PromptShowcaseCard({
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.16em] ${categoryTheme}`}
           >
-            {prompt.category}
+            {displayTag}
           </span>
         </div>
 
