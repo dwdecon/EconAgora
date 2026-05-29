@@ -91,27 +91,13 @@ function getSkillDownloadUrl(skill: Skill): string | null {
 }
 
 function buildAgentImportPrompt(skill: Skill, agentName: string, downloadUrl: string) {
-  if (skill.installCommand) {
-    return `请帮我安装下面这个 Skill。
+  const repoUrl = skill.sourceRepo ? `https://github.com/${skill.sourceRepo}` : downloadUrl;
 
-Skill 名称：${skill.title}
-安装命令：
-\`\`\`
-${skill.installCommand}
-\`\`\`
+  return `请安装「${skill.title}」。
 
-请在终端运行以上命令完成安装，并告诉我安装结果和调用方式。`;
-  }
+源仓库地址：${repoUrl}
 
-  return `请为帮我导入下面这个Skill。
-
-Skill 名称：${skill.title}
-Skill 下载链接：${downloadUrl}
-
-请完成：
-1. 从下载链接获取完整的 SKILL.md 内容。
-2. 按 ${agentName} 支持的 skills / rules / project instructions 机制导入这个 skill；不要改写原始 skill 内容。
-3. 导入完成后告诉我保存位置、调用方式，以及是否需要重启或刷新 ${agentName}。`;
+请按照 ${agentName} 的最佳实践规范安装这个 skill，简要介绍它的用途，并给一段使用示例。`;
 }
 
 export default function SkillSidebar({ skill, locale }: SkillSidebarProps) {
