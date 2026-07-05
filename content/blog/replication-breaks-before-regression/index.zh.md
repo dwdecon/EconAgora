@@ -24,7 +24,7 @@ status: published
 
 Gentzkow 与 Shapiro 的 *Code and Data for the Social Sciences: A Practitioner’s Guide* 是经济学复现工程的经典指南，强调文件组织、版本控制、自动化与文档化[^1]。美国经济学协会（AEA）期刊的数据与代码可及性政策，说明了顶级期刊对复现材料的最低要求[^2]。Gary King 的 *Replication, Replication* 则从政治学方法论角度，阐述了复现的标准、意义与常见失败原因[^3]。Dataverse 作为社会科学数据仓储平台，提供了长期保存、版本管理与 DOI 引用机制[^4]。
 
-本文把这些经验浓缩成一套可在项目启动时就落地的复现治理规则。
+本文把这些经验浓缩成一套可在项目启动时就应用的复现治理规则。
 
 ## 1. 回归不是最常见的失败点
 
