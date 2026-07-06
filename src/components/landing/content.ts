@@ -814,7 +814,8 @@ export function getHomeContent(locale: string) {
               { label: "Skills Hub", href: "/skills" },
               { label: "Tool Center", href: "/tools" },
               { label: "Blog", href: "/blog" },
-              { label: "About", href: "#about" },
+              { label: "Series", href: "/series" },
+              { label: "Tags", href: "/tags" },
             ],
           },
           {

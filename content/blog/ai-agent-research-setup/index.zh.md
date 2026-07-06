@@ -1,320 +1,301 @@
 ---
-slug: "ai-agent-research-setup"
-title: "什么是 AI Agent？使用 VSCode 配置自己的第一个科研 Agent"
-excerpt: "从零开始理解 AI Agent 的概念，使用 VSCode + Claude + CC Switch 配置一个能读文献、写代码、跑数据的科研助手。"
-category: "AI 工具"
-date: "2026-05-21"
-readTime: "20 分钟"
+slug: ai-agent-research-setup
+title: 什么是 AI Agent？使用 VSCode 配置自己的第一个科研 Agent
+excerpt: 面向经济学研究者，从零开始用 VS Code + Claude Code + CC Switch 搭建本地 AI 科研 Agent，并完成下载 NBER Working Paper 与生成结构化中文摘要的完整示例。
+category: AI 工具
+date: '2026-05-21'
+readTime: 20 分钟
 tags:
-  - "AI Agent"
-  - "VSCode"
-  - "Claude"
-  - "CC Switch"
-  - "科研工具"
-  - "入门教程"
-author: "戴伟德"
-authorRole: "经济学研究者"
-issue: "Volume 2605"
-illustration: "generated"
-cover: "/blog-covers/2026/05/ai-agent-research-setup-final.png"
+  - AI Agent
+  - VSCode
+  - Claude Code
+  - CC Switch
+  - 科研工具
+  - 入门教程
+author: 戴伟德
+authorRole: 经济学研究者
+issue: EA-2026-05-001
+cover: /blog-covers/2026/05/ai-agent-research-setup-final.png
+series: ai-research-best-practices
+seriesOrder: 1
+status: published
 ---
+
+![AI 科研最佳实践](/blog-covers/series-ai-research-best-practices.png)
 
 ## 引言
 
-2024 年以来，AI Agent（智能体）从一个技术概念迅速演变为研究者手中的生产力工具。与单次对话的 ChatGPT 不同，Agent 能够持续执行任务、调用工具、读写文件，真正融入研究工作流。
+2024 年以来，AI Agent（智能体）从一个技术概念快速变成研究者桌上的实用工具。与单次对话的 ChatGPT 不同，Agent 能够持续执行任务、调用工具、读写文件，真正嵌入到文献下载、数据整理、实证分析等研究环节中。
 
-本文面向经济学研究者，从零开始：
-1. 理解什么是 AI Agent（以及什么不是）
-2. 安装和配置 CC Switch（API 切换工具）
-3. 在 VSCode 中使用 Claude Code
-4. 完成第一个科研任务：自动下载并解析一篇 NBER Working Paper
+本文面向经济学研究者，目标是把下面这套工具链跑通：
 
-无需编程基础，跟着步骤操作即可。
+1. **VS Code**：作为编辑器与终端集成环境。
+2. **Claude Code**：Anthropic 官方 CLI Agent，能读项目文件、执行命令。
+3. **CC Switch**：管理 Claude Code 等 CLI 工具的 API 供应商切换，让你在不同模型之间一键切换。
 
-## 第一部分：AI Agent 到底是什么？
+完成环境配置后，我们会一起完成第一个端到端科研任务：**让 Agent 自动下载一篇 NBER Working Paper，并生成一份结构化的中文摘要**。
 
-### 1.1 从 ChatGPT 到 Agent：关键区别
+本文假设你没有太多编程基础，只需要能安装软件、打开终端即可。如果你希望把这套流程转化为可复用的研究资产，后文会提到如何衔接 `research-planning` 与 `idea-generation` 两个 Skill。
 
-| 特性 | ChatGPT | AI Agent |
-|-----|---------|----------|
-| 交互方式 | 单次对话 | 持续任务执行 |
-| 文件操作 | 手动上传/下载 | 自动读写文件 |
-| 工具使用 | 无 | 可调用计算器、搜索引擎、代码解释器等 |
-| 记忆 | 对话窗口内 | 可读写外部文件，跨会话持久 |
-| 工作流 | 一问一答 | 自主规划 → 执行 → 反思 → 调整 |
+## 1. 从 ChatGPT 到 Agent：关键区别
 
-**简单理解：** ChatGPT 是"顾问"，Agent 是"助理"。顾问给你建议，助理直接动手做。
+ChatGPT 适合“一问一答”：你提一个问题，它给一段回答。Agent 则更像一个能持续干活的助手：你把目标说清楚，它会自己规划、调用工具、读写文件，并在遇到问题时调整方案。
 
-### 1.2 Agent 的核心架构
+| 特性 | ChatGPT 类网页对话 | AI Agent |
+|---|---|---|
+| 交互方式 | 单次或连续对话 | 持续任务执行 |
+| 文件操作 | 手动上传/下载 | 自动读写工作区文件 |
+| 工具调用 | 内置有限 | 可调用搜索、代码执行、数据库等外部工具 |
+| 记忆 | 依赖对话窗口 | 可持久化到配置文件、知识库 |
+| 工作流 | 提问—回答 | 目标 → 规划 → 执行 → 反思 → 调整 |
 
-一个完整的 AI Agent 包含三个组件：
+**一句话理解**：ChatGPT 是“顾问”，Agent 是“助理”。顾问给你建议，助理可以直接动手做。
 
-```
+## 2. Agent 的三大组件
+
+一个能完成科研任务的 AI Agent 至少包含三个部分：
+
+```text
 ┌─────────────────────────────────────────┐
 │              AI Agent 架构               │
 ├─────────────────────────────────────────┤
 │  ① 大脑（LLM）                           │
-│     - Claude / GPT-4 / DeepSeek          │
+│     - Claude / GPT-4 / DeepSeek / Kimi   │
 │     - 负责推理、规划、决策                │
 ├─────────────────────────────────────────┤
 │  ② 工具（Tools）                         │
 │     - 文件读写（fs）                      │
-│     - 网页搜索（search）                  │
-│     - 代码执行（code）                    │
-│     - 数据库查询（sql）                   │
+│     - 网页搜索与下载（Web / Fetch）       │
+│     - 代码执行（Bash / Python）           │
+│     - 数据库 / 文献库接口（MCP）          │
 ├─────────────────────────────────────────┤
 │  ③ 记忆（Memory）                        │
 │     - 短期：当前任务上下文                │
-│     - 长期：配置文件、知识库              │
+│     - 长期：CLAUDE.md、项目文档、知识库   │
 └─────────────────────────────────────────┘
 ```
 
-### 1.3 科研场景中的 Agent
+在经济学研究中，这三部分可以映射为：
 
-在经济学研究中，Agent 可以：
+- **大脑**：选择合适的大模型处理文献摘要、代码生成或因果推断推理。
+- **工具**：调用 Python 读取 CSV、调用 Stata 跑回归、调用 Zotero MCP 检索文献。
+- **记忆**：用 `CLAUDE.md` 保存“你是一位经济学研究助手”的自定义指令，让 Agent 每次启动都按同一套规则工作。
 
-- **文献工作**：自动下载 PDF、提取摘要、整理笔记
-- **数据处理**：读取数据、清洗变量、生成描述统计
-- **实证分析**：编写 Stata/R/Python 代码、运行回归、解读结果
-- **写作辅助**：生成文献综述段落、润色论文、检查引用格式
+本文先聚焦最基础的组合：用 Claude Code 作为 Agent 壳，用 VS Code 作为操作环境，用 CC Switch 作为模型切换层。
 
-**本文目标**：配置一个能完成"下载 → 阅读 → 总结"文献的基础 Agent。
+## 3. 环境准备
 
-## 第二部分：环境准备
+### 3.1 安装 VS Code
 
-### 2.1 安装 VSCode
+VS Code（Visual Studio Code）是微软开发的免费代码编辑器，内置终端，能方便地与 Claude Code 协同。
 
-VSCode（Visual Studio Code）是微软开发的免费代码编辑器，也是目前配置 Agent 最方便的平台。
+1. 访问 <https://code.visualstudio.com/> 下载对应系统版本。
+2. 安装后打开，按提示完成初始化。
+3. 建议安装一个项目文件夹作为工作区：菜单「文件」→「打开文件夹…」，选择或新建一个目录，例如 `~/research-agent-demo`。
 
-**下载地址**：https://code.visualstudio.com/
+### 3.2 安装 Claude Code
 
-安装完成后，打开 VSCode，确保能正常启动即可。
+Claude Code 是 Anthropic 官方推出的命令行 Agent 工具。它会在终端中与你交互，并能在工作区里读写文件、运行命令。
 
-### 2.2 安装 CC Switch
+**前置要求**：Node.js >= 18。如果尚未安装，可到 <https://nodejs.org/> 下载 LTS 版本，或用系统包管理器安装。
 
-CC Switch 是一个跨平台的桌面 All-in-One 助手，用于管理 Claude Code、Codex、Gemini CLI 等 AI CLI 工具的 API 供应商切换。通过 CC Switch，你可以轻松在 Claude 中使用国产模型（如 Kimi、DeepSeek 等），无需手动编辑配置文件。
+**安装命令**：
 
-**系统要求**：
-- Windows 10 及以上
-- macOS 12 (Monterey) 及以上
-- Linux: Ubuntu 22.04+ / Debian 11+ / Fedora 34+
-
-**下载安装**：
-
-**Windows 用户**：
-1. 访问 [CC Switch GitHub Releases](https://github.com/farion1231/cc-switch/releases)
-2. 下载 `CC-Switch-v{版本号}-Windows.msi` 安装包
-3. 双击安装，按提示完成
-
-**macOS 用户（推荐 Homebrew）**：
-```bash
-brew tap farion1231/ccswitch
-brew install --cask cc-switch
-```
-
-或手动下载 `.dmg` 文件安装。
-
-**Linux 用户**：
-- Debian/Ubuntu: 下载 `.deb` 包
-- Fedora/RHEL: 下载 `.rpm` 包
-- 通用: 下载 `.AppImage`
-
-**验证安装**：
-安装完成后，打开 CC Switch，看到主界面即表示成功。主界面会显示当前配置的 CLI 工具（Claude Code、Codex 等）和供应商状态。
-
-### 2.3 配置 Claude Code
-
-Claude Code 是 Anthropic 推出的官方 CLI 工具，让你在终端中直接与 Claude 对话，执行文件操作、代码编写等任务。
-
-**安装 Claude Code**：
 ```bash
 npm install -g @anthropic-ai/claude-code
 ```
 
 **验证安装**：
+
 ```bash
 claude --version
 ```
 
-### 2.4 在 CC Switch 中添加供应商
+如果看到版本号，说明安装成功。
 
-CC Switch 支持 50+ 供应商预设，包括官方 API 和第三方中转服务。你可以轻松切换 Claude、Kimi、DeepSeek 等模型。
+### 3.3 安装与配置 CC Switch
 
-**添加官方 Anthropic 供应商**：
-1. 打开 CC Switch
-2. 点击「添加供应商」
-3. 选择预设："Anthropic"（官方）
-4. 输入你的 API Key
-5. 点击「保存」
+CC Switch 是一个跨平台的 CLI 工具 API 供应商切换工具，主要用来管理 Claude Code、Codex 等工具的 API 来源。通过它，你可以在 Anthropic 官方、Kimi、DeepSeek 等模型之间快速切换，而不用手动改配置文件。
 
-**添加国产模型供应商（以 Kimi 为例）**：
-1. 点击「添加供应商」
-2. 选择预设："Moonshot"（Kimi）或自定义 OpenAI 兼容接口
-3. 输入 API Key 和 Base URL
-4. 选择模型：`kimi-latest` 或具体版本
-5. 点击「保存」
+**系统要求**：
 
-**常用国产模型配置**：
+- Windows 10 及以上
+- macOS 12 (Monterey) 及以上
+- Linux：Ubuntu 22.04+ / Debian 11+ / Fedora 34+
+
+**安装方式**：
+
+- **Windows**：访问 [CC Switch GitHub Releases](https://github.com/farion1231/cc-switch/releases)，下载 `CC-Switch-v{版本号}-Windows.msi`，双击安装。
+- **macOS（推荐 Homebrew）**：
+  ```bash
+  brew tap farion1231/ccswitch
+  brew install --cask cc-switch
+  ```
+  也可手动下载 `.dmg` 安装。
+- **Linux**：按发行版选择 `.deb`、`.rpm` 或 `.AppImage`。
+
+**验证安装**：
+
+打开 CC Switch，主界面显示已识别的 CLI 工具（如 Claude Code）和当前供应商状态，即表示成功。
+
+### 3.4 获取 API Key 与添加供应商
+
+API Key 是调用大模型服务的凭证。不同平台的获取方式如下：
+
+- **Anthropic 官方**：访问 <https://console.anthropic.com/>，注册或登录后进入 “API Keys” 页面，点击 “Create Key”，复制以 `sk-ant-api03-` 开头的密钥。
+- **Kimi（Moonshot）**：访问 <https://platform.moonshot.cn/>，在 “API Key 管理” 中创建密钥。
+- **DeepSeek**：访问 <https://platform.deepseek.com/>，在 “API Keys” 页面创建密钥。
+- **通义千问 / 文心一言**：类似地在对应开发者平台创建 API Key。
+
+**安全提示**：API Key 等同于密码，不要截图发到公开渠道，也不要写入代码或 Markdown 后提交到 Git。
+
+在 CC Switch 中添加供应商：
+
+1. 打开 CC Switch，点击「添加供应商」。
+2. 选择预设，例如 “Anthropic” 或 “Moonshot（Kimi）”。
+3. 填入 API Key，必要时填写 Base URL。
+4. 选择默认模型，例如 `claude-sonnet-4-20250514`、`kimi-latest` 或 `deepseek-chat`。
+5. 点击「保存」。
+
+常用国产模型配置参考：
 
 | 模型 | 供应商 | Base URL 示例 | 模型 ID |
-|-----|--------|--------------|---------|
+|---|---|---|---|
 | Kimi | Moonshot | `https://api.moonshot.cn/v1` | `kimi-latest` |
 | DeepSeek | DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
 | 通义千问 | Alibaba | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-max` |
 | 文心一言 | Baidu | `https://qianfan.baidubce.com/v2` | `ernie-bot-4` |
 
 **切换供应商**：
-- 主界面：选择供应商 → 点击「启用」
-- 系统托盘：直接点击供应商名称（立即生效，Claude Code 无需重启）
 
-### 2.5 获取 API Key
+- 在 CC Switch 主界面选择目标供应商，点击「启用」。
+- 或在系统托盘图标上直接点击供应商名称切换，Claude Code 无需重启即可生效。
 
-**Anthropic 官方**：
-1. 访问 https://console.anthropic.com/
-2. 注册/登录账号
-3. 进入 "API Keys" 页面
-4. 点击 "Create Key"
-5. 复制生成的密钥（格式：`sk-ant-api03-...`）
+### 3.5 在 VS Code 集成终端中启动 Claude Code
 
-**Kimi（Moonshot）**：
-1. 访问 https://platform.moonshot.cn/
-2. 注册/登录账号
-3. 进入 "API Key 管理"
-4. 创建新 Key
+Claude Code 在 VS Code 的集成终端里使用最顺手，因为可以直接引用当前打开的项目文件。
 
-**DeepSeek**：
-1. 访问 https://platform.deepseek.com/
-2. 注册/登录账号
-3. 进入 "API Keys" 页面
-4. 创建新 Key
+**步骤 1**：打开 VS Code 终端。按 `` Ctrl+` ``（反引号），或点击菜单「终端」→「新建终端」。
 
-**安全提示**：API Key 相当于密码，不要分享给他人，不要上传到公开仓库。
+**步骤 2**：启动 Claude Code：
 
-### 2.6 在 VSCode 中使用 Claude Code
-
-Claude Code 可以在 VSCode 的集成终端中使用，实现与编辑器的无缝协作。
-
-**步骤 1：打开 VSCode 终端**
-1. 打开 VSCode
-2. 按 `` Ctrl+` `` 或点击菜单「终端」→「新建终端」
-
-**步骤 2：启动 Claude Code**
 ```bash
 claude
 ```
 
-首次启动会要求登录，按提示完成 OAuth 认证。
+首次启动会提示 OAuth 登录，按屏幕指引在浏览器完成授权即可。
 
-**步骤 3：验证连接**
-在 Claude Code 提示符下输入：
-```
+**步骤 3**：验证连接：
+
+```text
 你好，请简单介绍一下自己
 ```
 
-如果看到 Claude 的回复，说明配置成功。
+如果看到 Claude 的回复，说明配置完成。
 
-**常用命令**：
+常用命令：
+
 | 命令 | 说明 |
-|-----|------|
+|---|---|
 | `claude` | 启动交互式对话 |
 | `claude "任务描述"` | 直接执行单次任务 |
 | `claude --help` | 查看所有选项 |
 | `/exit` 或 `Ctrl+D` | 退出 Claude Code |
 
-**在 VSCode 中与文件协作**：
-1. 在 VSCode 中打开项目文件夹
-2. 在终端中启动 `claude`
-3. 可以直接引用文件："请帮我分析 `data.csv` 文件"
-4. Claude 会读取文件并执行分析
-
-**常见问题**：
+常见问题：
 
 | 问题 | 解决方法 |
-|-----|---------|
-| "API Key invalid" | 检查 Key 是否完整复制，有无多余空格 |
-| "Rate limit exceeded" | 等待 1 分钟后重试，或升级账户 |
-| 无回复/超时 | 检查网络连接，尝试切换供应商 |
-| Claude Code 无法启动 | 确保 Node.js 版本 >= 18，重新安装 |
+|---|---|
+| API Key invalid | 检查 Key 是否完整复制，有无多余空格 |
+| Rate limit exceeded | 等待 1 分钟后重试，或升级账户 / 切换供应商 |
+| 无回复或超时 | 检查网络，尝试在 CC Switch 中切换供应商 |
+| Claude Code 无法启动 | 确认 Node.js >= 18，必要时重新安装 |
 
-## 第三部分：第一个科研任务
+## 4. 第一个科研任务：下载 NBER Working Paper 并生成结构化摘要
 
-### 3.1 任务目标
+### 4.1 任务目标
 
-让 Agent 自动完成：
-1. 下载一篇 NBER Working Paper（PDF）
-2. 提取标题、作者、摘要、关键词
-3. 生成中文摘要总结
-4. 保存到本地文件
+让 Agent 自动完成以下工作：
 
-### 3.2 配置工具权限
+1. 获取 NBER Working Paper 31952 的元数据。
+2. 提取标题、作者、发表日期、英文摘要、关键词。
+3. 将摘要翻译成中文。
+4. 生成一段 200 字左右的中文综述，说明研究问题、方法和主要发现。
+5. 将所有内容保存为 `paper_summary.md`。
 
-Claude Code 默认只能读写工作区文件，需要授予网络访问权限：
+> 说明：NBER 工作论文的 PDF 全文通常需要订阅或购买，但标题、作者和摘要等元数据一般是公开的。本任务以公开信息为准；如果页面需要登录，Agent 会改用网页搜索完成摘要采集。
 
-1. 启动 Claude Code
-2. 输入 `/permissions` 查看当前权限
-3. 按提示启用需要的权限：
-   - ✅ 文件读写
-   - ✅ 网络访问
-   - ✅ 命令执行（需确认）
+### 4.2 配置工具权限
 
-**安全说明**：启用命令执行后，Claude 会询问是否执行每条命令，你可以审查后再批准。
+Claude Code 默认只能读写当前工作区文件。如果要下载网页内容，需要给它网络访问权限；如果要运行命令，需要允许命令执行。
 
-### 3.3 编写任务提示词
+1. 启动 Claude Code。
+2. 输入 `/permissions` 查看当前权限。
+3. 按提示启用：
+   - ✅ 文件读写（Files）
+   - ✅ 网络访问（Web / Fetch）
+   - ✅ 命令执行（Bash，执行前会逐条确认）
 
-在 Claude Code 中输入以下提示词：
+**安全说明**：启用命令执行后，Claude Code 在执行每条命令前都会询问你是否批准，请逐条检查后再确认。
 
-```
+### 4.3 编写任务提示词
+
+在 Claude Code 中输入以下提示词。目标要具体、输出格式要明确，这样 Agent 才不容易跑偏。
+
+```text
 请帮我完成以下科研任务：
 
-1. 从 NBER 网站下载 Working Paper 31952（URL: https://www.nber.org/papers/w31952）
-2. 如果无法直接下载，请使用网页搜索找到该论文的标题、作者、摘要
+1. 访问 NBER 网站，获取 Working Paper 31952 的公开信息（URL: https://www.nber.org/papers/w31952）。
+2. 如果无法直接访问页面，请使用网页搜索找到该论文的标题、作者和摘要。
 3. 提取以下信息：
    - 标题
    - 作者
    - 发表日期
-   - 摘要（英文）
+   - 英文摘要
    - 关键词（如果有）
-4. 将摘要翻译成中文
-5. 生成一段 200 字的中文综述，说明这篇论文的研究问题、方法和主要发现
-6. 将所有信息保存到文件 "paper_summary.md"
+4. 将英文摘要翻译成中文。
+5. 生成一段 200 字左右的中文综述，说明这篇论文的研究问题、识别策略或方法、以及主要发现。
+6. 将所有信息保存到当前工作区的 "paper_summary.md" 文件中。
 
-注意：
-- 如果下载 PDF 需要付费，请改用网页搜索获取信息
-- 保存文件时使用 UTF-8 编码
-- 文件格式使用 Markdown
+要求：
+- 文件使用 UTF-8 编码。
+- 文件格式为 Markdown。
+- 如果某项信息缺失，请标注“[待核实]”。
+- 不要编造未在页面中明确出现的信息。
 ```
 
-### 3.4 观察 Agent 的工作过程
+### 4.4 观察 Agent 的执行过程
 
-输入提示词后，Claude Code 会开始自主工作。你会看到：
+输入提示词后，Claude Code 会展示一个典型的 Agent 工作循环：
 
 **第一步：规划**
 
-Agent 会先将任务拆解为子步骤：
-```
+Agent 会先拆解任务：
+
+```text
 我将按以下步骤完成：
-1. 尝试访问 NBER 网站获取论文信息
-2. 如果无法访问，使用网页搜索
-3. 提取并整理信息
-4. 翻译摘要
-5. 生成综述
-6. 保存到文件
+1. 尝试访问 NBER 页面获取论文元数据
+2. 若访问受限，改用网页搜索
+3. 提取标题、作者、日期、摘要、关键词
+4. 翻译摘要并生成中文综述
+5. 保存为 Markdown 文件
 ```
 
 **第二步：执行**
 
-Agent 会调用浏览器工具访问 NBER 网站，或调用搜索工具查找信息。
+Agent 会调用浏览器工具或搜索工具访问页面，并抓取可见文本。
 
-**第三步：反思**
+**第三步：反思与调整**
 
-如果遇到问题（如网站需要登录），Agent 会调整策略：
+如果 NBER 页面需要登录，Agent 会调整策略：
+
+```text
+NBER 页面需要订阅才能查看完整摘要，我将改用 Google Scholar / Semantic Scholar 搜索该论文。
 ```
-NBER 网站需要订阅才能查看完整摘要。我将改用 Google Scholar 搜索该论文。
-```
 
-**第四步：完成**
+**第四步：完成并保存**
 
-最终，Agent 会生成 `paper_summary.md` 文件，内容类似：
+最终，Agent 会在工作区生成 `paper_summary.md`，内容结构如下：
 
 ```markdown
 # NBER Working Paper 31952 摘要
@@ -332,160 +313,144 @@ NBER 网站需要订阅才能查看完整摘要。我将改用 Google Scholar �
 [中文翻译]
 
 ## 综述
-这篇论文研究了人工智能对科学发现的影响。作者使用...[200字综述]
+这篇论文研究了人工智能对科学发现的影响。作者使用……[约 200 字]
 
 ## 关键词
 AI, Scientific Discovery, Innovation, Productivity
 ```
 
-### 3.5 检查结果
+### 4.5 检查结果与人工核查
 
-1. 在 VSCode 左侧「资源管理器」中找到 `paper_summary.md`
-2. 点击打开，检查内容是否完整
-3. 如有遗漏，可以在 Claude Code 中继续对话："请补充论文的研究方法部分"
+1. 在 VS Code 左侧「资源管理器」中找到 `paper_summary.md`。
+2. 点击打开，检查标题、作者、日期、摘要是否完整。
+3. 对关键信息进行抽查：打开浏览器，核对 NBER 页面或 Google Scholar 上的元数据。
+4. 如果内容有遗漏，可以在 Claude Code 中继续对话，例如：
+   - “请补充论文的研究方法部分。”
+   - “请把关键词翻译成中文。”
+   - “请在综述中增加一段研究贡献的评价。”
 
-## 第四部分：理解 Agent 的能力边界
+**关键原则**：Agent 生成的内容永远需要人工核查，尤其是用于论文写作或政策分析时。
 
-### 4.1 Agent 能做什么？
+## 5. Agent 的能力边界与风险提示
+
+在把 Agent 投入日常使用之前，需要清楚它能做什么、不能做什么。
+
+### 5.1 Agent 能做什么
 
 | 能力 | 示例 |
-|-----|------|
-| 文件操作 | 读写本地文件、创建文件夹、移动文件 |
-| 网络访问 | 搜索网页、下载文件、调用 API |
-| 代码执行 | 运行 Python/R/Stata 代码、安装包 |
+|---|---|
+| 文件操作 | 读写本地文件、创建文件夹、批量重命名 |
+| 网络访问 | 搜索网页、下载公开 PDF、调用开放 API |
+| 代码执行 | 运行 Python / R / Stata 代码、安装依赖 |
 | 数据分析 | 读取 CSV、生成图表、计算统计量 |
 | 文本处理 | 翻译、摘要、格式化、生成 Markdown |
 
-### 4.2 Agent 不能做什么？
+### 5.2 Agent 不能做什么
 
 | 限制 | 说明 |
-|-----|------|
-| 无法访问付费数据库 | JSTOR、ScienceDirect 等需要机构订阅 |
-| 无法运行需要 GUI 的软件 | 如 Stata 的图形界面、Excel |
-| 无法处理超大文件 | 超过 100MB 的 PDF 或数据集可能超时 |
-| 无法保证 100% 准确 | 需要人工核查关键信息 |
+|---|---|
+| 无法绕过付费墙 | JSTOR、ScienceDirect、NBER 全文等需要机构订阅 |
+| 无法操作 GUI 软件 | 如 Stata 图形界面、Excel、Adobe Reader |
+| 无法处理超大文件 | 超过 100 MB 的 PDF 或数据集可能超时或失败 |
+| 无法保证 100% 准确 | 模型可能“幻觉”或误解网页内容，需要人工复核 |
 
-### 4.3 人机协作的最佳实践
+### 5.3 风险与责任边界
 
-```
-研究者          Agent
-  │              │
-  ├─ 定义任务 ──→│
-  │              ├─ 执行
-  │              ├─ 遇到问题
-  ├─ 提供指导 ←──┤
-  │              ├─ 调整执行
-  │              ├─ 完成
-  ├─ 核查结果 ←──┤
-  ├─ 提出修改 ──→│
-  │              ├─ 修改
-  │              ↓
-  └─ 最终确认 ←──┘
-```
+- **幻觉风险**：Agent 可能生成看似合理但实际不存在的引用或数据。凡是用于论文、报告、政策建议的内容，必须人工核对来源。
+- **隐私风险**：不要把未脱敏的微观数据、未发表的论文草稿上传到公共模型服务。
+- **成本风险**：Agent 调用 API 是按 token 计费的长会话。建议先在小样本上测试，再批量处理。
 
-**关键原则**：
-- 任务要具体、可验证
-- 关键数据必须人工核查
-- 复杂任务分步骤执行
-- 保存中间结果，便于回溯
+## 6. 人机协作最佳实践与进阶配置
 
-## 第五部分：进阶配置
+### 6.1 用 CLAUDE.md 保存自定义指令
 
-### 5.1 配置自定义指令
+如果你希望 Agent 每次启动都按经济学研究的规范工作，可以在项目根目录创建 `CLAUDE.md`：
 
-Claude Code 支持自定义系统指令，让 Agent 始终以特定方式工作：
+```text
+你是一位经济学研究助手。在完成任务时，请遵守以下规则：
 
-1. 在项目根目录创建 `CLAUDE.md` 文件
-2. 写入：
-
-```
-你是一位经济学研究助手。在完成任务时：
-1. 优先使用学术来源（NBER、arXiv、SSRN）
-2. 引用文献时提供完整信息（作者、年份、标题）
-3. 数据分析时使用 Python（pandas、matplotlib）
-4. 结果保存为 Markdown 格式
-5. 不确定的信息明确标注"[待核实]"
+1. 优先使用学术来源（NBER、arXiv、SSRN、Google Scholar）。
+2. 引用文献时提供作者、年份、标题和工作论文编号（如果有）。
+3. 数据分析默认使用 Python（pandas、matplotlib、statsmodels），需要时也可使用 Stata。
+4. 结果保存为 Markdown 格式，表格使用标准 Markdown 表格。
+5. 不确定的信息明确标注“[待核实]”。
+6. 在执行命令前征求我的同意，除非是只读操作。
 ```
 
-3. Claude Code 会自动读取该文件并遵循指令
+Claude Code 会自动读取当前工作区的 `CLAUDE.md` 并遵循其中指令。如果你经常做文献综述，可以把这个文件和 `research-planning` Skill 中的模板结合起来，形成固定的研究启动流程。
 
-### 5.2 配置常用工具
+### 6.2 安装常用工具
 
-**安装 Python 环境**（用于数据分析）：
+为了让 Agent 能处理更复杂的科研任务，建议在工作区里准备好 Python 环境：
 
-在 Claude Code 中输入：
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install pandas requests beautifulsoup4 PyPDF2
 ```
-请帮我检查系统是否安装了 Python。如果没有，请指导我安装。
-安装完成后，请安装以下包：pandas、requests、beautifulsoup4、PyPDF2
+
+之后你可以直接对 Claude Code 说：
+
+```text
+请用 Python 读取 data.csv，计算主要变量的描述性统计，并保存到 summary_stats.md。
 ```
 
-**安装 Node.js**（用于运行 JavaScript 工具）：
+### 6.3 通过 CC Switch 切换模型的典型场景
 
-类似地，让 Agent 指导你安装 Node.js 环境。
+不同模型在不同任务上各有优势，CC Switch 的价值就是让你按需切换：
 
-### 5.3 保存工作区配置
+| 场景 | 推荐供应商 | 原因 |
+|---|---|---|
+| 处理中文文献、润色中文段落 | Kimi | 中文理解和长文本能力较强 |
+| 生成 Stata / Python 代码 | DeepSeek | 代码生成在中文语境下表现稳定 |
+| 复杂推理、识别策略讨论 | Anthropic Claude | 学术推理和结构化输出表现较好 |
 
-将当前配置保存为工作区，方便下次使用：
+切换时只需在 CC Switch 中启用目标供应商，Claude Code 中的下一条对话就会使用新模型，无需重启终端。
 
-1. VSCode 菜单：文件 → 将工作区另存为...
-2. 命名为 "ResearchAgent.code-workspace"
-3. 保存到项目文件夹
+### 6.4 保存工作区配置
 
-下次打开时，双击该文件即可恢复完整环境。
+为了方便下次继续，可以把 VS Code 当前配置保存为工作区文件：
 
-### 5.4 使用 CC Switch 切换模型
+1. VS Code 菜单：「文件」→「将工作区另存为…」。
+2. 命名为 `ResearchAgent.code-workspace`。
+3. 保存到项目文件夹。
 
-CC Switch 的核心价值在于一键切换不同模型供应商：
+下次双击该文件即可恢复完整的窗口布局、终端历史和项目文件。
 
-**场景 1：使用 Kimi 处理中文文献**
-1. 在 CC Switch 中启用 Kimi 供应商
-2. 在 Claude Code 中提问："请总结这篇中文论文的要点"
-3. Kimi 的中文理解能力会更适合
-
-**场景 2：使用 DeepSeek 进行代码生成**
-1. 切换到 DeepSeek 供应商
-2. 提问："请帮我写一个 Stata 的 DID 回归代码"
-3. DeepSeek 的代码能力在中文场景下表现优异
-
-**场景 3：切换回 Claude 进行复杂推理**
-1. 切换回 Anthropic 官方供应商
-2. 提问需要深度推理的问题
-3. Claude 的推理能力在学术分析中表现最佳
-
-## 总结
+## 7. 总结与下一篇预告
 
 本文介绍了：
 
-1. **AI Agent 概念**：从 ChatGPT 到 Agent 的演进，三大核心组件
-2. **环境配置**：VSCode + CC Switch + Claude Code 的完整安装流程
-3. **供应商切换**：通过 CC Switch 使用 Claude、Kimi、DeepSeek 等模型
-4. **实战任务**：自动下载并总结 NBER Working Paper
-5. **能力边界**：Agent 能做什么、不能做什么
-6. **进阶配置**：自定义指令、工具安装、工作区保存、模型切换
+1. **AI Agent 的核心概念**：从 ChatGPT 到 Agent 的演进，以及大脑、工具、记忆三大组件。
+2. **环境搭建**：VS Code + Claude Code + CC Switch 的安装、登录和供应商切换。
+3. **实战任务**：自动下载并总结 NBER Working Paper，生成结构化的中文摘要。
+4. **能力边界**：Agent 能处理公开网页、文件和代码，但不能绕过付费墙、操作 GUI 或替代人工核查。
+5. **进阶配置**：用 `CLAUDE.md` 自定义指令、安装 Python 工具链、按场景切换模型。
 
 **下一步**：
 
-在下一篇文章中，我们将学习如何给 Agent 接入文献库（Zotero），实现：
-- 自动同步 Zotero 收藏
-- 批量下载 PDF 并提取元数据
+在下一篇文章中，我们将给 Agent 接入文献库，学习如何通过 **Zotero + MCP** 实现：
+
+- 自动检索本地 Zotero 收藏的元数据
+- 批量检查 PDF 并提取关键章节
 - 生成文献综述的初步框架
 
----
+## 相关 Skill
 
-**延伸阅读：**
+如果你希望把本文的 workflow 转化为可复用的研究能力，可以参考我们在 Claude Code 项目中维护的两个 Skill：
 
-- CC Switch 官方文档：https://github.com/farion1231/cc-switch
-- Claude Code 官方文档：https://docs.anthropic.com/en/docs/claude-code/overview
-- MCP（Model Context Protocol）：https://modelcontextprotocol.io/
-- Anthropic API 文档：https://docs.anthropic.com/
-
-**工具推荐：**
-
-- CC Switch：API 供应商切换管理工具
-- Claude Code：Anthropic 官方 CLI Agent 工具
-- VSCode：轻量、免费、插件丰富
-- Kimi/DeepSeek：国产优秀大模型
+- [/skills/lingzhi227/agent-research-skills/research-planning](/skills/lingzhi227/agent-research-skills/research-planning)：研究规划与任务拆解模板，适合把“下载 → 阅读 → 总结”扩展为系统化的文献调研流程。
+- [/skills/lingzhi227/agent-research-skills/idea-generation](/skills/lingzhi227/agent-research-skills/idea-generation)：从已有摘要和笔记中提炼研究问题与假设，适合在文献总结完成后进入选题阶段。
 
 ---
 
-*本文是 EconAgora "AI Agent 科研助手"系列的第一篇。如有问题，欢迎在 Twitter @EconAgora 讨论。*
+**延伸阅读**：
+
+- CC Switch GitHub 仓库：<https://github.com/farion1231/cc-switch>
+- Claude Code 官方文档：<https://docs.anthropic.com/en/docs/claude-code/overview>
+- Model Context Protocol：<https://modelcontextprotocol.io/>
+- Anthropic API 文档：<https://docs.anthropic.com/>
+
+---
+
+*本文是 EconAgora “AI 科研最佳实践”系列的第一篇。如有问题，欢迎在 Twitter @EconAgora 讨论。*

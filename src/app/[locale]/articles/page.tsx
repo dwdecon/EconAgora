@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import Reveal from "@/components/shared/Reveal";
 import BlogCard from "@/components/blog/BlogCard";
-import { getBlogPostsFromFiles } from "@/lib/blog-content";
+import { getBlogPosts } from "@/lib/blog-data";
 
 const copy = {
   zh: {
@@ -30,7 +30,7 @@ export default async function ArticlesPage({
   const { locale } = await params;
   const t = locale === "en" ? copy.en : copy.zh;
 
-  const filePosts = await getBlogPostsFromFiles(locale);
+  const filePosts = await getBlogPosts(locale);
 
   const allPosts = filePosts.map((post) => ({
     slug: post.frontmatter.slug,

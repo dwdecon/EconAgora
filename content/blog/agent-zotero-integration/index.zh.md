@@ -1,181 +1,138 @@
 ---
-slug: "agent-zotero-integration"
-title: "给自己的 Agent 接入文献库：Zotero + MCP 实战指南"
-excerpt: "通过 MCP 协议将 Zotero 文献库接入 AI Agent，实现自动检索、PDF 解析、笔记生成和文献综述框架构建的完整工作流。"
-category: "AI 工具"
-date: "2026-05-28"
-readTime: "25 分钟"
+slug: agent-zotero-integration
+title: 给自己的 Agent 接入文献库：Zotero + MCP 实战指南
+excerpt: 本文介绍如何在 Claude Code 中通过 MCP 协议接入 54yyyu/zotero-mcp，让 Agent 直接搜索 Zotero 文献库、读取 PDF 全文、提取关键信息并生成文献矩阵与综述大纲。包含完整安装配置、可复制的四步工作流 prompt 与常见错误排查。
+category: AI 工具
+date: '2026-05-28'
+readTime: 25 分钟
 tags:
-  - "AI Agent"
-  - "Zotero"
-  - "MCP"
-  - "文献管理"
-  - "科研工具"
-author: "戴伟德"
-authorRole: "经济学研究者"
-issue: "Volume 2605"
-illustration: "generated"
-cover: "/blog-covers/2026/05/agent-zotero-integration.png"
+  - AI Agent
+  - Claude Code
+  - Zotero
+  - MCP
+  - 文献检索
+  - 文献综述
+  - PDF 解析
+author: 戴伟德
+authorRole: 经济学研究者
+issue: EA-2026-05-003
+cover: /blog-covers/2026/05/agent-zotero-integration.png
+series: ai-research-best-practices
+seriesOrder: 2
+status: published
 ---
 
-## 引言
+![AI 科研最佳实践系列横幅](/blog-covers/series-ai-research-best-practices.png)
 
-在上一篇文章中，我们配置了一个基础的科研 Agent，它能够运行代码、搜索网页、读写文件。但真正的科研工作离不开文献——大量的文献。手动下载 PDF、复制标题、整理笔记，这些重复性工作占据了研究者大量时间。
+> 这是 EconAgora「AI 科研最佳实践」系列的第 2 篇。前一篇见 [《什么是 AI Agent？使用 VSCode 配置自己的第一个科研 Agent》](/blog/ai-agent-research-setup)。
 
-本文将解决这个痛点：通过 **MCP（Model Context Protocol）协议**，将 **Zotero** 文献库接入 AI Agent，实现：
-1. **自动检索**：根据关键词在 Zotero 库中查找相关文献
-2. **PDF 解析**：提取 PDF 中的文本、表格、图表
-3. **智能笔记**：自动生成文献摘要、批判性评价、关联分析
-4. **综述框架**：基于多篇文献构建文献综述的结构化框架
+## 你要解决什么问题
 
-**前置要求**：已完成第一篇的环境配置（VSCode + CC Switch + Claude Code + API）
+经济学研究者的 Zotero 库里通常躺着几百上千篇 PDF：工作论文、期刊文章、书籍章节。写文献综述时，最常见的场景是：
 
-## 第一部分：理解 MCP 协议
+1. 记得某篇论文的关键词，却搜不到准确条目；
+2. 找到条目后，还要手动打开 PDF、复制摘要、记录方法；
+3. 读了几十篇，笔记散落在各处，最后整理矩阵和大纲时又得重新翻一遍。
 
-### 1.1 什么是 MCP？
+这篇文章把 **Zotero** 直接接到 **Claude Code**，通过一个 MCP Server 让 Agent 在对话里完成：
 
-MCP（Model Context Protocol）是 Anthropic 于 2024 年推出的开放协议，旨在标准化 AI 模型与外部工具/数据源之间的通信方式。
+- **搜索文献库**：按关键词、作者、年份、标签检索；
+- **获取 PDF**：定位附件并读取全文或注释；
+- **提取文本**：把摘要、方法、结论转成结构化摘要；
+- **生成文献矩阵与综述大纲**：按方法或主题归类，输出 Markdown 表格与大纲。
 
-**简单类比**：
-- USB 是硬件设备的通用接口
-- HTTP 是网页通信的通用协议
-- **MCP 是 AI 模型与外部工具通信的通用协议**
+整个流程不需要你离开 Claude Code 的终端对话窗口。
 
-### 1.2 MCP 的核心架构
+## 前置条件
 
-```
-┌─────────────────────────────────────────┐
-│              MCP 架构                   │
-├─────────────────────────────────────────┤
-│  Host（宿主应用）                        │
-│  - VSCode / Claude Code / Claude Desktop│
-├─────────────────────────────────────────┤
-│  Client（客户端）                        │
-│  - 管理连接、路由请求                    │
-├─────────────────────────────────────────┤
-│  Server（服务端）                        │
-│  - Zotero Server                        │
-│  - File System Server                   │
-│  - GitHub Server                        │
-│  - 自定义 Server...                     │
-├─────────────────────────────────────────┤
-│  Data Source（数据源）                   │
-│  - Zotero 数据库                        │
-│  - 本地文件系统                         │
-│  - 远程 API                             │
-└─────────────────────────────────────────┘
-```
+在开始之前，请确认以下环境：
 
-**工作流程**：
-1. Agent 需要获取文献信息
-2. Claude Code（Client）通过 MCP 连接到 Zotero Server
-3. Zotero Server 查询本地 Zotero 数据库
-4. 返回结果给 Agent，Agent 继续处理
+- **Zotero 7**（或 6）已安装，且库中已有若干文献和 PDF 附件；
+- **Claude Code** 已安装并完成登录（本系列第 1 篇覆盖过）；
+- 已安装 **uv**、**pipx** 或 **pip** 中的一种，用于安装 Python 工具；
+- 知道 Zotero 数据目录的位置（可选，用于自定义路径）。
 
-### 1.3 为什么用 MCP 而不是直接调用 API？
+默认数据目录：
 
-| 方式 | 优点 | 缺点 |
-|-----|------|------|
-| **直接调用 Zotero API** | 简单直接 | 需要处理认证、格式转换、错误处理 |
-| **MCP 协议** | 标准化、可复用、多工具协同 | 需要额外配置 Server |
-
-**MCP 的优势在于**：一旦配置好 Zotero MCP Server，任何支持 MCP 的 Agent（Claude Code、Claude Desktop 等）都可以无缝使用，无需重复开发。
-
-## 第二部分：配置 Zotero MCP Server
-
-### 2.1 安装 Zotero
-
-如果尚未安装，请访问 https://www.zotero.org/ 下载并安装。
-
-**验证安装**：
-1. 打开 Zotero
-2. 确认可以正常添加文献（尝试拖拽一篇 PDF 到 Zotero）
-3. 查看文献库路径：编辑 → 首选项 → 高级 → 文件和文件夹 → 数据存储位置
-
-**默认路径**：
 - Windows: `C:\Users\<用户名>\Zotero`
 - macOS: `~/Library/Application Support/Zotero`
 - Linux: `~/.zotero`
 
-### 2.2 安装 Zotero MCP Server
+## 核心步骤
 
-目前社区有多个 Zotero MCP Server 实现，本文使用 `zotero-mcp`（Python 实现，功能完整）。
+### 1. 安装 zotero-mcp-server
 
-**步骤 1：克隆仓库**
+我们将使用社区维护的 [`54yyyu/zotero-mcp`](https://github.com/54yyyu/zotero-mcp)（PyPI 包名 `zotero-mcp-server`）。它通过本地 API 读取 Zotero，默认无需 Zotero API Key。
 
-```bash
-# 创建一个专门的目录存放 MCP Servers
-mkdir -p ~/mcp-servers
-cd ~/mcp-servers
-
-# 克隆 zotero-mcp
-git clone https://github.com/konn/zotero-mcp.git
-cd zotero-mcp
-```
-
-**步骤 2：安装依赖**
+推荐用 `uv` 安装（速度快、隔离干净）：
 
 ```bash
-# 创建虚拟环境
-python -m venv venv
+# 基础版：支持搜索、元数据、全文、注释
+uv tool install zotero-mcp-server
 
-# 激活虚拟环境
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+# 如需 PDF 目录/大纲提取，加上 [pdf] 扩展
+uv tool install "zotero-mcp-server[pdf]"
 
-# 安装依赖
-pip install -e .
+# 如需本地语义搜索，加上 [semantic] 扩展
+uv tool install "zotero-mcp-server[semantic]"
 ```
 
-**步骤 3：配置 Zotero 数据库路径**
+如果你用 `pipx`：
 
 ```bash
-# 设置环境变量（根据你的实际路径修改）
-# Windows (PowerShell):
-$env:ZOTERO_DB_PATH = "$env:USERPROFILE\Zotero\zotero.sqlite"
-
-# macOS/Linux:
-export ZOTERO_DB_PATH="~/Zotero/zotero.sqlite"
+pipx install "zotero-mcp-server[pdf]"
 ```
 
-**验证数据库路径**：
+安装完成后，验证命令是否在 PATH 中：
+
 ```bash
-ls $ZOTERO_DB_PATH  # macOS/Linux
-# 或
-dir $env:ZOTERO_DB_PATH  # Windows
+zotero-mcp version
 ```
 
-如果文件存在，说明路径正确。
+### 2. 在 Zotero 中启用本地 API
 
-### 2.3 配置 Claude Code 使用 MCP
+`54yyyu/zotero-mcp` 默认通过 Zotero 的本地 API 读取数据，因此需要保持 Zotero 桌面端运行。
 
-**步骤 1：创建 MCP 配置文件**
+1. 打开 Zotero；
+2. 进入 **编辑 → 首选项 → 高级 → 常规**；
+3. 勾选 **"Enable local API server"**（启用本地 API 服务器）；
+4. 重启 Zotero 使设置生效。
 
-Claude Code 使用 `claude_desktop_config.json` 或项目级的 `.mcp.json` 配置 MCP Servers。
+> 注意：使用本地 API 时，Claude Code 读取的是 Zotero 实时数据，因此 Zotero 必须保持运行。
 
-**全局配置**（影响所有项目）：
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- Linux: `~/.config/Claude/claude_desktop_config.json`
+### 3. 在 Claude Code 中配置 MCP Server
 
-**项目级配置**（仅当前项目）：
-在项目根目录创建 `.mcp.json` 文件。
+Claude Code 支持两种配置方式：全局配置（对所有项目生效）或项目级 `.mcp.json`（仅当前项目生效）。
 
-**步骤 2：编辑配置文件**
+#### 方式 A：命令行快速添加（推荐）
+
+在终端运行：
+
+```bash
+claude mcp add --env ZOTERO_LOCAL=true --transport stdio zotero -- zotero-mcp
+```
+
+如果 Zotero 数据目录不在默认位置，再补充 `ZOTERO_DB_PATH`：
+
+```bash
+claude mcp add \
+  --env ZOTERO_LOCAL=true \
+  --env ZOTERO_DB_PATH="/path/to/zotero.sqlite" \
+  --transport stdio zotero -- zotero-mcp
+```
+
+#### 方式 B：项目级 `.mcp.json`
+
+在项目根目录创建 `.mcp.json`：
 
 ```json
 {
   "mcpServers": {
     "zotero": {
-      "command": "python",
-      "args": [
-        "-m",
-        "zotero_mcp"
-      ],
+      "command": "zotero-mcp",
       "env": {
-        "ZOTERO_DB_PATH": "/Users/<你的用户名>/Zotero/zotero.sqlite"
+        "ZOTERO_LOCAL": "true",
+        "ZOTERO_DB_PATH": "/path/to/zotero.sqlite"
       },
       "disabled": false,
       "autoApprove": []
@@ -184,438 +141,140 @@ Claude Code 使用 `claude_desktop_config.json` 或项目级的 `.mcp.json` 配�
 }
 ```
 
-**注意**：
-- 将 `ZOTERO_DB_PATH` 修改为你的实际路径
-- `autoApprove` 为空数组表示每次调用都需要手动批准（安全推荐）
+把 `ZOTERO_DB_PATH` 换成你的实际路径；如果使用默认路径，可以删除这一行。
 
-**步骤 3：重启 Claude Code**
+首次启动 Claude Code 时，它会提示你批准项目级 MCP Server，选择 **允许** 即可。
 
-1. 退出 Claude Code（输入 `/exit`）
-2. 重新启动 `claude`
-3. 输入 `/mcp` 查看已连接的 MCP Servers
-4. 应该能看到 Zotero MCP Server 已连接
+### 4. 验证连接
 
-**通过 CC Switch 管理 MCP**（推荐）：
-
-CC Switch 提供统一的 MCP 管理面板，支持双向同步：
-1. 打开 CC Switch
-2. 点击「MCP」按钮
-3. 通过模板或自定义配置添加 Zotero MCP Server
-4. 切换各应用同步开关（Claude Code、OpenClaw 等）
-5. CC Switch 会自动将配置同步到对应工具的配置文件
-
-### 2.4 验证 MCP 连接
-
-在 Claude Code 中输入：
+启动 Claude Code 后，输入：
 
 ```
-请使用 Zotero 工具查看我的文献库中有多少篇文献。
+/mcp
 ```
 
-如果配置正确，Agent 会：
-1. 调用 Zotero MCP Server
-2. 查询数据库
-3. 返回文献数量
+确认列表中出现 `zotero` server，且工具数量大于 0。
 
-**常见问题**：
-
-| 问题 | 解决方法 |
-|-----|---------|
-| "MCP Server not found" | 检查配置文件路径是否正确 |
-| "ZOTERO_DB_PATH not set" | 确认环境变量已设置，或直接在 JSON 中指定 |
-| "Permission denied" | 检查 Zotero 数据库文件的读取权限 |
-| "Database is locked" | 关闭 Zotero 桌面应用后再试 |
-| Claude Code 未识别 MCP | 重启 Claude Code，输入 `/mcp` 检查连接状态 |
-
-## 第三部分：实战任务——文献检索与总结
-
-### 3.1 任务目标
-
-让 Agent 自动完成：
-1. 在 Zotero 库中搜索关于 "causal inference" 的文献
-2. 选择最近 5 年的高引用论文
-3. 下载/读取 PDF（如果本地有）
-4. 生成每篇论文的摘要笔记
-5. 构建一个文献综述的初步框架
-
-### 3.2 编写任务提示词
-
-在 Claude Code 中输入：
+然后测试一条查询：
 
 ```
-请帮我完成以下文献调研任务：
-
-1. 使用 Zotero 工具搜索我的文献库，关键词："causal inference" OR "difference in differences" OR "instrumental variable"
-2. 筛选条件：
-   - 发表年份 >= 2020
-   - 类型为 Journal Article 或 Working Paper
-3. 对每篇找到的文献：
-   - 获取标题、作者、年份、期刊
-   - 检查本地是否有 PDF
-   - 如果有 PDF，提取摘要和主要发现
-   - 如果没有 PDF，记录为"待下载"
-4. 生成一个 Markdown 表格，包含：
-   - 标题 | 作者 | 年份 | 期刊 | 是否有 PDF | 核心发现
-5. 基于这些文献，生成一个文献综述框架：
-   - 研究背景与动机
-   - 主要方法论进展（分小标题）
-   - 实证应用案例
-   - 未来研究方向
-   
-请将结果保存到 "literature_review_causal_inference.md"
+请查看我的 Zotero 文献库中共有多少条目，并按条目类型（期刊论文、工作论文、书籍等）统计数量。
 ```
 
-### 3.3 观察 Agent 的工作过程
+如果 Agent 正确返回统计结果，说明 MCP 连接已经可用。
 
-**第一阶段：检索**
+## 可复制的工作流模板
 
-Agent 会调用 Zotero MCP Server 的搜索功能：
-```
-正在搜索 Zotero 文献库...
-关键词: "causal inference" OR "difference in differences" OR "instrumental variable"
-筛选: 年份 >= 2020
-```
+下面是一个完整的四步工作流，你可以直接复制 prompt 到 Claude Code 中使用。
 
-**第二阶段：筛选与提取**
-
-对每篇文献，Agent 会：
-1. 获取元数据（标题、作者、年份等）
-2. 检查本地存储路径是否有 PDF
-3. 如果有，使用 PDF 解析工具提取内容
-
-**第三阶段：生成报告**
-
-Agent 会生成结构化的 Markdown 文件：
-
-```markdown
-# Causal Inference 文献调研报告
-
-## 检索条件
-- 关键词: "causal inference" OR "difference in differences" OR "instrumental variable"
-- 年份: >= 2020
-- 类型: Journal Article, Working Paper
-
-## 文献列表
-
-| 标题 | 作者 | 年份 | 期刊 | PDF | 核心发现 |
-|------|------|------|------|-----|---------|
-| ... | ... | ... | ... | ✅ | ... |
-
-## 文献综述框架
-
-### 1. 研究背景与动机
-...
-
-### 2. 主要方法论进展
-#### 2.1 Difference-in-Differences 的新发展
-...
-#### 2.2 Instrumental Variables 的稳健性改进
-...
-
-### 3. 实证应用案例
-...
-
-### 4. 未来研究方向
-...
-
-## 待下载文献
-- [ ] 作者 (年份). 标题. 期刊.
-```
-
-### 3.4 人工审查与迭代
-
-Agent 生成的初稿需要人工审查：
-
-1. **核对文献信息**：确认标题、作者、年份无误
-2. **补充遗漏**：Agent 可能遗漏了某些相关文献
-3. **修正理解**：Agent 对论文核心发现的总结可能有偏差
-4. **深化分析**：在 Agent 框架基础上添加自己的批判性思考
-
-**迭代提示词示例**：
+### 步骤 1：搜索文献库
 
 ```
-请补充以下文献到综述中：
-- Goodman-Bacon (2021) on DID with variation in treatment timing
-- Callaway & Sant'Anna (2021) on multiple time periods DID
+请在我的 Zotero 文献库中搜索与“因果推断”相关的文献。
 
-请重点分析这两篇论文的方法论贡献，并说明它们如何改变了传统 DID 的应用方式。
+要求：
+- 关键词匹配：causal inference、difference-in-differences、instrumental variable、synthetic control 中任意一个；
+- 优先返回 2020 年及以后发表的 Journal Article 或 Working Paper；
+- 对每篇文献列出：标题、作者、年份、期刊/来源、是否有本地 PDF 附件；
+- 如果结果过多，先返回最相关的 15 篇，并告诉我总命中数。
 ```
 
-## 第四部分：进阶功能——PDF 深度解析
+> 如果你希望把检索策略做得更系统，可以参考 EconAgora 的 [literature-search](/skills/lingzhi227/agent-research-skills/literature-search) Skill，它提供了关键词扩展、数据库分源和检索式优化的方法。
 
-### 4.1 安装 PDF 解析工具
+### 步骤 2：获取 PDF 并提取文本
 
-Zotero MCP Server 本身可以获取 PDF 路径，但需要额外的工具来解析 PDF 内容。
-
-**推荐方案**：使用 `pymupdf`（fitz）进行 PDF 文本提取
-
-```bash
-# 在 zotero-mcp 的虚拟环境中安装
-pip install pymupdf
-```
-
-### 4.2 配置 PDF 解析 MCP Server
-
-创建一个新的 MCP Server 专门处理 PDF：
-
-```python
-# pdf_parser_mcp.py
-import fitz  # pymupdf
-from mcp.server import Server
-from mcp.types import TextContent
-
-app = Server("pdf-parser")
-
-@app.tool()
-def extract_pdf_text(pdf_path: str, max_pages: int = 10) -> str:
-    """Extract text from a PDF file"""
-    doc = fitz.open(pdf_path)
-    text = []
-    for i, page in enumerate(doc):
-        if i >= max_pages:
-            break
-        text.append(page.get_text())
-    doc.close()
-    return "\n".join(text)
-
-@app.tool()
-def extract_pdf_metadata(pdf_path: str) -> dict:
-    """Extract metadata from a PDF file"""
-    doc = fitz.open(pdf_path)
-    metadata = {
-        "title": doc.metadata.get("title", ""),
-        "author": doc.metadata.get("author", ""),
-        "pages": len(doc),
-    }
-    doc.close()
-    return metadata
-
-if __name__ == "__main__":
-    app.run()
-```
-
-### 4.3 更新 MCP 配置
-
-在 `.mcp.json` 或 `claude_desktop_config.json` 中添加 PDF Parser：
-
-```json
-{
-  "mcpServers": {
-    "zotero": {
-      "command": "python",
-      "args": ["-m", "zotero_mcp"],
-      "env": {
-        "ZOTERO_DB_PATH": "/Users/<用户名>/Zotero/zotero.sqlite"
-      },
-      "disabled": false,
-      "autoApprove": []
-    },
-    "pdf-parser": {
-      "command": "python",
-      "args": ["/path/to/pdf_parser_mcp.py"],
-      "disabled": false,
-      "autoApprove": []
-    }
-  }
-}
-```
-
-### 4.4 深度解析任务示例
+在上一步返回列表后，继续追问：
 
 ```
-请帮我深度解析以下文献：
+请对刚才列表中有 PDF 附件的前 5 篇文献，逐篇完成以下任务：
 
-1. 使用 Zotero 找到 Goodman-Bacon (2021) 的论文
-2. 获取本地 PDF 路径
-3. 使用 PDF 解析工具提取：
-   - 摘要
-   - 引言（前3页）
-   - 主要定理/命题
-   - 实证应用部分
-4. 生成结构化的阅读笔记：
-   - 研究问题
-   - 核心方法论贡献
-   - 关键假设
-   - 与之前方法的对比
-   - 对我的研究的启示
-   
-保存到 "goodman_bacon_2021_notes.md"
+1. 获取该文献的 PDF 全文或附件路径；
+2. 提取以下部分（如页数允许）：
+   - 摘要；
+   - 引言前 3 页；
+   - 主要方法/识别策略段落；
+   - 结论或主要发现段落；
+3. 用中文输出每篇文献的阅读笔记，包括：
+   - 研究问题；
+   - 数据来源与样本；
+   - 识别策略 / 核心方法；
+   - 主要结论；
+   - 与我研究可能相关的点。
 ```
 
-## 第五部分：自动化工作流
+如果某些 PDF 是扫描版或图片格式，`zotero-mcp` 可能无法直接提取文字。建议先用 OCR 工具（如 Zotero 的 OCR 插件或 `ocrmypdf`）处理后再导入。
 
-### 5.1 创建自定义指令
-
-在 Claude Code 设置中添加文献调研专用指令：
-
-1. 在项目根目录创建或编辑 `CLAUDE.md` 文件
-2. 添加：
+### 步骤 3：生成文献矩阵
 
 ```
-你是一位经济学文献调研专家。在使用 Zotero 工具时：
+请基于上述检索和阅读结果，生成一个 Markdown 文献矩阵，保存到 literature_matrix_causal_inference.md。
 
-1. 检索策略：
-   - 先使用宽泛关键词，再逐步缩小范围
-   - 注意同义词和不同表述（如 "DID" vs "difference-in-differences"）
-   - 结合作者名进行精确检索
+矩阵列：
+| 作者（年份） | 研究问题 | 识别策略 / 方法 | 数据来源 / 样本 | 核心结论 | 与我研究的关系 |
 
-2. 文献筛选：
-   - 优先选择顶级期刊（AER, QJE, Econometrica, JPE, ReStud）
-   - 关注高引用量和近年发表
-   - 保留经典文献（即使年份较早）
-
-3. 笔记规范：
-   - 使用 Markdown 格式
-   - 每篇文献包含：基本信息、核心观点、方法论、对我的启发
-   - 标注文献之间的关联（如 "扩展了 xxx 的方法"）
-
-4. 综述框架：
-   - 按主题或方法论组织，而非按时间顺序
-   - 突出争议和未解决问题
-   - 明确指出现有研究的局限性
+要求：
+- 按方法分组（DID、IV、Synthetic Control、其他）；
+- 每行内容控制在 2–3 句话；
+- 空列用“待补充”占位，方便我后续手写批注。
 ```
 
-### 5.2 批量处理脚本
+> 矩阵整理阶段，可以结合 [literature-review](/skills/lingzhi227/agent-research-skills/literature-review) Skill 中的多视角对话方法，让 Agent 从“支持证据”“潜在批评”“可扩展方向”三个角度再 review 一遍。
 
-对于大规模文献调研，可以创建批量处理脚本：
+### 步骤 4：生成综述大纲
 
-```python
-# batch_literature_review.py
-import json
-from pathlib import Path
+```
+请基于同一批文献，写一份文献综述大纲，保存到 literature_outline_causal_inference.md。
 
-def create_review_batch(keywords, year_range, output_dir):
-    """Create a batch of review tasks"""
-    tasks = []
-    for keyword in keywords:
-        task = {
-            "keyword": keyword,
-            "year_range": year_range,
-            "output_file": f"{output_dir}/{keyword.replace(' ', '_')}_review.md"
-        }
-        tasks.append(task)
-    
-    # Save tasks
-    with open(f"{output_dir}/review_tasks.json", "w") as f:
-        json.dump(tasks, f, indent=2)
-    
-    return tasks
+大纲结构：
+1. 研究背景与动机
+2. 方法论进展
+   2.1 Difference-in-Differences 的最新发展
+   2.2 Instrumental Variables 的稳健性改进
+   2.3 其他识别策略（如 Synthetic Control、RDD）
+3. 实证应用领域
+4. 主要争议与未解决问题
+5. 对我下一步研究的启示
 
-# Example usage
-keywords = [
-    "causal inference",
-    "synthetic control",
-    "regression discontinuity",
-    "instrumental variables"
-]
-
-tasks = create_review_batch(
-    keywords=keywords,
-    year_range=(2020, 2025),
-    output_dir="./literature_reviews"
-)
-
-print(f"Created {len(tasks)} review tasks")
+要求：
+- 每个二级标题下列出 2–4 篇关键文献及其一句话贡献；
+- 指出文献之间的承接或对立关系；
+- 不要编造我没有提供的论文信息。
 ```
 
-### 5.3 定期更新机制
+> 如果你要写的是系统性文献综述或需要覆盖更多数据库，推荐阅读 [deep-research](/skills/lingzhi227/agent-research-skills/deep-research) Skill 的六阶段流程，它把检索、筛选、提取、综合、写作、审校拆成了可重复执行的步骤。
 
-设置定期任务，自动更新文献追踪：
+## 常见错误与排查
 
-```bash
-# 添加到 crontab（macOS/Linux）
-# 每周一早上 9 点运行
-0 9 * * 1 cd ~/research && python update_literature_tracker.py
-```
+| 问题 | 可能原因 | 解决方案 |
+|---|---|---|
+| Claude Code 中 `/mcp` 看不到 `zotero` | `zotero-mcp` 不在 PATH 中 | 运行 `which zotero-mcp` 或 `zotero-mcp setup-info` 获取绝对路径，替换 `.mcp.json` 中的 `command` |
+| 提示 "Zotero local API not enabled" | Zotero 本地 API 未开启 | 勾选 Zotero 首选项中的 "Enable local API server" 并重启 |
+| 查询无结果或返回 0 条 | Zotero 未运行或库为空 | 确认 Zotero 已启动，且文献库中有匹配条目 |
+| PDF 全文提取为空 | PDF 是扫描版/图片 | 先用 OCR 处理；或安装 `[pdf]` 扩展后再试 |
+| Agent 总结的结论与原文不符 | 模型对长文本理解有误 | 要求 Agent 引用原文片段，并人工核对关键结论 |
+| 数据库锁定或权限错误 | 同时配置了 `ZOTERO_DB_PATH` 且 Zotero 正在直接访问 sqlite | 关闭 Zotero 后再用路径模式；或改用本地 API 模式（不设置 `ZOTERO_DB_PATH`） |
 
-`update_literature_tracker.py`：
-```python
-#!/usr/bin/env python3
-"""Weekly literature tracker update"""
+## 下一步
 
-import subprocess
-from datetime import datetime
+完成 Zotero + MCP 接入后，你已经拥有了一个会读文献的 Agent。接下来可以：
 
-def main():
-    # Run Claude Code to check for new papers
-    prompt = """
-    请检查 Zotero 库中最近一周新增的文献，
-    重点关注以下主题：causal inference, DID, IV
-    生成一份简报，保存到 "weekly_literature_brief.md"
-    """
-    
-    # This would need to be adapted to your specific setup
-    # For now, manual execution is recommended
-    print(f"Literature tracker updated at {datetime.now()}")
-    print("Please run the review task manually in Claude Code")
+1. 把本工作流写入项目的 `CLAUDE.md`，让 Agent 每次进入项目都默认按这套流程处理文献；
+2. 用同样的 MCP 思路，把 **Stata** 接入 Claude Code，实现回归分析的自然语言驱动；
+3. 把文献矩阵导入 Obsidian、Notion 或 LaTeX，继续写正式综述。
 
-if __name__ == "__main__":
-    main()
-```
+本系列下一篇将介绍 **Claude Code + stata-mcp** 的实证分析工作流。
 
-## 第六部分：常见问题与解决方案
+## 相关 Skill
 
-### 6.1 性能优化
-
-| 问题 | 原因 | 解决方案 |
-|-----|------|---------|
-| 检索速度慢 | 数据库大、查询复杂 | 添加索引、限制返回数量 |
-| PDF 解析超时 | 文件大、页数多 | 限制解析页数、使用异步处理 |
-| 内存占用高 | 同时加载多个 PDF | 流式处理、分页加载 |
-
-### 6.2 数据安全
-
-| 风险 | 防护措施 |
-|-----|---------|
-| API Key 泄露 | 使用环境变量、定期轮换 |
-| 文献数据泄露 | 本地处理、不上传云端 |
-| 敏感信息提取 | 配置过滤规则、人工审查 |
-
-### 6.3 准确性保障
-
-| 场景 | 建议 |
-|-----|------|
-| Agent 误解论文 | 人工核对关键结论 |
-| 遗漏重要文献 | 多轮检索、使用不同关键词 |
-| 引用格式错误 | 使用 Zotero 原生导出功能 |
-
-## 总结
-
-本文介绍了：
-
-1. **MCP 协议**：理解 Model Context Protocol 的核心概念和架构
-2. **Zotero MCP Server**：完整安装和配置流程
-3. **文献检索实战**：从搜索到生成综述框架的完整工作流
-4. **PDF 深度解析**：提取文本、元数据、结构化内容
-5. **自动化工作流**：自定义指令、批量处理、定期更新
-
-**关键原则**：
-- MCP 让 Agent 与工具通信标准化
-- Zotero + MCP = 文献库的智能化入口
-- 人工审查是保障准确性的最后防线
-
-**下一步**：
-
-在下一篇文章中，我们将学习如何给 Agent 接入 **Stata**，实现：
-- 自动编写 do-file
-- 运行回归分析
-- 生成结果表格和图表
-- 解读统计输出
+- [literature-search](/skills/lingzhi227/agent-research-skills/literature-search)：系统化的学术文献检索策略与关键词扩展方法。
+- [literature-review](/skills/lingzhi227/agent-research-skills/literature-review)：多视角对话式文献综述，帮助生成矩阵、批注与主题归类。
+- [deep-research](/skills/lingzhi227/agent-research-skills/deep-research)：六阶段系统文献综述流程，适合需要跨库检索和严格筛选的研究。
 
 ---
 
-**延伸阅读：**
+**参考链接：**
 
-- MCP 官方文档：https://modelcontextprotocol.io/
-- Zotero 文档：https://www.zotero.org/support/
-- pymupdf 文档：https://pymupdf.readthedocs.io/
-
-**工具推荐：**
-
-- Zotero：开源文献管理工具
-- zotero-mcp：社区 MCP Server 实现
-- pymupdf：高性能 PDF 解析库
-
----
-
-*本文是 EconAgora "AI Agent 科研助手"系列的第二篇。如有问题，欢迎在 Twitter @EconAgora 讨论。*
+- [Model Context Protocol 官方文档](https://modelcontextprotocol.io/)
+- [54yyyu/zotero-mcp GitHub 仓库](https://github.com/54yyyu/zotero-mcp)
+- [Zotero 官方文档](https://www.zotero.org/support/)
+- [Claude Code MCP 文档](https://docs.anthropic.com/en/docs/claude-code/mcp)

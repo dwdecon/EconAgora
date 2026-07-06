@@ -50,6 +50,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script
+          defer
+          src="https://analytics.econagora.com/umami-script.js"
+          data-website-id="5c38c300-7260-4f18-ac77-56363bceb85e"
+        />
+      </head>
       <body
         suppressHydrationWarning
         className={`${sora.variable} ${notoSansSc.variable} ${ibmPlexMono.variable} bg-[var(--color-bg)] text-[var(--color-text-primary)] antialiased selection:bg-[var(--color-bg-surface-strong)] selection:text-[var(--color-text-primary)]`}

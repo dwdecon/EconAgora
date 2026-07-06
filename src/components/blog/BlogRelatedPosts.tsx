@@ -1,6 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { getBlogPostsFromFiles } from "@/lib/blog-content";
+import { getBlogPosts } from "@/lib/blog-data";
 import { formatBlogDate } from "@/lib/blog";
 
 interface BlogRelatedPostsProps {
@@ -15,7 +15,7 @@ export default async function BlogRelatedPosts({
   locale,
 }: BlogRelatedPostsProps) {
   // Get related posts from file system
-  const allPosts = await getBlogPostsFromFiles(locale);
+  const allPosts = await getBlogPosts(locale);
   const related = allPosts
     .filter(
       (p) =>
