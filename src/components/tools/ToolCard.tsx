@@ -38,7 +38,7 @@ export default function ToolCard({ tool, labels }: ToolCardProps) {
   const displayTag = tool.subcategory || tool.category;
 
   function navigateToDetail() {
-    router.push(`/tools/${tool.id}`);
+    router.push(`/tools/${encodeURIComponent(tool.id)}`);
   }
 
   function handleCardClick(event: ReactMouseEvent<HTMLElement>) {

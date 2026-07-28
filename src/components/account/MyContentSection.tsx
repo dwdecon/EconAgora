@@ -377,7 +377,7 @@ export default function MyContentSection({ userId }: MyContentSectionProps) {
             items={tools}
             emptyText={t.emptyTools}
             ctaLabel={t.goToTool}
-            buildHref={(tool) => `/tools/${extractRowId(tool) ?? tool._id}`}
+            buildHref={(tool) => `/tools/${encodeURIComponent(extractRowId(tool) ?? tool._id)}`}
             locale={locale}
             renderMeta={(tool, currentLocale) => (
               <ItemMeta
