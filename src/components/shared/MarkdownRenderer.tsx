@@ -27,11 +27,14 @@ const SAFE_SINGLE_LINE_UNWRAP_LANGUAGES = new Set([
   "plaintext",
 ]);
 
+const FRONTMATTER_FENCE = /^---\n[\s\S]*?\n---\n/;
+
 function normaliseMarkdownContent(content: string) {
   const withUnixNewlines = content.replace(/\r\n?/g, "\n").replace(/\\n/g, "\n");
-  const wrappedMarkdown = withUnixNewlines.match(OUTER_MARKDOWN_FENCE);
+  const withoutFrontmatter = withUnixNewlines.replace(FRONTMATTER_FENCE, "");
+  const wrappedMarkdown = withoutFrontmatter.match(OUTER_MARKDOWN_FENCE);
 
-  return wrappedMarkdown ? wrappedMarkdown[1] : withUnixNewlines;
+  return wrappedMarkdown ? wrappedMarkdown[1] : withoutFrontmatter;
 }
 
 function getCodeLanguage(className?: string) {

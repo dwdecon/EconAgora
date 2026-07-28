@@ -113,6 +113,10 @@ async function insertTools(tools) {
   return { success, skipped, failed };
 }
 
+function stripFrontmatter(md) {
+  return md.replace(/^---\n[\s\S]*?\n---\n/, "");
+}
+
 async function insertSkills(skills) {
   let success = 0;
   let skipped = 0;
@@ -137,7 +141,7 @@ async function insertSkills(skills) {
         tags: skill.tags && skill.tags.length ? (Array.isArray(skill.tags) ? skill.tags.join(",") : skill.tags) : null,
         workflow_stage: skill.workflow_stage || null,
         platform: skill.platform || "claude-code,cursor,codex",
-        skill_md: skill.skill_md || `# ${skill.title}\n\n## Purpose\n\n${skill.description}\n\n## Instructions\n\n（待补充）`,
+        skill_md: stripFrontmatter(skill.skill_md || `# ${skill.title}\n\n## Purpose\n\n${skill.description}\n\n## Instructions\n\n（待补充）`),
         code_examples: skill.code_examples || null,
         tutorial: skill.tutorial || null,
         use_cases: skill.use_cases || null,
