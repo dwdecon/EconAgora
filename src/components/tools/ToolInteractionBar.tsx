@@ -61,7 +61,11 @@ export default function ToolInteractionBar({
     if (viewTracked.current) return;
     viewTracked.current = true;
 
-    fetch(`/api/tools/${toolId}/view`, { method: "POST" })
+    fetch("/api/tools/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toolId }),
+    })
       .then((response) => {
         if (!response.ok) return;
         setViewCount((current) => current + 1);
