@@ -82,7 +82,7 @@ export default function ModulesShowcase({
           title: t.title,
           description: t.description || "",
           tags: t.tags,
-          href: `/tools/${encodeURIComponent(t.id)}`,
+          href: `/tools/${t.id}`,
           slug: t.id,
           preview: t.quickStart || t.integrationGuide || "",
         }));

@@ -4,10 +4,11 @@ import { serverDb } from "@/lib/rdb-server";
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string[] }> },
 ) {
   try {
-    const { id } = await params;
+    const { id: idParts } = await params;
+    const id = Array.isArray(idParts) ? idParts.join("/") : idParts;
     if (!id) {
       return NextResponse.json({ error: "Missing tool ID." }, { status: 400 });
     }

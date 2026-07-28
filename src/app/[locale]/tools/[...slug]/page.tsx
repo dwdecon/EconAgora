@@ -13,12 +13,13 @@ import { fetchToolById, fetchRelatedTools } from "@/lib/tools";
 import { extractToc } from "@/lib/readme";
 
 interface PageProps {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: string; slug: string[] }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function ToolDetailPage({ params, searchParams }: PageProps) {
-  const { locale, slug } = await params;
+  const { locale, slug: slugParts } = await params;
+  const slug = Array.isArray(slugParts) ? slugParts.join("/") : slugParts;
   const resolvedSearchParams = await searchParams;
   const expandParam = resolvedSearchParams.expand;
   const isExpanded = Array.isArray(expandParam) ? expandParam[0] === "1" : expandParam === "1";

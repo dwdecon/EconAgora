@@ -125,7 +125,7 @@ function buildHref(type: TargetType, id: string) {
     case "SKILL":
       return `/skills/${id}`;
     case "TOOL":
-      return `/tools/${encodeURIComponent(id)}`;
+      return `/tools/${id}`;
   }
 }
 
