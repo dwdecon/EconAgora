@@ -9,6 +9,7 @@ import ToolInteractionBar from "@/components/tools/ToolInteractionBar";
 import ReadmeSection from "@/components/tools/ReadmeSection";
 import ReadmeToc from "@/components/tools/ReadmeToc";
 import ToolMetaCard from "@/components/tools/ToolMetaCard";
+import ToolAgentInstallButton from "@/components/tools/ToolAgentInstallButton";
 import { fetchToolById, fetchRelatedTools } from "@/lib/tools";
 import { extractToc } from "@/lib/readme";
 
@@ -201,6 +202,12 @@ export default async function ToolDetailPage({ params, searchParams }: PageProps
 
           <aside className="hidden xl:block flex-shrink-0 w-[200px]">
             <div className="sticky top-24 space-y-4">
+              <ToolAgentInstallButton
+                toolTitle={tool.title}
+                officialUrl={tool.officialUrl}
+                quickStart={tool.quickStart}
+                locale={locale}
+              />
               <ToolMetaCard
                 author={tool.author}
                 createdAt={tool.createdAt}

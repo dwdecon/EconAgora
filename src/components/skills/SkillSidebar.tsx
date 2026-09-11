@@ -93,9 +93,17 @@ function getSkillDownloadUrl(skill: Skill): string | null {
 function buildAgentImportPrompt(skill: Skill, agentName: string, downloadUrl: string) {
   const repoUrl = skill.sourceRepo ? `https://github.com/${skill.sourceRepo}` : downloadUrl;
 
+  const installSection = skill.installCommand
+    ? `\n\n官方安装命令：\n${skill.installCommand}`
+    : "";
+
+  const sourceSection = skill.sourceUrl
+    ? `\n\nSkill 文件地址（SKILL.md）：${skill.sourceUrl}`
+    : "";
+
   return `请安装「${skill.title}」。
 
-源仓库地址：${repoUrl}
+源仓库地址：${repoUrl}${sourceSection}${installSection}
 
 请按照 ${agentName} 的最佳实践规范安装这个 skill，简要介绍它的用途，并给一段使用示例。`;
 }
@@ -171,11 +179,12 @@ export default function SkillSidebar({ skill, locale }: SkillSidebarProps) {
   }, [skill.id]);
 
   const downloadUrl = getSkillDownloadUrl(skill);
+  const showImportCard = Boolean(downloadUrl || skill.sourceRepo);
 
   async function handleCopyImportPrompt() {
-    if (!downloadUrl) return;
+    if (!showImportCard) return;
 
-    const prompt = buildAgentImportPrompt(skill, selectedAgent, downloadUrl);
+    const prompt = buildAgentImportPrompt(skill, selectedAgent, downloadUrl ?? `https://github.com/${skill.sourceRepo}`);
     const markCopied = () => {
       setCopied(true);
       if (copyTimeoutRef.current) {
@@ -209,7 +218,7 @@ export default function SkillSidebar({ skill, locale }: SkillSidebarProps) {
   return (
     <aside className="flex w-full flex-col gap-4 lg:w-64 lg:shrink-0 lg:self-start lg:sticky lg:top-24">
       {/* Agent import prompt */}
-      {downloadUrl && (
+      {showImportCard && (
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 shadow-[var(--shadow-inset-button)]">
           <label
             className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]"
