@@ -1,19 +1,24 @@
 ---
-slug: "prompt-skill-tool-copilot"
-title: "Building an Economics Research Copilot with Prompt, Skill, and Tool Layers"
-excerpt: "A research copilot hits a ceiling quickly if it is treated as a chat window. A more stable design separates prompting, domain skills, and tool access into three replaceable layers."
-category: "System Design"
-date: "2026-02-26"
-readTime: "13 min"
+slug: prompt-skill-tool-copilot
+title: Building an Economics Research Copilot with Prompt, Skill, and Tool Layers
+excerpt: A research copilot hits a ceiling quickly if it is treated as a chat window.
+  A more stable design separates prompting, domain skills, and tool access into three
+  replaceable layers.
+category: System Design
+date: '2026-02-26'
+readTime: 13 min
 tags:
-  - "Copilot"
-  - "Prompting"
-  - "Tooling"
-author: "EconAgora Product Studio"
-authorRole: "Agent Product Editor"
-issue: "Volume 04"
-illustration: "copilotLayers"
-cover: "/blog-covers/2026/05/prompt-skill-tool-copilot.svg"
+- Copilot
+- Prompting
+- Tooling
+author: EconAgora Product Studio
+authorRole: Agent Product Editor
+issue: EA-2026-02-002
+illustration: copilotLayers
+cover: /blog-covers/2026/05/prompt-skill-tool-copilot.svg
+series: ai-research-best-practices
+seriesOrder: 5
+status: published
 ---
 
 A copilot that actually works in economics research should not delegate every responsibility to the foundation model. It should behave more like an editorial machine with its own rules, divisions of labor, and interfaces.

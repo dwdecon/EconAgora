@@ -1,0 +1,3 @@
+# CloudBase CLI 默认环境配置
+# 所有 tcb 命令自动使用此环境
+TCB_ENV_ID=agora-8glrfnss7758021c

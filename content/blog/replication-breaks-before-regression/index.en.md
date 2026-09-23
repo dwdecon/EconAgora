@@ -1,19 +1,24 @@
 ---
-slug: "replication-breaks-before-regression"
-title: "Why Replication Usually Fails Before the First Regression"
-excerpt: "Replication projects are rarely destroyed by the estimator itself. They break on filenames, variable dictionaries, version drift, and path management long before estimation starts."
-category: "Replication Engineering"
-date: "2026-03-19"
-readTime: "10 min"
+slug: replication-breaks-before-regression
+title: Why Replication Usually Fails Before the First Regression
+excerpt: Replication projects are rarely destroyed by the estimator itself. They break
+  on filenames, variable dictionaries, version drift, and path management long before
+  estimation starts.
+category: Replication Engineering
+date: '2026-03-19'
+readTime: 10 min
 tags:
-  - "Replication"
-  - "Data Governance"
-  - "Engineering Hygiene"
-author: "EconAgora Methods Desk"
-authorRole: "Replication Methods Editor"
-issue: "Volume 02"
-illustration: "replicationStack"
-cover: "/blog-covers/2026/05/replication-breaks-before-regression.svg"
+- Replication
+- Data Governance
+- Engineering Hygiene
+author: EconAgora Methods Desk
+authorRole: Replication Methods Editor
+issue: EA-2026-03-003
+illustration: replicationStack
+cover: /blog-covers/2026/05/replication-breaks-before-regression.svg
+series: paper-projects
+seriesOrder: 4
+status: published
 ---
 
 Researchers focus on whether the regression table reproduces, yet the most common failure points appear much earlier in the file system and dataset preparation layers.

@@ -1,19 +1,24 @@
 ---
-slug: "auditing-ai-identification"
-title: "How to Audit AI-Generated Identification Strategies"
-excerpt: "LLMs can propose plausible identification strategies quickly, but the real question is not whether the plan sounds coherent. It is whether the plan survives falsifiable audit."
-category: "Causal Inference"
-date: "2026-03-09"
-readTime: "11 min"
+slug: auditing-ai-identification
+title: How to Audit AI-Generated Identification Strategies
+excerpt: LLMs can propose plausible identification strategies quickly, but the real
+  question is not whether the plan sounds coherent. It is whether the plan survives
+  falsifiable audit.
+category: Causal Inference
+date: '2026-03-09'
+readTime: 11 min
 tags:
-  - "Identification"
-  - "Audit Framework"
-  - "LLM Methods"
-author: "EconAgora Causal Lab"
-authorRole: "Causal Inference Editor"
-issue: "Volume 03"
-illustration: "auditCompass"
-cover: "/blog-covers/2026/05/auditing-ai-identification.svg"
+- Identification
+- Audit Framework
+- LLM Methods
+author: EconAgora Causal Lab
+authorRole: Causal Inference Editor
+issue: EA-2026-03-001
+illustration: auditCompass
+cover: /blog-covers/2026/05/auditing-ai-identification.svg
+series: paper-projects
+seriesOrder: 2
+status: published
 ---
 
 Generating DID, RDD, or IV ideas is easy. Turning those ideas into an auditable checklist is the hard part.

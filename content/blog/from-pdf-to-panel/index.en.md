@@ -1,19 +1,23 @@
 ---
-slug: "from-pdf-to-panel"
-title: "From PDF to Panel: A Four-Agent Workflow for Economics Literature Reviews"
-excerpt: "A literature review becomes genuinely useful when papers, identification logic, data definitions, and reproducible code move through the same operating system."
-category: "Research Workflow"
-date: "2026-03-28"
-readTime: "12 min"
+slug: from-pdf-to-panel
+title: 'From PDF to Panel: A Four-Agent Workflow for Economics Literature Reviews'
+excerpt: A literature review becomes genuinely useful when papers, identification
+  logic, data definitions, and reproducible code move through the same operating system.
+category: Research Workflow
+date: '2026-03-28'
+readTime: 12 min
 tags:
-  - "Literature Review"
-  - "Multi-Agent"
-  - "Workflow Design"
-author: "EconAgora Editorial Desk"
-authorRole: "Research Workflow Editor"
-issue: "Volume 01"
-illustration: "reviewFlow"
-cover: "/blog-covers/2026/05/from-pdf-to-panel.svg"
+- Literature Review
+- Multi-Agent
+- Workflow Design
+author: EconAgora Editorial Desk
+authorRole: Research Workflow Editor
+issue: EA-2026-03-002
+illustration: reviewFlow
+cover: /blog-covers/2026/05/from-pdf-to-panel.svg
+series: paper-projects
+seriesOrder: 3
+status: published
 ---
 
 Most literature-review workflows fail because they ask an LLM for a polished survey too early, before papers are decomposed into searchable, comparable, and challengeable units of work.

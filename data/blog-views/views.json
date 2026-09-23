@@ -1,12 +1,52 @@
 {
   "agent-zotero-integration": {
     "slug": "agent-zotero-integration",
-    "views": 1,
-    "lastViewed": "2026-05-17T10:09:11.090Z"
+    "views": 84,
+    "lastViewed": "2026-09-22T12:31:48.436Z"
   },
   "from-pdf-to-panel": {
     "slug": "from-pdf-to-panel",
-    "views": 1,
-    "lastViewed": "2026-05-17T10:09:27.689Z"
+    "views": 22,
+    "lastViewed": "2026-09-09T09:16:40.730Z"
+  },
+  "ai-agent-research-setup": {
+    "slug": "ai-agent-research-setup",
+    "views": 77,
+    "lastViewed": "2026-09-22T07:22:16.072Z"
+  },
+  "claude-code-stata-mcp": {
+    "slug": "claude-code-stata-mcp",
+    "views": 90,
+    "lastViewed": "2026-09-22T02:08:23.023Z"
+  },
+  "llm-assisted-did-design": {
+    "slug": "llm-assisted-did-design",
+    "views": 3,
+    "lastViewed": "2026-09-09T10:23:47.948Z"
+  },
+  "prompt-skill-tool-copilot": {
+    "slug": "prompt-skill-tool-copilot",
+    "views": 21,
+    "lastViewed": "2026-09-19T21:50:32.061Z"
+  },
+  "skill-based-literature-review": {
+    "slug": "skill-based-literature-review",
+    "views": 61,
+    "lastViewed": "2026-09-21T00:44:19.542Z"
+  },
+  "agent-memory-for-semesters": {
+    "slug": "agent-memory-for-semesters",
+    "views": 16,
+    "lastViewed": "2026-09-22T12:31:57.445Z"
+  },
+  "auditing-ai-identification": {
+    "slug": "auditing-ai-identification",
+    "views": 7,
+    "lastViewed": "2026-09-08T19:57:55.433Z"
+  },
+  "replication-breaks-before-regression": {
+    "slug": "replication-breaks-before-regression",
+    "views": 11,
+    "lastViewed": "2026-09-07T13:04:56.259Z"
   }
 }

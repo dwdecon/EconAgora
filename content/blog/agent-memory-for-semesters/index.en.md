@@ -1,19 +1,24 @@
 ---
-slug: "agent-memory-for-semesters"
-title: "Designing an Economics Agent Memory That Survives the Semester"
-excerpt: "At the end of a semester, what disappears first is not the file but the reasoning around decisions. Valuable memory systems preserve why a choice was made, not only what was done."
-category: "Knowledge Management"
-date: "2026-02-14"
-readTime: "9 min"
+slug: agent-memory-for-semesters
+title: Designing an Economics Agent Memory That Survives the Semester
+excerpt: At the end of a semester, what disappears first is not the file but the reasoning
+  around decisions. Valuable memory systems preserve why a choice was made, not only
+  what was done.
+category: Knowledge Management
+date: '2026-02-14'
+readTime: 9 min
 tags:
-  - "Agent Memory"
-  - "Knowledge Base"
-  - "Research Collaboration"
-author: "EconAgora Knowledge Desk"
-authorRole: "Knowledge Systems Editor"
-issue: "Volume 05"
-illustration: "memoryArchive"
-cover: "/blog-covers/2026/05/agent-memory-for-semesters.svg"
+- Agent Memory
+- Knowledge Base
+- Research Collaboration
+author: EconAgora Knowledge Desk
+authorRole: Knowledge Systems Editor
+issue: EA-2026-02-001
+illustration: memoryArchive
+cover: /blog-covers/2026/05/agent-memory-for-semesters.svg
+series: ai-research-best-practices
+seriesOrder: 4
+status: published
 ---
 
 Many teams reduce agent memory to vector retrieval. In research settings, the harder and more valuable task is preserving decisions, failed attempts, and reasons for abandoning a path.
