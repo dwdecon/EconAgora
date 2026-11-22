@@ -1,7 +1,33 @@
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  '@swc/core': set this to true or false
-  core-js-pure: set this to true or false
-  esbuild: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  '@parcel/watcher': false
+  '@swc/core': true
+  core-js-pure: false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - postcss@8.5.32
+  - browserslist@4.29.5
+overrides:
+  'js-yaml@>=3 <3.15.2': 3.15.2
+  '@babel/core@>=7 <7.29.6': 7.29.7
+  'browserslist@>=4 <4.28.7': 4.29.5
+  'baseline-browser-mapping@>=2 <2.11.0': 2.11.33
+  'source-map-js@>=1 <1.2.2': 1.2.2
+  'js-yaml@>=4 <4.3.2': 4.3.2
+  'ws@>=7 <7.5.11': 7.5.11
+  'brace-expansion@>=1 <1.1.21': 1.1.21
+  'brace-expansion@>=5 <5.0.12': 5.0.12
+  'form-data@>=4 <4.0.6': 4.0.6
+  'qs@>=6 <6.16.0': 6.16.0
+  'hono@>=4 <4.13.11': 4.13.11
+  'body-parser@>=2 <2.4.0': 2.4.0
+  'fast-uri@>=3 <3.1.9': 3.1.9
+  'ip-address@>=10 <10.7.4': 10.7.4
+  '@hono/node-server@>=1 <1.19.15': 1.19.15
+  'proxy-addr@>=2 <2.0.8': 2.0.8
+  '@modelcontextprotocol/sdk@>=1 <1.32.0': 1.32.0
+  'follow-redirects@>=1 <1.16.1': 1.16.1
+  'zod@>=4 <4.6.6': 4.6.7
+  'postcss-selector-parser@>=6 <6.1.5': 6.1.5
+  'lodash.unset@>=4 <4.18.0': 4.18.0

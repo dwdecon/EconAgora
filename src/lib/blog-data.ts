@@ -56,6 +56,44 @@ function getContentDir(): string {
   return path.join(cwd, "content/blog");
 }
 
+// Content files change only on publishing, but metadata is checked so local edits
+// and a deployment replacing a file never leave stale parsed content in memory.
+const parsedFiles = new Map<string, {
+  version: string;
+  value: Promise<unknown>;
+}>();
+const MAX_CACHED_FILES = 256;
+
+async function readParsedFile<T>(filePath: string, parse: (raw: string) => T): Promise<T> {
+  const absolutePath = path.resolve(filePath);
+  const metadata = await fs.stat(absolutePath);
+  const version = `${metadata.mtimeMs}:${metadata.ctimeMs}:${metadata.size}`;
+  const cached = parsedFiles.get(absolutePath);
+  if (cached?.version === version) return cached.value as Promise<T>;
+
+  const value = fs.readFile(absolutePath, "utf-8").then(parse);
+  const entry = { version, value };
+  parsedFiles.delete(absolutePath);
+  parsedFiles.set(absolutePath, entry);
+  if (parsedFiles.size > MAX_CACHED_FILES) {
+    parsedFiles.delete(parsedFiles.keys().next().value!);
+  }
+  try {
+    return await value;
+  } catch (error) {
+    if (parsedFiles.get(absolutePath) === entry) parsedFiles.delete(absolutePath);
+    throw error;
+  }
+}
+
+export function isValidBlogSlug(slug: string): boolean {
+  return /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,199}$/u.test(slug);
+}
+
+function isPublished(post: ParsedBlogPost): boolean {
+  return !post.frontmatter.status || post.frontmatter.status === "published";
+}
+
 /**
  * Parse a single MD file
  */
@@ -63,15 +101,15 @@ export async function parseBlogFile(
   filePath: string
 ): Promise<ParsedBlogPost | null> {
   try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    const { data, content } = matter(raw);
-
-    return {
-      frontmatter: data as BlogFrontmatter,
-      content,
-      slug: data.slug || path.basename(path.dirname(filePath)),
-      locale: path.basename(filePath).includes(".en.") ? "en" : "zh",
-    };
+    return await readParsedFile(filePath, (raw) => {
+      const { data, content } = matter(raw);
+      return {
+        frontmatter: data as BlogFrontmatter,
+        content,
+        slug: data.slug || path.basename(path.dirname(filePath)),
+        locale: path.basename(filePath).includes(".en.") ? "en" : "zh",
+      };
+    });
   } catch (error: any) {
     if (error?.code !== "ENOENT") {
       console.error(`[Blog] Error parsing ${filePath}:`, error);
@@ -86,6 +124,7 @@ export async function parseBlogFile(
 export async function getBlogPosts(
   locale: string = "zh"
 ): Promise<ParsedBlogPost[]> {
+  if (locale !== "zh" && locale !== "en") return [];
   const posts: ParsedBlogPost[] = [];
   const contentDir = getContentDir();
 
@@ -104,7 +143,7 @@ export async function getBlogPosts(
           post = await parseBlogFile(fallbackPath);
         }
 
-        if (post && post.frontmatter.status !== "draft") {
+        if (post && isPublished(post)) {
           posts.push(post);
         }
       }
@@ -128,15 +167,17 @@ export async function getBlogPostBySlug(
   slug: string,
   locale: string = "zh"
 ): Promise<ParsedBlogPost | null> {
+  if (!isValidBlogSlug(slug) || (locale !== "zh" && locale !== "en")) return null;
   const contentDir = getContentDir();
   const filePath = path.join(contentDir, slug, `index.${locale}.md`);
 
   const post = await parseBlogFile(filePath);
-  if (post) return post;
+  if (post) return isPublished(post) ? post : null;
 
   if (locale !== "zh") {
     const fallbackPath = path.join(contentDir, slug, `index.zh.md`);
-    return await parseBlogFile(fallbackPath);
+    const fallback = await parseBlogFile(fallbackPath);
+    return fallback && isPublished(fallback) ? fallback : null;
   }
 
   return null;
@@ -163,8 +204,8 @@ export async function getAllBlogSlugs(): Promise<
         for (const locale of ["zh", "en"]) {
           const filePath = path.join(slugDir, `index.${locale}.md`);
           try {
-            await fs.access(filePath);
-            if (!seenSlugs.has(`${slug}-${locale}`)) {
+            const post = await parseBlogFile(filePath);
+            if (post && isPublished(post) && !seenSlugs.has(`${slug}-${locale}`)) {
               slugs.push({ slug, locale });
               seenSlugs.add(`${slug}-${locale}`);
             }
@@ -265,8 +306,9 @@ export async function getSeriesDefinitions(): Promise<SeriesInfo[]> {
   const seriesPath = path.join(getContentDir(), "series.yaml");
 
   try {
-    const raw = await fs.readFile(seriesPath, "utf-8");
-    const data = yaml.load(raw) as { series: SeriesInfo[] } | undefined;
+    const data = await readParsedFile(seriesPath, (raw) =>
+      yaml.load(raw) as { series: SeriesInfo[] } | undefined
+    );
     return data?.series || [];
   } catch (error) {
     console.error("Error reading series.yaml:", error);
@@ -328,6 +370,9 @@ export function formatBlogDate(date: string, locale: string): string {
  */
 export function coverExists(coverPath: string): boolean {
   if (!coverPath) return false;
-  const fullPath = path.join(process.cwd(), "public", coverPath);
+  const publicDir = path.join(process.cwd(), "public");
+  const fullPath = path.resolve(publicDir, coverPath.replace(/^[/\\]+/, ""));
+  const relativePath = path.relative(publicDir, fullPath);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) return false;
   return fsSync.existsSync(fullPath);
 }

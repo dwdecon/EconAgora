@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { auth } from "@/lib/cloudbase";
+import { safeRedirectPath } from "@/lib/auth/redirect";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -29,7 +30,7 @@ export default function LoginForm() {
         return;
       }
 
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      const callbackUrl = safeRedirectPath(searchParams.get("callbackUrl"));
       window.location.href = callbackUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed.");

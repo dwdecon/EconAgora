@@ -5,8 +5,9 @@ import {
   requireCloudBaseUser,
   serverError,
 } from "@/lib/cloudbase-server-auth";
-import { createId, normalizeTags, toSqlTimestamp } from "@/lib/rdb-utils";
+import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
+import { boundedTags, rateLimit, readJsonBody } from "@/lib/request-security";
 
 export async function POST(request: NextRequest) {
   const auth = await requireCloudBaseUser(request);
@@ -15,13 +16,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readJsonBody(request, 512 * 1024);
+    if ("response" in parsed) return parsed.response;
+    const { body } = parsed;
     const title = typeof body?.title === "string" ? body.title.trim() : "";
     const content = typeof body?.content === "string" ? body.content.trim() : "";
     const locale = typeof body?.locale === "string" && body.locale.trim()
       ? body.locale.trim()
       : "zh";
-    const tags = normalizeTags(body?.tags);
+    const tags = boundedTags(body.tags);
+
+    if (title.length > 200 || content.length > 100_000 || !tags || !["zh", "en"].includes(locale)) {
+      return badRequest("Invalid or oversized post fields.");
+    }
 
     if (!title) {
       return badRequest("Post title is required.");
@@ -30,6 +37,8 @@ export async function POST(request: NextRequest) {
     if (!content) {
       return badRequest("Post content is required.");
     }
+    const limited = rateLimit(`publish-post:${auth.user.id}`, 10, 60_000);
+    if (limited) return limited;
 
     const postId = createId("post");
     const now = toSqlTimestamp();

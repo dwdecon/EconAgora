@@ -221,6 +221,7 @@ export default function MyContentSection({ userId }: MyContentSectionProps) {
           .from("post")
           .select("*")
           .eq("author_id", userId)
+            .eq("status", "PUBLISHED")
           .order("created_at", { ascending: false })
           .limit(20);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type ReactElement } from "react";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 type TargetType = "PROMPT" | "POST";
 
@@ -40,8 +40,8 @@ export default function CommentSection({
     const content = String(formData.get("content") || "").trim();
     if (!content) return;
 
-    const accessToken = await getSessionAccessToken();
-    if (!accessToken) {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
       const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
       window.location.assign(`/auth/login?callbackUrl=${callbackUrl}`);
       return;
@@ -50,7 +50,6 @@ export default function CommentSection({
     const response = await fetch("/api/comments", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

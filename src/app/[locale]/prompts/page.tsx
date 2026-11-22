@@ -232,7 +232,7 @@ async function fetchPrompts(params: {
           author:
             authorMap[prompt.author_id] ?? {
               id: prompt.author_id,
-              name: "Unknown",
+              name: prompt.author_name ?? "Unknown",
               avatar: null,
             },
         };

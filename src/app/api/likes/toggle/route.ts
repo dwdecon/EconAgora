@@ -7,6 +7,7 @@ import {
 import { syncLikeCount } from "@/lib/rdb-counters";
 import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
+import { rateLimit, readJsonBody } from "@/lib/request-security";
 
 type TargetType = "POST" | "PROMPT" | "SKILL" | "TOOL";
 
@@ -17,9 +18,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readJsonBody(request);
+    if ("response" in parsed) return parsed.response;
+    const { body } = parsed;
     const targetType = normalizeTargetType(body?.targetType);
     const targetId = typeof body?.targetId === "string" ? body.targetId.trim() : "";
+
+    if (targetId.length > 512) return badRequest("Like target ID is too long.");
 
     if (!targetType) {
       return badRequest("Invalid like target type.");
@@ -28,6 +33,8 @@ export async function POST(request: NextRequest) {
     if (!targetId) {
       return badRequest("Like target ID is required.");
     }
+    const limited = rateLimit(`like:${auth.user.id}`, 60, 60_000);
+    if (limited) return limited;
 
     const targetValidation = await validateLikeTarget(targetType, targetId);
     if (targetValidation.error) {
@@ -81,7 +88,6 @@ export async function POST(request: NextRequest) {
 
     const { error: insertError } = await serverDb.from("user_like").insert({
       _id: createId("like"),
-      _openid: auth.user.id,
       user_id: auth.user.id,
       target_type: targetType,
       target_id: targetId,
@@ -116,6 +122,9 @@ function normalizeTargetType(value: unknown): TargetType | null {
 }
 
 function isDuplicateLikeError(error: { message: string; raw?: unknown }) {
+  if (error.raw && typeof error.raw === "object" && "code" in error.raw && error.raw.code === "23505") {
+    return true;
+  }
   const message = JSON.stringify(error.raw ?? error.message);
   return (
     message.includes("Duplicate entry") &&

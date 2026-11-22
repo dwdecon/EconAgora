@@ -6,6 +6,7 @@ import {
 } from "@/lib/cloudbase-server-auth";
 import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
+import { rateLimit, readJsonBody } from "@/lib/request-security";
 
 export async function GET(request: NextRequest) {
   const auth = await requireCloudBaseUser(request);
@@ -68,7 +69,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readJsonBody(request);
+    if ("response" in parsed) return parsed.response;
+    const { body } = parsed;
+    if ((typeof body.name === "string" && body.name.length > 100) ||
+        (typeof body.affiliation === "string" && body.affiliation.length > 200) ||
+        (typeof body.bio === "string" && body.bio.length > 2000) ||
+        (typeof body.avatar === "string" && !safeAvatar(body.avatar)) ||
+        (body.locale !== undefined && body.locale !== "zh" && body.locale !== "en")) {
+      return badRequest("Invalid or oversized profile fields.");
+    }
     const now = toSqlTimestamp();
     const payload: Record<string, unknown> = {
       name: typeof body?.name === "string" ? body.name.trim() : "",
@@ -89,6 +99,8 @@ export async function POST(request: NextRequest) {
     if (!payload.name) {
       return badRequest("Profile name is required.");
     }
+    const limited = rateLimit(`profile:${auth.user.id}`, 20, 60_000);
+    if (limited) return limited;
 
     const { data: existingProfile, error: lookupError } = await serverDb
       .from("user_profile")
@@ -117,7 +129,6 @@ export async function POST(request: NextRequest) {
     } else {
       const { error } = await serverDb.from("user_profile").insert({
         _id: createId("profile"),
-        _openid: auth.user.id,
         cloudbase_uid: auth.user.id,
         ...payload,
         created_at: now,
@@ -138,4 +149,15 @@ export async function POST(request: NextRequest) {
 
 function normalizeProfileLocale(value: unknown) {
   return value === "en" ? "en" : "zh";
+}
+
+function safeAvatar(value: string) {
+  if (!value) return true;
+  if (value.length > 2048 || /[\u0000-\u0020\\]/.test(value)) return false;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  try {
+    return ["https:", "http:"].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
 }

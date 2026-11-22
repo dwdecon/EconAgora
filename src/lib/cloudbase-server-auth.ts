@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { AUTH_COOKIE, verifySessionToken } from "@/lib/auth-local";
+import { validateMutationOrigin } from "@/lib/request-security";
 
 export interface CloudBaseServerUser {
   id: string;
@@ -8,28 +10,27 @@ export interface CloudBaseServerUser {
   raw: unknown;
 }
 
-function getAuthApiUrl() {
-  const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID ?? "";
-
-  if (!envId) {
-    throw new Error("NEXT_PUBLIC_CLOUDBASE_ENV_ID is not configured.");
-  }
-
-  const url = new URL(`https://${envId}.api.tcloudbasegateway.com/auth/v1/user/me`);
-  url.searchParams.set("client_id", envId);
-  return url;
-}
-
 export function getBearerToken(request: Request) {
   const header = request.headers.get("authorization")?.trim();
   if (!header) return null;
 
-  const [scheme, token] = header.split(/\s+/, 2);
-  if (!scheme || !token || scheme.toLowerCase() !== "bearer") {
-    return null;
-  }
+  const match = /^Bearer\s+([^\s,]+)$/i.exec(header);
+  return match && match[1].length <= 8192 ? match[1] : null;
+}
 
-  return token;
+export function getSessionToken(request: Request): string | null {
+  const cookie = request.headers.get("cookie")?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${AUTH_COOKIE}=`));
+  if (cookie) {
+    try {
+      const token = decodeURIComponent(cookie.slice(AUTH_COOKIE.length + 1));
+      if (token) return token.length <= 8192 ? token : null;
+    } catch {
+      return null;
+    }
+  }
+  return getBearerToken(request);
 }
 
 export function unauthorized(message = "Unauthorized") {
@@ -44,52 +45,39 @@ export function serverError(message = "Internal server error") {
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
+/**
+ * Validates a session JWT locally (issued by /api/auth/login|register).
+ * Kept the historical name/signature so API routes need no changes.
+ */
 export async function getCloudBaseCurrentUser(accessToken: string) {
-  const response = await fetch(getAuthApiUrl(), {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-  });
-
-  const text = await response.text();
-  let payload: any = null;
-
-  if (text) {
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      payload = null;
-    }
-  }
-
-  if (!response.ok) {
-    return {
-      error:
-        payload?.error_description ||
-        payload?.error ||
-        "Invalid or expired CloudBase session.",
-      user: null,
-    };
-  }
-
-  const user = normalizeCloudBaseUser(payload);
+  const user = verifySessionToken(accessToken);
   if (!user) {
     return {
-      error: "Unable to resolve the current CloudBase user.",
+      error: "Invalid or expired session token.",
       user: null,
     };
   }
 
-  return { error: null, user };
+  return {
+    error: null,
+    user: {
+      id: user.id,
+      email: user.email || null,
+      name: user.displayName || null,
+      picture: null,
+      raw: { sub: user.id, email: user.email, displayName: user.displayName },
+    } as CloudBaseServerUser,
+  };
 }
 
-export async function requireCloudBaseUser(request: Request) {
-  const accessToken = getBearerToken(request);
+export async function requireCloudBaseUser(request: Request): Promise<
+  { response: NextResponse } | { accessToken: string; user: CloudBaseServerUser }
+> {
+  const originError = validateMutationOrigin(request);
+  if (originError) return { response: originError };
+  const accessToken = getSessionToken(request);
   if (!accessToken) {
-    return { response: unauthorized("Missing CloudBase access token.") };
+    return { response: unauthorized("Missing access token.") };
   }
 
   try {
@@ -100,8 +88,8 @@ export async function requireCloudBaseUser(request: Request) {
 
     return { accessToken, user };
   } catch (error) {
-    console.error("Failed to validate CloudBase access token:", error);
-    return { response: serverError("Failed to validate CloudBase session.") };
+    console.error("Failed to validate access token:", error);
+    return { response: serverError("Failed to validate session.") };
   }
 }
 
@@ -111,30 +99,4 @@ export function getUserDisplayName(user: Pick<CloudBaseServerUser, "email" | "na
     user.email?.split("@")[0] ||
     "User"
   );
-}
-
-function normalizeCloudBaseUser(payload: any): CloudBaseServerUser | null {
-  const profile = payload?.user ?? payload?.data?.user ?? payload;
-  const id =
-    profile?.sub ||
-    profile?.user_id ||
-    profile?.id ||
-    null;
-
-  if (typeof id !== "string" || !id) {
-    return null;
-  }
-
-  return {
-    id,
-    email: typeof profile?.email === "string" ? profile.email : null,
-    name:
-      typeof profile?.name === "string"
-        ? profile.name
-        : typeof profile?.username === "string"
-          ? profile.username
-          : null,
-    picture: typeof profile?.picture === "string" ? profile.picture : null,
-    raw: payload,
-  };
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 const categories = [
   "Literature Review",
@@ -25,9 +25,9 @@ export default function PromptForm() {
 
     try {
       const formData = new FormData(event.currentTarget);
-      const accessToken = await getSessionAccessToken();
+      const sessionUser = await getSessionUser();
 
-      if (!accessToken) {
+      if (!sessionUser) {
         alert("Please sign in first.");
         router.push("/auth/login");
         return;
@@ -47,7 +47,6 @@ export default function PromptForm() {
       const response = await fetch("/api/prompts", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

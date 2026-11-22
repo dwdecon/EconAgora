@@ -6,6 +6,8 @@ import { Link } from "@/i18n/navigation";
 import PageShell from "@/components/layout/PageShell";
 import { db } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
+import { queryAllPages } from "@/lib/rdb-pagination";
+import { fetchPublicProfiles } from "@/lib/public-profiles";
 import PostCard from "@/components/community/PostCard";
 import Pagination from "@/components/shared/Pagination";
 
@@ -47,27 +49,29 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<PostCardData[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchPosts() {
       setLoading(true);
+      setLoadError("");
 
       try {
         const [countResponse, postsResponse] = await Promise.all([
-          db.from("post").select("_id", { count: "exact" }),
+          db.from("post").select("_id", { count: "exact" }).eq("status", "PUBLISHED").limit(1),
           db.from("post")
             .select("*")
+            .eq("status", "PUBLISHED")
             .order("created_at", { ascending: false })
+            .order("_id")
             .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
         ]);
 
         if (cancelled) return;
         if (countResponse.error || postsResponse.error) {
-          setPosts([]);
-          setTotalPages(1);
-          return;
+          throw new Error(countResponse.error?.message || postsResponse.error?.message || "Failed to load posts.");
         }
 
         const rows = (postsResponse.data as PostRow[]) || [];
@@ -75,35 +79,18 @@ export default function CommunityPage() {
         setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
 
         const authorIds = [...new Set(rows.map((post) => post.author_id))];
-        const authorMap: Record<string, Author> = {};
-
-        await Promise.all(
-          authorIds.map(async (uid) => {
-            const { data: profile } = await db
-              .from("user_profile")
-              .select("cloudbase_uid, name, avatar")
-              .eq("cloudbase_uid", uid)
-              .single();
-
-            authorMap[uid] = profile
-              ? {
-                  id: uid,
-                  name: (profile as any).name,
-                  avatar: (profile as any).avatar,
-                }
-              : { id: uid, name: "Unknown", avatar: null };
-          }),
-        );
+        const authorMap: Record<string, Author> = await fetchPublicProfiles(authorIds);
 
         const postIds = rows.map((post) => post._id);
         const commentCountMap: Record<string, number> = {};
 
         if (postIds.length > 0) {
-          const { data: commentRows } = await db
+          const commentRows = await queryAllPages<{ target_id: string }>(() => db
             .from("comment")
             .select("target_id")
             .eq("target_type", "POST")
-            .in("target_id", postIds);
+            .in("target_id", postIds)
+            .order("_id"));
 
           for (const comment of ((commentRows as { target_id: string }[]) || [])) {
             commentCountMap[comment.target_id] =
@@ -132,6 +119,7 @@ export default function CommunityPage() {
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to fetch posts:", error);
+          setLoadError(error instanceof Error ? error.message : "Failed to load posts.");
           setPosts([]);
           setTotalPages(1);
         }
@@ -167,12 +155,13 @@ export default function CommunityPage() {
           New Post
         </Link>
       </div>
+      {loadError ? <p role="alert" className="py-8 text-red-500">{loadError}</p> : null}
       <div className="flex flex-col gap-4">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
       </div>
-      {posts.length === 0 ? (
+      {!loadError && posts.length === 0 ? (
         <p className="py-20 text-center text-[var(--color-text-secondary)]">No posts yet.</p>
       ) : null}
       <Pagination currentPage={page} totalPages={totalPages} basePath="/community" />

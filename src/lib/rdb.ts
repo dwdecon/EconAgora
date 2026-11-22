@@ -41,7 +41,7 @@ export interface QueryResult<T = any> {
 }
 
 type AuthorizationToken = string | (() => string | Promise<string>);
-const GET_RETRY_DELAYS_MS = [1500, 3000, 6000];
+const GET_RETRY_DELAYS_MS = [200, 500];
 const TRANSIENT_HTTP_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
 function sleep(ms: number) {
@@ -74,11 +74,15 @@ function serializeFilter({ operator, value }: Filter): string {
       return `like.%${JSON.stringify(value)}%`;
     }
     case "ilike":
-      // CloudBase MySQL does not support ILike; fall back to LIKE.
-      return `like.${stringifyValue(value)}`;
+      return `ilike.${stringifyValue(value)}`;
     case "in": {
       const values = Array.isArray(value) ? value : [value];
-      return `in.(${values.map((item) => stringifyValue(item)).join(",")})`;
+      return `in.(${values.map((item) => {
+        const text = stringifyValue(item);
+        return /[,()"\\\s]/.test(text)
+          ? `"${text.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+          : text;
+      }).join(",")})`;
     }
     default:
       return `${operator}.${stringifyValue(value)}`;
@@ -294,8 +298,9 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
       };
     }
 
+    const sameOrigin = this.baseUrl.startsWith("/") && !this.baseUrl.startsWith("//");
     const authorizationToken = await this.resolveAuthorizationToken();
-    if (!authorizationToken) {
+    if (!authorizationToken && !sameOrigin) {
       return {
         count: null,
         data: (this.singleResult ? null : []) as TData,
@@ -303,7 +308,7 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
       };
     }
 
-    const url = new URL(`${this.baseUrl}/${this.table}`);
+    const url = new URL(`${this.baseUrl.replace(/\/$/, "")}/${this.table}`, sameOrigin ? "http://same-origin.invalid" : undefined);
     const shouldSelect = this.method === "GET" || this.returnRepresentation;
 
     if (shouldSelect) {
@@ -341,9 +346,9 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
     }
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${authorizationToken}`,
       "Content-Type": "application/json",
     };
+    if (authorizationToken) headers.Authorization = `Bearer ${authorizationToken}`;
     if (preferDirectives.length > 0) {
       headers.Prefer = preferDirectives.join(",");
     }
@@ -353,10 +358,12 @@ export class RdbQueryBuilder<TData = any> implements PromiseLike<QueryResult<TDa
 
     for (let attempt = 0; attempt <= GET_RETRY_DELAYS_MS.length; attempt += 1) {
       try {
-        const response = await fetch(url.toString(), {
+        const response = await fetch(sameOrigin ? `${url.pathname}${url.search}` : url.toString(), {
           method: this.method,
           headers,
           body: this.body !== null ? JSON.stringify(this.body) : undefined,
+          credentials: sameOrigin ? "same-origin" : undefined,
+          signal: AbortSignal.timeout(10_000),
         });
 
         const text = await response.text();

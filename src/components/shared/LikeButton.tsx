@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 import { Heart } from "lucide-react";
 
 type TargetType = "PROMPT" | "POST" | "SKILL";
@@ -25,8 +25,8 @@ export default function LikeButton({
   const [likeCount, setLikeCount] = useState(initialCount);
 
   async function handleToggle() {
-    const accessToken = await getSessionAccessToken();
-    if (!accessToken) {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
       const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
       window.location.href = `/auth/login?callbackUrl=${callbackUrl}`;
       return;
@@ -45,7 +45,6 @@ export default function LikeButton({
     const response = await fetch("/api/likes/toggle", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ targetType, targetId }),

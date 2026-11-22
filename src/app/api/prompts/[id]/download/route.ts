@@ -39,7 +39,7 @@ export async function GET(
     return new NextResponse(fileContent, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": `attachment; filename="${filename.replace(/[^\x20-\x7e]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
         "Content-Length": Buffer.byteLength(fileContent).toString(),
       },
     });

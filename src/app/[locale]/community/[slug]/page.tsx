@@ -6,6 +6,8 @@ import { useRouter } from "@/i18n/navigation";
 import { getShowcaseArticle } from "@/components/landing/content";
 import { db, getSessionUser } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
+import { queryAllPages } from "@/lib/rdb-pagination";
+import { fetchPublicProfiles } from "@/lib/public-profiles";
 import CommentSection from "@/components/shared/CommentSection";
 import LikeButton from "@/components/shared/LikeButton";
 import TagBadge from "@/components/shared/TagBadge";
@@ -75,18 +77,21 @@ function DbPostDetail({ id }: { id: string }) {
   const [liked, setLiked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchData() {
       setLoading(true);
+      setLoadError("");
 
       try {
         const { data: postData, error: postError } = await db
           .from("post")
           .select("*")
           .eq("_id", id)
+          .eq("status", "PUBLISHED")
           .single();
 
         if (cancelled) return;
@@ -141,12 +146,13 @@ function DbPostDetail({ id }: { id: string }) {
           setLiked(false);
         }
 
-        const { data: commentRows } = await db
+        const commentRows = await queryAllPages(() => db
           .from("comment")
           .select("*")
           .eq("target_type", "POST")
           .eq("target_id", id)
-          .order("created_at", { ascending: true });
+          .order("created_at", { ascending: true })
+          .order("_id"));
 
         const rows = (commentRows as any[]) || [];
         if (rows.length === 0) {
@@ -155,21 +161,7 @@ function DbPostDetail({ id }: { id: string }) {
         }
 
         const authorIds = [...new Set(rows.map((c) => c.author_id))];
-        const authorMap: Record<string, Author> = {};
-
-        await Promise.all(
-          authorIds.map(async (uid) => {
-            const { data } = await db
-              .from("user_profile")
-              .select("cloudbase_uid, name, avatar")
-              .eq("cloudbase_uid", uid)
-              .single();
-
-            authorMap[uid] = data
-              ? { id: (data as any).cloudbase_uid, name: (data as any).name, avatar: (data as any).avatar }
-              : { id: uid, name: "Unknown", avatar: null };
-          }),
-        );
+        const authorMap: Record<string, Author> = await fetchPublicProfiles(authorIds);
 
         if (cancelled) return;
 
@@ -198,7 +190,10 @@ function DbPostDetail({ id }: { id: string }) {
 
         setComments(rootComments);
       } catch (error) {
-        if (!cancelled) console.error("Failed to fetch post detail:", error);
+        if (!cancelled) {
+          console.error("Failed to fetch post detail:", error);
+          setLoadError(error instanceof Error ? error.message : "Failed to load comments.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -215,6 +210,8 @@ function DbPostDetail({ id }: { id: string }) {
       </ArticleLayout>
     );
   }
+
+  if (loadError) return <ArticleLayout><p role="alert" className="py-20 text-red-500">{loadError}</p></ArticleLayout>;
 
   if (!post) {
     return (

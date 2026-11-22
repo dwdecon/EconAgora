@@ -7,6 +7,7 @@ import {
 } from "@/lib/cloudbase-server-auth";
 import { createId, toSqlTimestamp } from "@/lib/rdb-utils";
 import { serverDb } from "@/lib/rdb-server";
+import { rateLimit, readJsonBody } from "@/lib/request-security";
 
 type TargetType = "POST" | "PROMPT";
 
@@ -17,13 +18,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const parsed = await readJsonBody(request, 64 * 1024);
+    if ("response" in parsed) return parsed.response;
+    const { body } = parsed;
     const targetType = normalizeTargetType(body?.targetType);
     const targetId = typeof body?.targetId === "string" ? body.targetId.trim() : "";
     const parentId = typeof body?.parentId === "string" && body.parentId.trim()
       ? body.parentId.trim()
       : null;
     const content = typeof body?.content === "string" ? body.content.trim() : "";
+
+    if (content.length > 10_000 || targetId.length > 512 || (parentId?.length ?? 0) > 512) {
+      return badRequest("Invalid or oversized comment fields.");
+    }
 
     if (!targetType) {
       return badRequest("Invalid comment target type.");
@@ -36,6 +43,8 @@ export async function POST(request: NextRequest) {
     if (!content) {
       return badRequest("Comment content is required.");
     }
+    const limited = rateLimit(`comment:${auth.user.id}`, 20, 60_000);
+    if (limited) return limited;
 
     const targetValidation = await validateCommentTarget(targetType, targetId);
     if (targetValidation.error) {

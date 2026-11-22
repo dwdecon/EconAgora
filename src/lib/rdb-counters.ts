@@ -2,6 +2,9 @@ import { serverDb } from "@/lib/rdb-server";
 import { toSqlTimestamp } from "@/lib/rdb-utils";
 
 const MAX_COUNTER_RETRIES = 8;
+const MAX_LIKE_SYNC_TARGETS = 1024;
+const MAX_LIKE_SYNCS_PER_TARGET = 64;
+const likeSyncQueues = new Map<string, { tail: Promise<void>; pending: number }>();
 
 type CounterResult = {
   error: { message: string; raw?: unknown } | null;
@@ -155,19 +158,40 @@ export async function syncLikeCount(
   targetId: string,
   targetType: "POST" | "PROMPT" | "SKILL" | "TOOL",
 ): Promise<CounterResult> {
-  const result = await serverDb
-    .from("user_like")
-    .select("_id", { count: "exact" })
-    .eq("target_type", targetType)
-    .eq("target_id", targetId)
-    .limit(1);
-
-  if (result.error) {
+  const key = JSON.stringify([table, targetId]);
+  let queue = likeSyncQueues.get(key);
+  if ((!queue && likeSyncQueues.size >= MAX_LIKE_SYNC_TARGETS) ||
+      (queue && queue.pending >= MAX_LIKE_SYNCS_PER_TARGET)) {
     return {
       value: null,
-      error: result.error,
+      error: { message: "Like counter synchronization is busy. Please try again later." },
     };
   }
+  if (!queue) {
+    queue = { tail: Promise.resolve(), pending: 0 };
+    likeSyncQueues.set(key, queue);
+  }
+  const previous = queue.tail;
+  let release!: () => void;
+  queue.tail = new Promise<void>((resolve) => { release = resolve; });
+  queue.pending++;
 
-  return setNumericCounter(table, targetId, "like_count", result.count ?? 0);
+  // Keep COUNT and the completed CAS write together. Serializing only the write
+  // would still allow an old count to overwrite a newer aggregate.
+  try {
+    await previous;
+    const result = await serverDb
+      .from("user_like")
+      .select("_id", { count: "exact" })
+      .eq("target_type", targetType)
+      .eq("target_id", targetId)
+      .limit(1);
+
+    if (result.error) return { value: null, error: result.error };
+    return await setNumericCounter(table, targetId, "like_count", result.count ?? 0);
+  } finally {
+    queue.pending--;
+    release();
+    if (queue.pending === 0) likeSyncQueues.delete(key);
+  }
 }

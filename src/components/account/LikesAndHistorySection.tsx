@@ -313,21 +313,24 @@ async function fetchLikedItems(userId: string): Promise<LikedItem[]> {
           .from("prompt")
           .select("_id,title,category")
           .in("_id", byType.PROMPT)
+          .limit(50)
       : Promise.resolve({ data: [] }),
     byType.POST.length
-      ? db.from("post").select("_id,title").in("_id", byType.POST)
+      ? db.from("post").select("_id,title").eq("status", "PUBLISHED").in("_id", byType.POST).limit(50)
       : Promise.resolve({ data: [] }),
     byType.SKILL.length
       ? db
           .from("skill")
           .select("_id,title,category")
           .in("_id", byType.SKILL)
+          .limit(50)
       : Promise.resolve({ data: [] }),
     byType.TOOL.length
       ? db
           .from("tool")
           .select("_id,title,category")
           .in("_id", byType.TOOL)
+          .limit(50)
       : Promise.resolve({ data: [] }),
   ]);
 

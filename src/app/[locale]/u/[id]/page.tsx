@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
 import { db } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
+import { queryAllPages } from "@/lib/rdb-pagination";
 import PromptCard from "@/components/prompts/PromptCard";
 import PostCard from "@/components/community/PostCard";
 
@@ -54,8 +55,10 @@ export default function UserProfilePage() {
     let cancelled = false;
 
     async function fetchProfile() {
+      setLoading(true);
+      setError(null);
       try {
-        const [userRes, promptsRes, postsRes] = await Promise.all([
+        const [userRes, promptsRes, loadedPosts] = await Promise.all([
           db.from("user_profile").select("*").eq("cloudbase_uid", id).single(),
           db
             .from("prompt")
@@ -64,11 +67,13 @@ export default function UserProfilePage() {
             .eq("status", "PUBLISHED")
             .order("created_at", { ascending: false })
             .limit(6),
-          db
+          queryAllPages<Post>(() => db
             .from("post")
             .select("*")
             .eq("author_id", id)
-            .order("created_at", { ascending: false }),
+            .eq("status", "PUBLISHED")
+            .order("created_at", { ascending: false })
+            .order("_id")),
         ]);
 
         if (cancelled) return;
@@ -77,16 +82,22 @@ export default function UserProfilePage() {
           return;
         }
 
-        const loadedPosts = (postsRes.data as Post[]) || [];
+        if (promptsRes.error) throw new Error(promptsRes.error.message);
         const postIds = loadedPosts.map((post) => post._id);
         const counts: Record<string, number> = {};
+        let commentTotal = 0;
 
-        if (postIds.length > 0) {
-          const { data: commentRows } = await db
+        for (let offset = 0; offset < postIds.length; offset += 100) {
+          const batchIds = postIds.slice(offset, offset + 100);
+          const commentRows = await queryAllPages<{ target_id: string }>(() => db
             .from("comment")
             .select("target_id")
             .eq("target_type", "POST")
-            .in("target_id", postIds);
+            .in("target_id", batchIds)
+            .order("_id"), { maxRows: Math.max(1, 10_000 - commentTotal) });
+
+          commentTotal += commentRows.length;
+          if (commentTotal > 10_000) throw new Error("The comment result exceeds the 10000-row limit.");
 
           for (const row of ((commentRows as { target_id: string }[]) || [])) {
             counts[row.target_id] = (counts[row.target_id] || 0) + 1;

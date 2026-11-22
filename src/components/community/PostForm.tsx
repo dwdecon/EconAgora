@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 export default function PostForm() {
   const router = useRouter();
@@ -25,8 +25,8 @@ export default function PostForm() {
             .map((item) => item.trim())
             .filter(Boolean)
         : [];
-      const accessToken = await getSessionAccessToken();
-      if (!accessToken) {
+      const sessionUser = await getSessionUser();
+      if (!sessionUser) {
         alert("Please sign in first.");
         router.push("/auth/login");
         return;
@@ -35,7 +35,6 @@ export default function PostForm() {
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

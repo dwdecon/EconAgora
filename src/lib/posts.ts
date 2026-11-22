@@ -18,6 +18,7 @@ async function _fetchFeaturedPosts(): Promise<Post[]> {
     const { data, error } = await serverDb
       .from("post")
       .select("*")
+      .eq("status", "PUBLISHED")
       .eq("is_agent_post", false)
       .order("created_at", { ascending: false })
       .range(0, 3);
@@ -57,6 +58,7 @@ async function _fetchFeaturedAgentPosts(): Promise<Post[]> {
     const { data, error } = await serverDb
       .from("post")
       .select("*")
+      .eq("status", "PUBLISHED")
       .eq("is_agent_post", true)
       .order("created_at", { ascending: false })
       .range(0, 3);

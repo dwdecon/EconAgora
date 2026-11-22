@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { getSessionAccessToken } from "@/lib/cloudbase";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -95,11 +94,8 @@ export function usePageAgent(options?: {
       const controller = new PageController({ enableMask: true });
 
       const customFetch: typeof globalThis.fetch = async (input, init) => {
-        const token = await getSessionAccessToken();
         const headers = new Headers((init?.headers as HeadersInit | undefined) ?? {});
-        if (token) {
-          headers.set("Authorization", `Bearer ${token}`);
-        }
+        headers.delete("Authorization");
 
         const combinedSignal = AbortSignal.any(
           [init?.signal, abortRef.current?.signal].filter(Boolean) as AbortSignal[],
@@ -109,6 +105,7 @@ export function usePageAgent(options?: {
           const response = await globalThis.fetch(input, {
             ...init,
             headers,
+            credentials: "same-origin",
             signal: combinedSignal,
           });
 

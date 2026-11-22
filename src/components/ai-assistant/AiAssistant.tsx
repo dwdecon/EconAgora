@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import FloatingStar from "./FloatingStar";
 import GlassBar from "./GlassBar";
 import { usePageAgent } from "./usePageAgent";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 const AUTH_KEY = "econagora-agent-logged-in";
 
@@ -30,8 +30,8 @@ export default function AiAssistant() {
       setAuthState("yes");
     }
 
-    getSessionAccessToken().then((token) => {
-      const loggedIn = !!token;
+    getSessionUser().then((user) => {
+      const loggedIn = !!user;
       setAuthState(loggedIn ? "yes" : "no");
       sessionStorage.setItem(AUTH_KEY, loggedIn ? "1" : "0");
     });

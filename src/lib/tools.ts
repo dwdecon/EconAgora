@@ -190,7 +190,7 @@ export async function fetchTools(params: {
           author:
             authorMap[tool.author_id] ?? {
               id: tool.author_id,
-              name: "Unknown",
+              name: tool.author_name ?? "Unknown",
               avatar: null,
             },
           createdAt: tool.created_at,
@@ -245,7 +245,7 @@ async function _fetchFeaturedTools(): Promise<Tool[]> {
           author:
             authorMap[row.author_id] ?? {
               id: row.author_id,
-              name: "Unknown",
+              name: row.author_name ?? "Unknown",
               avatar: null,
             },
           createdAt: row.created_at,
@@ -297,7 +297,7 @@ export async function fetchToolById(id: string): Promise<Tool | null> {
       author:
         authorMap[row.author_id] ?? {
           id: row.author_id,
-          name: "Unknown",
+          name: row.author_name ?? "Unknown",
           avatar: null,
         },
       createdAt: row.created_at,
@@ -358,7 +358,7 @@ export async function fetchRelatedTools(
             author:
               authorMap[row.author_id] ?? {
                 id: row.author_id,
-                name: "Unknown",
+                name: row.author_name ?? "Unknown",
                 avatar: null,
               },
             createdAt: row.created_at,
@@ -390,7 +390,7 @@ export async function fetchRelatedTools(
           author:
             authorMap[row.author_id] ?? {
               id: row.author_id,
-              name: "Unknown",
+              name: row.author_name ?? "Unknown",
               avatar: null,
             },
           createdAt: row.created_at,

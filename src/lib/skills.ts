@@ -211,7 +211,7 @@ export async function fetchSkills(params: {
               ? { id: "meleantonio", name: "meleantonio", avatar: null }
               : authorMap[skill.author_id] ?? {
                   id: skill.author_id,
-                  name: "Unknown",
+                  name: skill.author_name ?? "Unknown",
                   avatar: null,
                 },
           createdAt: skill.created_at,
@@ -279,7 +279,7 @@ async function _fetchFeaturedSkills(): Promise<Skill[]> {
               ? { id: "meleantonio", name: "meleantonio", avatar: null }
               : authorMap[row.author_id] ?? {
                   id: row.author_id,
-                  name: "Unknown",
+                  name: row.author_name ?? "Unknown",
                   avatar: null,
                 },
           createdAt: row.created_at,
@@ -320,7 +320,7 @@ export async function fetchSkillById(id: string): Promise<Skill | null> {
       ? { id: "meleantonio", name: "meleantonio", avatar: null }
       : authorMap[row.author_id] ?? {
           id: row.author_id,
-          name: "Unknown",
+          name: row.author_name ?? "Unknown",
           avatar: null,
         };
 
@@ -418,7 +418,7 @@ export async function fetchRelatedSkills(
                 ? { id: "meleantonio", name: "meleantonio", avatar: null }
                 : authorMap[row.author_id] ?? {
                     id: row.author_id,
-                    name: "Unknown",
+                    name: row.author_name ?? "Unknown",
                     avatar: null,
                   },
             createdAt: row.created_at,
@@ -462,7 +462,7 @@ export async function fetchRelatedSkills(
               ? { id: "meleantonio", name: "meleantonio", avatar: null }
               : authorMap[row.author_id] ?? {
                   id: row.author_id,
-                  name: "Unknown",
+                  name: row.author_name ?? "Unknown",
                   avatar: null,
                 },
           createdAt: row.created_at,

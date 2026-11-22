@@ -9,7 +9,10 @@ export async function POST(
   try {
     const { id: idParts } = await params;
 
-    if (idParts.length < 2) {
+    if (!Array.isArray(idParts) || idParts.length < 2 || idParts.length > 8 ||
+      idParts.some((part) => typeof part !== "string" ||
+        !/^[\p{L}\p{N}][\p{L}\p{N}._-]{0,127}$/u.test(part)) ||
+      idParts.join("/").length > 512) {
       return NextResponse.json({ error: "Invalid skill path." }, { status: 400 });
     }
 

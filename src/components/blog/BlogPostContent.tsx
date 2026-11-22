@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
-import "highlight.js/styles/base16/github.css";
+import "@/styles/highlight-github.css";
 
 interface BlogPostContentProps {
   content: string;

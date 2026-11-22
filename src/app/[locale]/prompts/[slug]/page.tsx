@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { getShowcaseArticle } from "@/components/landing/content";
 import { db, getSessionUser } from "@/lib/cloudbase";
 import { normalizeTags } from "@/lib/rdb-utils";
+import { queryAllPages } from "@/lib/rdb-pagination";
+import { fetchPublicProfiles } from "@/lib/public-profiles";
 import TagBadge from "@/components/shared/TagBadge";
 import ArticleLayout from "@/components/shared/ArticleLayout";
 import PromptDetailLayout from "@/components/prompts/PromptDetailLayout";
@@ -67,6 +69,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +77,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
     async function fetchData() {
       setLoading(true);
       setMissing(false);
+      setLoadError("");
 
       try {
         const { data: promptData, error: promptError } = await db
@@ -105,7 +109,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
             }
           : {
               id: (promptData as any).author_id,
-              name: "Public Resource",
+              name: (promptData as any).author_name ?? "Public Resource",
               avatar: null,
             };
 
@@ -141,12 +145,13 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
           setLiked(false);
         }
 
-        const { data: commentRows } = await db
+        const commentRows = await queryAllPages(() => db
           .from("comment")
           .select("*")
           .eq("target_type", "PROMPT")
           .eq("target_id", id)
-          .order("created_at", { ascending: true });
+          .order("created_at", { ascending: true })
+          .order("_id"));
 
         const commentList = (commentRows as any[]) || [];
         if (commentList.length === 0) {
@@ -157,25 +162,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
         const authorIds = Array.from(
           new Set(commentList.map((c) => String(c.author_id))),
         );
-        const authorMap: Record<
-          string,
-          { id: string; name: string; avatar: string | null }
-        > = {};
-
-        if (authorIds.length > 0) {
-          const { data: profiles } = await db
-            .from("user_profile")
-            .select("cloudbase_uid, name, avatar")
-            .in("cloudbase_uid", authorIds);
-
-          for (const p of (profiles as any[]) || []) {
-            authorMap[p.cloudbase_uid] = {
-              id: p.cloudbase_uid,
-              name: p.name,
-              avatar: p.avatar,
-            };
-          }
-        }
+        const authorMap = await fetchPublicProfiles(authorIds);
 
         if (cancelled) return;
 
@@ -191,7 +178,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
             user_id: c.author_id,
             author: authorMap[c.author_id] ?? {
               id: c.author_id,
-              name: "Public Resource",
+              name: (promptData as any).author_name ?? "Public Resource",
               avatar: null,
             },
             replies: [],
@@ -210,7 +197,7 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to fetch prompt:", error);
-          setMissing(true);
+          setLoadError(error instanceof Error ? error.message : "Failed to load comments.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -231,6 +218,8 @@ function DbPromptDetail({ id, locale }: { id: string; locale: string }) {
       </ArticleLayout>
     );
   }
+
+  if (loadError) return <ArticleLayout><p role="alert" className="py-20 text-red-500">{loadError}</p></ArticleLayout>;
 
   if (missing || !prompt) {
     return (

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { useLocale } from "next-intl";
-import { getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 interface Profile {
   name: string;
@@ -76,8 +76,8 @@ export default function AccountForm({ profile: initialProfile, email }: AccountF
     setError("");
 
     try {
-      const accessToken = await getSessionAccessToken();
-      if (!accessToken) {
+      const sessionUser = await getSessionUser();
+      if (!sessionUser) {
         setError("Not authenticated.");
         return;
       }
@@ -87,7 +87,7 @@ export default function AccountForm({ profile: initialProfile, email }: AccountF
 
       const res = await fetch("/api/profile/avatar", {
         method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
+
         body: formData,
       });
 
@@ -112,8 +112,8 @@ export default function AccountForm({ profile: initialProfile, email }: AccountF
     setSaved(false);
 
     try {
-      const accessToken = await getSessionAccessToken();
-      if (!accessToken) {
+      const sessionUser = await getSessionUser();
+      if (!sessionUser) {
         setError("Not authenticated.");
         return;
       }
@@ -121,7 +121,6 @@ export default function AccountForm({ profile: initialProfile, email }: AccountF
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

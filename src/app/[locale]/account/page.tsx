@@ -8,7 +8,7 @@ import AccountForm from "@/components/account/AccountForm";
 import SecuritySection from "@/components/account/SecuritySection";
 import MyContentSection from "@/components/account/MyContentSection";
 import LikesAndHistorySection from "@/components/account/LikesAndHistorySection";
-import { auth, getSessionAccessToken } from "@/lib/cloudbase";
+import { getSessionUser } from "@/lib/cloudbase";
 
 interface Profile {
   name: string;
@@ -46,36 +46,17 @@ export default function AccountPage() {
 
     async function loadUser() {
       try {
-        // Timeout after 10s
-        const timeout = new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 10000)
-        );
-
-        const accessToken = await Promise.race([
-          getSessionAccessToken(),
-          timeout,
-        ]).catch(() => null);
-
+        const user = await getSessionUser();
         if (cancelled) return;
-
-        if (!accessToken) {
-          router.replace("/auth/login");
-          return;
-        }
-
-        const { data: userData } = await auth.getUser();
-        const user = userData?.user;
         if (!user) {
-          router.replace("/auth/login");
+          router.replace("/" + locale + "/auth/login");
           return;
         }
 
         if (cancelled) return;
         setUserId(user.id);
 
-        const res = await fetch("/api/profile", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const res = await fetch("/api/profile", { cache: "no-store" });
 
         if (cancelled) return;
 
@@ -83,22 +64,27 @@ export default function AccountPage() {
           const { profile: p } = await res.json();
           setProfile({
             ...p,
-            name: p.name || user.user_metadata?.nickname || user.email?.split("@")[0] || "User",
+            name: p?.name || user.displayName || user.email?.split("@")[0] || "User",
+            avatar: p?.avatar ?? null,
+            affiliation: p?.affiliation ?? "",
+            bio: p?.bio ?? "",
+            locale: p?.locale ?? locale,
+            email: user.email ?? null,
           });
         } else {
           setProfile({
-            name: user.user_metadata?.nickname || user.email?.split("@")[0] || "User",
+            name: user.displayName || user.email?.split("@")[0] || "User",
             avatar: null,
             affiliation: "",
             bio: "",
             locale: locale,
-            email: user.email,
+            email: user.email ?? null,
           });
         }
       } catch (e) {
         console.error("Account page load error:", e);
         if (!cancelled) {
-          router.replace("/auth/login");
+          router.replace("/" + locale + "/auth/login");
           return;
         }
       }
@@ -162,7 +148,7 @@ export default function AccountPage() {
         <AccountForm profile={profile} email={profile.email} />
       )}
       {activeTab === "security" && profile && (
-        <SecuritySection email={profile.email} />
+        <SecuritySection email={profile.email} onEmailChanged={(email) => setProfile((current) => current ? { ...current, email } : current)} />
       )}
       {activeTab === "content" && userId && (
         <div className="flex flex-col gap-8">
